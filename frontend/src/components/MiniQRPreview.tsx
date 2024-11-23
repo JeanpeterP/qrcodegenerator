@@ -97,7 +97,7 @@ const MiniPreviewContainer = styled.div<{ frame: string; shape: string; frameCol
     &::before {
       content: "Scan Me";
       position: absolute;
-      top: -25px;
+      top: -28px;
       left: 50%;
       transform: translateX(-50%);
       background: ${props.frameColor};
@@ -108,17 +108,19 @@ const MiniPreviewContainer = styled.div<{ frame: string; shape: string; frameCol
       white-space: nowrap;
       font-weight: bold;
       box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+      z-index: 2;
     }
 
     &::after {
       content: "";
       position: absolute;
-      top: -8px;
+      top: -14px;
       left: 50%;
       transform: translateX(-50%);
-      border-left: 5px solid transparent;
-      border-right: 5px solid transparent;
-      border-top: 8px solid ${props.frameColor};
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-top: 10px solid ${props.frameColor};
+      z-index: 1;
     }
   `}
 

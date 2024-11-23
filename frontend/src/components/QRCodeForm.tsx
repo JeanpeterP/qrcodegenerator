@@ -48,6 +48,13 @@ interface QRData {
     image: {
         url: string;
     };
+    file: {
+        fileData: File | null;
+        title: string;
+        description: string;
+        buttonText: string;
+        buttonColor: string;
+    };
 }
 
 interface QRCodeFormProps {
@@ -57,9 +64,10 @@ interface QRCodeFormProps {
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
         nestedKey?: keyof QRData | null
     ) => void;
+    placeholder: string;
 }
 
-export const QRCodeForm: React.FC<QRCodeFormProps> = ({ qrType, qrData, handleInputChange }) => {
+export const QRCodeForm: React.FC<QRCodeFormProps> = ({ qrType, qrData, handleInputChange, placeholder }) => {
     return (
         <FormContainer>
             {(() => {
@@ -71,7 +79,7 @@ export const QRCodeForm: React.FC<QRCodeFormProps> = ({ qrType, qrData, handleIn
                                 name="url"
                                 value={qrData.url}
                                 onChange={handleInputChange}
-                                placeholder="Enter URL"
+                                placeholder={placeholder}
                             />
                         );
                     case "email":
@@ -278,6 +286,56 @@ export const QRCodeForm: React.FC<QRCodeFormProps> = ({ qrType, qrData, handleIn
                                 placeholder="Image URL"
                             />
                         );
+                    case "file":
+                        return (
+                            <FormGroup>
+                                <FileUploadLabel>Upload File</FileUploadLabel>
+                                <FileInput
+                                    type="file"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                            handleInputChange({
+                                                target: {
+                                                    value: file,
+                                                    name: 'fileData'
+                                                }
+                                            } as any, 'file');
+                                        }
+                                    }}
+                                />
+                                <Input
+                                    type="text"
+                                    placeholder="Title"
+                                    value={qrData.file.title}
+                                    onChange={(e) => handleInputChange(e, 'file')}
+                                    name="title"
+                                    required
+                                />
+                                <TextArea
+                                    placeholder="Description"
+                                    value={qrData.file.description}
+                                    onChange={(e) => handleInputChange(e, 'file')}
+                                    name="description"
+                                />
+                                <Input
+                                    type="text"
+                                    placeholder="Button Text"
+                                    value={qrData.file.buttonText}
+                                    onChange={(e) => handleInputChange(e, 'file')}
+                                    name="buttonText"
+                                />
+                                <ColorPickerLabel>
+                                    Button Color:
+                                    <ColorPicker
+                                        type="color"
+                                        value={qrData.file.buttonColor}
+                                        onChange={(e) => handleInputChange(e, 'file')}
+                                        name="buttonColor"
+                                    />
+                                </ColorPickerLabel>
+                            </FormGroup>
+                        );
                     default:
                         return null;
                 }
@@ -359,5 +417,39 @@ const Select = styled.select`
         box-shadow: 0 0 10px rgba(255, 99, 32, 0.5);
         outline: none;
     }
+`;
+
+// Styled Components for File Upload
+const FormGroup = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+`;
+
+const FileUploadLabel = styled.label`
+    display: block;
+    margin-bottom: 10px;
+    font-weight: bold;
+`;
+
+const FileInput = styled.input`
+    margin-top: 5px;
+`;
+
+const ColorPickerLabel = styled.label`
+    display: flex;
+    align-items: center;
+    font-size: 0.8rem;
+    margin-top: 10px;
+`;
+
+const ColorPicker = styled.input`
+    margin-left: 0.5rem;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
 `;
   

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title><%= title %></title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 50px;
+      text-align: center;
+      background-color: #f4f4f4;
+    }
+    h1 {
+      color: #333;
+    }
+    p {
+      color: #555;
+      font-size: 1.1em;
+    }
+    .download-button {
+      background-color: <%= buttonColor %>;
+      color: #fff;
+      padding: 15px 30px;
+      font-size: 18px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 20px;
+    }
+    .download-button:hover {
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <h1><%= title %></h1>
+  <p><%= description %></p>
+
+  <!-- Display the buttonColor value for debugging -->
+  <p>Button Color: <%= buttonColor %></p>
+
+  <a href="<%= fileUrl %>" class="download-button" download="<%= originalFileName %>">
+    <%= buttonText %>
+  </a>
+</body>
+</html>
