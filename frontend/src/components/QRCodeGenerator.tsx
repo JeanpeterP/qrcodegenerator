@@ -179,7 +179,14 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         },
         multiplink: { title: "", links: [] },
         contentType: '',
-        contentData: {},
+        contentData: {
+            title: '',
+            links: [
+                { label: '', url: '' }, // Required first link
+                { label: '', url: '' }, // Default second link
+                { label: '', url: '' }, // Default third link
+            ]
+        },
         youtube: {
             url: ""  // Changed from title and videoId to just url
         },
@@ -327,27 +334,30 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                 return qrData.image.url;
             case "multiplink":
                 try {
-                    const response = await fetch(`${getBackendUrl()}/api/upload/multiplink`, {
+                    const response = await fetch(`${getBackendUrl()}/api/multiplink`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({
-                            title: qrData.contentData.title,
-                            links: qrData.contentData.links,
+                            title: qrData.contentData.title || 'MultiLink',
+                            links: qrData.contentData.links || []
                         }),
                     });
 
-                    const result = await response.json();
+                    if (!response.ok) {
+                        throw new Error('Failed to create multiplink QR code');
+                    }
 
-                    if (!response.ok || !result.success) {
+                    const result = await response.json();
+                    if (!result.success || !result.qrId) {
                         throw new Error(result.message || 'Failed to create multiplink QR code');
                     }
 
                     return `${getBackendUrl()}/qr/${result.qrId}`;
                 } catch (error) {
                     console.error('Error creating multiplink QR code:', error);
-                    return '';
+                    throw error;
                 }
             case "youtube":
                 try {
@@ -386,7 +396,37 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     ) => {
         const { name, value } = e.target;
 
-        if (nestedKey && nestedKey in qrData) {
+        if (nestedKey === 'contentData') {
+            if (name === 'title') {
+                // Handle title change
+                setQRData(prevData => ({
+                    ...prevData,
+                    contentData: {
+                        ...prevData.contentData,
+                        title: value
+                    }
+                }));
+            } else if (index !== null && subKey) {
+                // Handle links array changes
+                setQRData(prevData => {
+                    const newLinks = [...prevData.contentData.links];
+                    if (!newLinks[index]) {
+                        newLinks[index] = { label: '', url: '' };
+                    }
+                    newLinks[index] = {
+                        ...newLinks[index],
+                        [subKey]: value
+                    };
+                    return {
+                        ...prevData,
+                        contentData: {
+                            ...prevData.contentData,
+                            links: newLinks
+                        }
+                    };
+                });
+            }
+        } else if (nestedKey && nestedKey in qrData) {
             setQRData((prevData) => ({
                 ...prevData,
                 [nestedKey as keyof QRData]: {
@@ -394,22 +434,6 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                     [name]: value,
                 },
             }));
-        } else if (nestedKey === 'contentData' && index !== null && subKey) {
-            // Handling array of links for multiplinks
-            setQRData((prevData) => {
-                const links = [...(prevData.contentData.links || [])];
-                links[index] = {
-                    ...links[index],
-                    [subKey]: value,
-                };
-                return {
-                    ...prevData,
-                    contentData: {
-                        ...prevData.contentData,
-                        links,
-                    },
-                };
-            });
         } else {
             setQRData((prevData) => ({
                 ...prevData,
@@ -662,7 +686,14 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                 setQRData({
                     ...qrData,
                     contentType: 'multiplink',
-                    contentData: { links: [] }
+                    contentData: { 
+                        title: '',
+                        links: [
+                            { label: '', url: '' },
+                            { label: '', url: '' },
+                            { label: '', url: '' }
+                        ]
+                    }
                 });
                 break;
             case "youtube":

@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getBackendUrl } from '../utils/constants';
+import styled from 'styled-components';
 
 interface QRCodeData {
   title: string;
   description: string;
-  contentType: 'download' | 'multiplink' | 'youtube';
+  contentType: 'download' | 'multilink' | 'youtube';
   buttonColor?: string;
   buttonText?: string;
   fileUrl?: string;
@@ -24,10 +25,10 @@ const QRPage: React.FC = () => {
 
   useEffect(() => {
     if (!id) return;
-    
+
     const apiUrl = `${getBackendUrl()}/api/qr/${id}`;
     console.log('Fetching QR data from:', apiUrl);
-    
+
     fetch(apiUrl, {
       method: 'GET',
       headers: {
@@ -59,44 +60,157 @@ const QRPage: React.FC = () => {
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
   if (!qrData) return <div>No data found</div>;
-  console.log("QRDATA",qrData);
+  console.log("QRDATA", qrData);
+
   return (
-    <div className="qr-page">
-      <h1>{qrData.title}</h1>
-      <p>{qrData.description}</p>
+    <PageContainer>
+      <ContentWrapper>
+        <Title>{qrData.title}</Title>
+        <Description>{qrData.description}</Description>
 
-      {qrData.contentType === 'download' && (
-        <a 
-          href={qrData.fileUrl} 
-          className="download-button" 
-          download={qrData.originalFileName}
-          style={{ backgroundColor: qrData.buttonColor }}
-        >
-          {qrData.buttonText}
-        </a>
-      )}
+        {/* Download Content Type */}
+        {qrData.contentType === 'download' && qrData.fileUrl && (
+          <>
+            {qrData.originalFileName?.toLowerCase().endsWith('.pdf') ? (
+              <PDFViewer src={qrData.fileUrl} type="application/pdf" />
+            ) : (
+              <DownloadButton
+                href={qrData.fileUrl}
+                download={qrData.originalFileName}
+                style={{ backgroundColor: qrData.buttonColor || '#ff6320' }}
+              >
+                {qrData.buttonText || 'Download File'}
+              </DownloadButton>
+            )}
+          </>
+        )}
 
-      {qrData.contentType === 'multiplink' && qrData.contentData?.links && (
-        <ul className="link-list">
-          {qrData.contentData.links.map((link, index) => (
-            <li key={index}>
-              <a href={link.url}>{link.label}</a>
-            </li>
-          ))}
-        </ul>
-      )}
+        {/* Multilink Content Type */}
+        {qrData.contentType === 'multilink' && qrData.contentData?.links && (
+          <LinkList>
+            {qrData.contentData.links.map((link, index) => {
+              const cleanUrl = link.url
+                .replace(/^(?!https?:\/\/)/, 'https://'); // Ensure URL starts with 'https://'
 
-      {qrData.contentType === 'youtube' && qrData.contentData?.url && (
-        <div className="video-container">
-          <iframe
-            src={qrData.contentData.url.replace('watch?v=', 'embed/')}
-            frameBorder="0"
-            allowFullScreen
-          />
-        </div>
-      )}
-    </div>
+              return (
+                <LinkItem key={index}>
+                  <a href={cleanUrl} target="_blank" rel="noopener noreferrer">
+                    {link.label}
+                  </a>
+                </LinkItem>
+              );
+            })}
+          </LinkList>
+        )}
+
+        {/* YouTube Content Type */}
+        {qrData.contentType === 'youtube' && qrData.contentData?.url && (
+          <VideoContainer>
+            <iframe
+              src={qrData.contentData.url.replace('watch?v=', 'embed/')}
+              frameBorder="0"
+              allowFullScreen
+            />
+          </VideoContainer>
+        )}
+      </ContentWrapper>
+    </PageContainer>
   );
 };
 
-export default QRPage; 
+export default QRPage;
+
+/* Styled Components */
+const PageContainer = styled.div`
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+`;
+
+const ContentWrapper = styled.div`
+  background: white;
+  padding: 40px 30px;
+  border-radius: 12px;
+  box-shadow: 0 15px 25px rgba(0,0,0,0.1);
+  text-align: center;
+  max-width: 600px;
+  width: 100%;
+`;
+
+const Title = styled.h1`
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+  color: #333;
+`;
+
+const Description = styled.p`
+  font-size: 1.2rem;
+  color: #666;
+  margin-bottom: 40px;
+`;
+
+const DownloadButton = styled.a`
+  display: inline-block;
+  background-color: #ff6320;
+  color: white;
+  padding: 15px 30px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 1.2rem;
+  margin-top: 20px;
+
+  &:hover {
+    background-color: #e55a1b;
+  }
+`;
+
+const PDFViewer = styled.embed`
+  width: 100%;
+  height: 600px;
+  border: none;
+  margin-top: 20px;
+`;
+
+const LinkList = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin: 0;
+`;
+
+const LinkItem = styled.li`
+  margin-bottom: 20px;
+
+  a {
+    display: block;
+    padding: 15px;
+    background-color: #ff6320;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    transition: background-color 0.3s;
+
+    &:hover {
+      background-color: #e55a1b;
+    }
+  }
+`;
+
+const VideoContainer = styled.div`
+  position: relative;
+  padding-bottom: 56.25%; /* Aspect ratio for 16:9 */
+  height: 0;
+  overflow: hidden;
+  margin-top: 20px;
+
+  iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+`; 

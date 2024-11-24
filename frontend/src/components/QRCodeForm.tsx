@@ -23,6 +23,17 @@ export const QRCodeForm: React.FC<QRCodeFormProps> = ({ qrType, qrData, handleIn
         return match && match[1] ? match[1] : '';
     };
 
+    // Function to format and handle URL
+    const formatAndHandleUrl = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+        const url = e.target.value;
+        const formattedUrl = url.startsWith('http://') || url.startsWith('https://') 
+            ? url 
+            : `https://${url}`;
+        handleInputChange({
+            target: { name: e.target.name, value: formattedUrl }
+        } as React.ChangeEvent<HTMLInputElement>, 'contentData', index, 'url');
+    };
+
     return (
         <FormContainer>
             {(() => {
@@ -301,25 +312,84 @@ export const QRCodeForm: React.FC<QRCodeFormProps> = ({ qrType, qrData, handleIn
                                     onChange={(e) => handleInputChange(e, 'contentData')}
                                     placeholder="Multiplink Title"
                                 />
-                                {qrData.contentData.links.map((link: any, index: number) => (
-                                    <div key={index}>
+                                {/* First Link - Required */}
+                                <LinkContainer>
+                                    <RequiredLabel>Required</RequiredLabel>
+                                    <Input
+                                        type="text"
+                                        name="linkLabel0"
+                                        value={qrData.contentData.links[0]?.label || ''}
+                                        onChange={(e) => handleInputChange(e, 'contentData', 0, 'label')}
+                                        placeholder="Link 1 Label"
+                                        required
+                                    />
+                                    <Input
+                                        type="url"
+                                        name="linkUrl0"
+                                        value={qrData.contentData.links[0]?.url || ''}
+                                        onChange={(e) => formatAndHandleUrl(e, 0)}
+                                        placeholder="Link 1 URL"
+                                        required
+                                    />
+                                </LinkContainer>
+                                {/* Second Link - Optional */}
+                                <LinkContainer>
+                                    <Input
+                                        type="text"
+                                        name="linkLabel1"
+                                        value={qrData.contentData.links[1]?.label || ''}
+                                        onChange={(e) => handleInputChange(e, 'contentData', 1, 'label')}
+                                        placeholder="Link 2 Label (Optional)"
+                                    />
+                                    <Input
+                                        type="url"
+                                        name="linkUrl1"
+                                        value={qrData.contentData.links[1]?.url || ''}
+                                        onChange={(e) => formatAndHandleUrl(e, 1)}
+                                        placeholder="Link 2 URL (Optional)"
+                                    />
+                                </LinkContainer>
+                                {/* Third Link - Optional */}
+                                <LinkContainer>
+                                    <Input
+                                        type="text"
+                                        name="linkLabel2"
+                                        value={qrData.contentData.links[2]?.label || ''}
+                                        onChange={(e) => handleInputChange(e, 'contentData', 2, 'label')}
+                                        placeholder="Link 3 Label (Optional)"
+                                    />
+                                    <Input
+                                        type="url"
+                                        name="linkUrl2"
+                                        value={qrData.contentData.links[2]?.url || ''}
+                                        onChange={(e) => formatAndHandleUrl(e, 2)}
+                                        placeholder="Link 3 URL (Optional)"
+                                    />
+                                </LinkContainer>
+                                {/* Additional Links */}
+                                {qrData.contentData.links.slice(3).map((link, index) => (
+                                    <LinkContainer key={index + 3}>
                                         <Input
                                             type="text"
-                                            name={`linkLabel${index}`}
+                                            name={`linkLabel${index + 3}`}
                                             value={link.label}
-                                            onChange={(e) => handleInputChange(e, 'contentData', index, 'label')}
-                                            placeholder={`Link ${index + 1} Label`}
+                                            onChange={(e) => handleInputChange(e, 'contentData', index + 3, 'label')}
+                                            placeholder={`Link ${index + 4} Label`}
                                         />
                                         <Input
-                                            type="text"
-                                            name={`linkUrl${index}`}
+                                            type="url"
+                                            name={`linkUrl${index + 3}`}
                                             value={link.url}
-                                            onChange={(e) => handleInputChange(e, 'contentData', index, 'url')}
-                                            placeholder={`Link ${index + 1} URL`}
+                                            onChange={(e) => formatAndHandleUrl(e, index + 3)}
+                                            placeholder={`Link ${index + 4} URL`}
                                         />
-                                    </div>
+                                    </LinkContainer>
                                 ))}
-                                <AddLinkButton onClick={handleAddLink}>Add Another Link</AddLinkButton>
+                                {qrData.contentData.links.length < 10 && (
+                                    <AddLinkButton onClick={handleAddLink}>
+                                        Add Another Link
+                                    </AddLinkButton>
+                                )}
                             </>
                         );
                     case "youtube":
@@ -457,32 +527,49 @@ const ColorPicker = styled.input`
 `;
 
 const AddLinkButton = styled.button`
-    /* Styles for the "Add Another Link" button */
-`;
-
-const StyledInput = styled.input`
-    width: 100%;
-    padding: 12px;
-    margin-top: 5px;
-    margin-bottom: 10px;
+    background: #ff6320;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
     font-size: 16px;
     font-family: "Aspekta 550", Arial, sans-serif;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+    width: 100%;
+
+    &:hover {
+        background: #e55a1d;
+        transform: translateY(-2px);
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+`;
+
+const LinkContainer = styled.div`
+    position: relative;
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 2px solid #eee;
     border-radius: 10px;
-    border: 2px solid #ccc;
-    background-color: #f9f9f9;
-    transition: border-color 0.3s, box-shadow 0.3s;
-    box-sizing: border-box;
-    flex: 1;
+    background: #f9f9f9;
 
-    &:focus {
+    &:first-of-type {
         border-color: #ff6320;
-        box-shadow: 0 0 10px rgba(255, 99, 32, 0.5);
-        outline: none;
+        background: #fff;
     }
+`;
 
-    &:disabled {
-        background-color: #e9e9e9;
-        cursor: not-allowed;
-    }
+const RequiredLabel = styled.span`
+    color: #ff6320;
+    font-size: 12px;
+    position: absolute;
+    top: -10px;
+    right: 10px;
+    background: white;
+    padding: 0 5px;
 `;
   

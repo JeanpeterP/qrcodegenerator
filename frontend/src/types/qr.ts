@@ -21,7 +21,13 @@ export interface QRData {
     };
     multiplink: { title: string; links: Array<{ label: string; url: string }> };
     contentType: string;
-    contentData: any;
+    contentData: {
+        title: string;
+        links: Array<{
+            label: string;
+            url: string;
+        }>;
+    };
     youtube: {
         url: string;  // Changed from title and videoId to just url
     };

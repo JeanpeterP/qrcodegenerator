@@ -31,8 +31,8 @@ export const Preview: React.FC<PreviewProps> = ({ qrCodeInstance, handleDownload
         if (!qrCodeInstance) return;
         
         try {
-            // If it's a file type and hasn't been generated yet, generate first
-            if (qrType === "file" && !generatedUrl) {
+            // If it's a file or multilink type and hasn't been generated yet, generate first
+            if ((qrType === "file" || qrType === "multiplink") && !generatedUrl) {
                 setGenerateQRCode(true);
                 const url = await generateQRCodeData();
                 if (url) {
@@ -266,7 +266,7 @@ export const Preview: React.FC<PreviewProps> = ({ qrCodeInstance, handleDownload
             }
         } catch (error) {
             console.error("Error generating/downloading QR code:", error);
-            alert("Error uploading file. Please try again.");
+            alert("Error generating QR code. Please try again.");
         } finally {
             setGenerateQRCode(false);
         }
