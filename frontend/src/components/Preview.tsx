@@ -24,6 +24,9 @@ export const Preview: React.FC<PreviewProps> = ({ qrCodeInstance, handleDownload
     const handleDownloadClick = async () => {
         if (!qrCodeInstance) return;
         
+        // First trigger QR code generation
+        await handleDownload('png');
+        
         try {
             const qrCodeSvg = await qrCodeInstance.getRawData('svg');
             if (!qrCodeSvg) throw new Error('Failed to generate QR code SVG');

@@ -121,7 +121,8 @@ router.post('/upload', (req, res, next) => {
 
     // Create a new QRCode document
     const qrCode = new QRCode({
-      qrId,
+      _id: qrId,
+      contentType: 'download',
       fileUrl: s3Result.Location,
       originalFileName: file.originalname,
       title: title || 'Download File',
@@ -149,6 +150,55 @@ router.post('/upload', (req, res, next) => {
       error: error.message 
     });
   }
+});
+
+// Route to handle multiplink QR code creation
+router.post('/multiplink', async (req, res) => {
+  const { title, links } = req.body;
+
+  try {
+    const qrId = uuidv4();
+
+    const qrCode = new QRCode({
+      _id: qrId,
+      title,
+      contentType: 'multiplink',
+      contentData: { links },
+    });
+
+    await qrCode.save();
+
+    res.json({ success: true, qrId });
+  } catch (error) {
+    console.error('Error creating multiplink QR Code:', error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+});
+
+// Route to handle YouTube QR code creation
+router.post('/upload/youtube', async (req, res) => {
+    try {
+        const { url } = req.body;
+        
+        // Create a new document in MongoDB
+        const qrDoc = await QRCode.create({
+            type: 'youtube',
+            content: {
+                url: url
+            }
+        });
+
+        res.json({
+            success: true,
+            qrId: qrDoc._id
+        });
+    } catch (error) {
+        console.error('Error handling YouTube URL:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to process YouTube URL'
+        });
+    }
 });
 
 module.exports = router; 

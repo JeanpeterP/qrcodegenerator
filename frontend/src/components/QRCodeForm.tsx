@@ -1,73 +1,28 @@
 import React from 'react';
 import styled from 'styled-components';
-
-// Add this interface near the top of the file
-interface QRData {
-    url: string;
-    email: {
-        address: string;
-        subject: string;
-        message: string;
-    };
-    vcard: {
-        name: string;
-        phone: string;
-        company: string;
-        address: string;
-    };
-    wifi: {
-        ssid: string;
-        password: string;
-        security: string;
-    };
-    text: string;
-    whatsapp: {
-        number: string;
-        message: string;
-    };
-    sms: {
-        number: string;
-        message: string;
-    };
-    twitter: {
-        username: string;
-        tweet: string;
-    };
-    facebook: {
-        url: string;
-    };
-    pdf: {
-        url: string;
-    };
-    mp3: {
-        url: string;
-    };
-    app: {
-        url: string;
-    };
-    image: {
-        url: string;
-    };
-    file: {
-        fileData: File | null;
-        title: string;
-        description: string;
-        buttonText: string;
-        buttonColor: string;
-    };
-}
+import { QRData } from '../types/qr';
 
 interface QRCodeFormProps {
     qrType: keyof QRData;
     qrData: QRData;
     handleInputChange: (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-        nestedKey?: keyof QRData | null
+        nestedKey?: keyof QRData | null,
+        index?: number,
+        field?: string
     ) => void;
     placeholder: string;
+    handleAddLink?: () => void;
 }
 
-export const QRCodeForm: React.FC<QRCodeFormProps> = ({ qrType, qrData, handleInputChange, placeholder }) => {
+export const QRCodeForm: React.FC<QRCodeFormProps> = ({ qrType, qrData, handleInputChange, placeholder, handleAddLink }) => {
+    // Function to extract YouTube video ID
+    const extractYouTubeVideoId = (url: string) => {
+        const regex = /[?&]v=([^&#]*)/;
+        const match = regex.exec(url);
+        return match && match[1] ? match[1] : '';
+    };
+
     return (
         <FormContainer>
             {(() => {
@@ -336,6 +291,54 @@ export const QRCodeForm: React.FC<QRCodeFormProps> = ({ qrType, qrData, handleIn
                                 </ColorPickerLabel>
                             </FormGroup>
                         );
+                    case "multiplink":
+                        return (
+                            <>
+                                <Input
+                                    type="text"
+                                    name="title"
+                                    value={qrData.contentData.title || ''}
+                                    onChange={(e) => handleInputChange(e, 'contentData')}
+                                    placeholder="Multiplink Title"
+                                />
+                                {qrData.contentData.links.map((link: any, index: number) => (
+                                    <div key={index}>
+                                        <Input
+                                            type="text"
+                                            name={`linkLabel${index}`}
+                                            value={link.label}
+                                            onChange={(e) => handleInputChange(e, 'contentData', index, 'label')}
+                                            placeholder={`Link ${index + 1} Label`}
+                                        />
+                                        <Input
+                                            type="text"
+                                            name={`linkUrl${index}`}
+                                            value={link.url}
+                                            onChange={(e) => handleInputChange(e, 'contentData', index, 'url')}
+                                            placeholder={`Link ${index + 1} URL`}
+                                        />
+                                    </div>
+                                ))}
+                                <AddLinkButton onClick={handleAddLink}>Add Another Link</AddLinkButton>
+                            </>
+                        );
+                    case "youtube":
+                        return (
+                            <FormContainer>
+                                <Input
+                                    type="text"
+                                    name="url"
+                                    value={qrData.youtube.url}
+                                    onChange={(e) => {
+                                        const videoId = extractYouTubeVideoId(e.target.value);
+                                        handleInputChange({
+                                            target: { name: 'url', value: videoId }
+                                        } as React.ChangeEvent<HTMLInputElement>, "youtube");
+                                    }}
+                                    placeholder="Enter full YouTube URL (e.g., https://www.youtube.com/watch?v=...)"
+                                />
+                            </FormContainer>
+                        );
                     default:
                         return null;
                 }
@@ -451,5 +454,35 @@ const ColorPicker = styled.input`
     border: none;
     border-radius: 4px;
     cursor: pointer;
+`;
+
+const AddLinkButton = styled.button`
+    /* Styles for the "Add Another Link" button */
+`;
+
+const StyledInput = styled.input`
+    width: 100%;
+    padding: 12px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    font-size: 16px;
+    font-family: "Aspekta 550", Arial, sans-serif;
+    border-radius: 10px;
+    border: 2px solid #ccc;
+    background-color: #f9f9f9;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    box-sizing: border-box;
+    flex: 1;
+
+    &:focus {
+        border-color: #ff6320;
+        box-shadow: 0 0 10px rgba(255, 99, 32, 0.5);
+        outline: none;
+    }
+
+    &:disabled {
+        background-color: #e9e9e9;
+        cursor: not-allowed;
+    }
 `;
   

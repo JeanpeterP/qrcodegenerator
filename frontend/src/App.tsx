@@ -1,7 +1,8 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import QRCodeGenerator from './components/QRCodeGenerator';
 import QRCodeGeneratorEmbed from './components/QRCodeGeneratorEmbed';
+import QRPage from './pages/QRPage';
 
 function App() {
     // Check if we're in embed mode
@@ -12,12 +13,12 @@ function App() {
     }
 
     return (
-        <BrowserRouter>
+        <Router>
             <Routes>
                 <Route path="/" element={<QRCodeGenerator />} />
-                {/* other routes */}
+                <Route path="/qr/:id" element={<QRPage />} />
             </Routes>
-        </BrowserRouter>
+        </Router>
     );
 }
 export default App;

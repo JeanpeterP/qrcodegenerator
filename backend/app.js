@@ -11,11 +11,29 @@ const qrRouter = require('./routes/qr');
 
 const app = express();
 
+// Logging middleware
+app.use((req, res, next) => {
+  console.log('Incoming request:', {
+    method: req.method,
+    path: req.path,
+    headers: req.headers
+  });
+  next();
+});
+
 // CORS configuration
 app.use(cors({
-    origin: ['http://localhost:3000', 'https://localhost:3001'],  // Allow both origins
-    credentials: true
+  origin: ['http://localhost:3000', 'http://localhost:3001'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true
 }));
+
+app.use(express.json());
+
+// Basic health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
@@ -31,9 +49,19 @@ app.use(express.urlencoded({ extended: true }));
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
-// Routes
+// Routes - Important: Order matters!
+// API routes should come BEFORE the static file serving
+app.use('/api/qr', qrRouter);  // This should handle all /api/qr/* routes
 app.use('/api', uploadRouter);
-app.use('/qr', qrRouter);
+
+// Static file serving
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../frontend/build')));
+  
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/build/index.html'));
+  });
+}
 
 // Apply rate limiting to all requests
 const limiter = rateLimit({

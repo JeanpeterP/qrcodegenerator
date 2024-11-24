@@ -1,14 +1,24 @@
 const mongoose = require('mongoose');
 
 const qrCodeSchema = new mongoose.Schema({
-  qrId: { type: String, required: true, unique: true },
-  fileUrl: { type: String, required: true },
-  originalFileName: { type: String, required: true },
-  title: { type: String, required: true },
-  description: { type: String },
-  buttonText: { type: String },
-  buttonColor: { type: String },
-  createdAt: { type: Date, default: Date.now },
+  _id: { type: String, required: true },
+  title: String,
+  description: String,
+  contentType: { 
+    type: String, 
+    enum: ['download', 'multiplink', 'youtube'] 
+  },
+  buttonColor: String,
+  buttonText: String,
+  fileUrl: String,
+  originalFileName: String,
+  contentData: {
+    links: [{ 
+      url: String, 
+      label: String 
+    }],
+    url: String
+  }
 });
 
 module.exports = mongoose.model('QRCode', qrCodeSchema);

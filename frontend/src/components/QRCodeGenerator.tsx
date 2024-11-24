@@ -33,6 +33,7 @@ import { CustomizationTabs } from './CustomizationTabs';
 import { Preview } from './Preview';
 
 import { getBackendUrl } from '../utils/constants';
+import { QRData } from '../types/qr';
 
 interface CustomizationTabsProps {
     activeTab: string;
@@ -63,31 +64,13 @@ interface CustomizationTabsProps {
 
 interface QRCodeGeneratorProps {}
 
-interface QRData {
-    url: string;
-    email: { address: string; subject: string; message: string };
-    vcard: { name: string; phone: string; company: string; address: string };
-    wifi: { ssid: string; password: string; security: string };
-    text: string;
-    whatsapp: { number: string; message: string };
-    sms: { number: string; message: string };
-    twitter: { username: string; tweet: string };
-    facebook: { url: string };
-    pdf: { url: string };
-    mp3: { url: string };
-    app: { url: string };
-    image: { url: string };
-    file: {
-        fileData: File | null;
-        title: string;
-        description: string;
-        buttonText: string;
-        buttonColor: string;
-    };
-}
-
 // Add new interface for logo types
 type LogoType = 'custom' | 'stacked' | 'open-box' | 'closed-box';
+
+// Add this type definition near the top of the file, with other type definitions
+type QRType = 'url' | 'email' | 'vcard' | 'wifi' | 'text' | 'whatsapp' | 'sms' | 
+              'twitter' | 'facebook' | 'pdf' | 'mp3' | 'app' | 'file' | 'multiplink' | 
+              'youtube' | 'image';
 
 const Container = styled.div`
     padding: 20px 40px;
@@ -142,7 +125,9 @@ const PreviewColumn = styled.div`
 // Update the HandleInputChangeFunction type
 type HandleInputChangeFunction = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-    nestedKey?: string | null
+    nestedKey?: string | null,
+    index?: number | null,
+    subKey?: string | null
 ) => void;
 
 // Update the QRCodeFormProps interface
@@ -161,6 +146,7 @@ interface PreviewProps {
     shape: string;
     frameColor: string;
 }
+
 
 export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     const [isMounted, setIsMounted] = useState(false);
@@ -185,6 +171,12 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
             description: "",
             buttonText: "Download",
             buttonColor: "#ff6320",
+        },
+        multiplink: { title: "", links: [] },
+        contentType: '',
+        contentData: {},
+        youtube: {
+            url: ""  // Changed from title and videoId to just url
         },
     });
     const [qrColor, setQRColor] = useState("#000000");
@@ -328,21 +320,68 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                 return qrData.app.url;
             case "image":
                 return qrData.image.url;
+            case "multiplink":
+                try {
+                    const response = await fetch(`${getBackendUrl()}/api/upload/multiplink`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            title: qrData.contentData.title,
+                            links: qrData.contentData.links,
+                        }),
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok || !result.success) {
+                        throw new Error(result.message || 'Failed to create multiplink QR code');
+                    }
+
+                    return `${getBackendUrl()}/qr/${result.qrId}`;
+                } catch (error) {
+                    console.error('Error creating multiplink QR code:', error);
+                    return '';
+                }
+            case "youtube":
+                try {
+                    const response = await fetch(`${getBackendUrl()}/api/upload/youtube`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            url: qrData.youtube.url  // Send the full URL
+                        }),
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok || !result.success) {
+                        throw new Error(result.message || 'Failed to create YouTube QR code');
+                    }
+
+                    return `${getBackendUrl()}/qr/${result.qrId}`;
+                } catch (error) {
+                    console.error('Error creating YouTube QR code:', error);
+                    return '';
+                }
             default:
                 return "";
         }
     };
 
-    // Update the handleInputChange function signature
-    const handleInputChange: HandleInputChangeFunction = (e, nestedKey = null) => {
-        const { name } = e.target;
-        let value: string | File = e.target.value;
+    // Modify the handleInputChange function
+    const handleInputChange: HandleInputChangeFunction = (
+        e,
+        nestedKey = null,
+        index = null,
+        subKey = null
+    ) => {
+        const { name, value } = e.target;
 
-        if (name === "fileData" && e.target instanceof HTMLInputElement && e.target.files) {
-            value = e.target.files[0];
-        }
-
-        if (nestedKey) {
+        if (nestedKey && nestedKey in qrData) {
             setQRData((prevData) => ({
                 ...prevData,
                 [nestedKey as keyof QRData]: {
@@ -350,12 +389,39 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                     [name]: value,
                 },
             }));
+        } else if (nestedKey === 'contentData' && index !== null && subKey) {
+            // Handling array of links for multiplinks
+            setQRData((prevData) => {
+                const links = [...(prevData.contentData.links || [])];
+                links[index] = {
+                    ...links[index],
+                    [subKey]: value,
+                };
+                return {
+                    ...prevData,
+                    contentData: {
+                        ...prevData.contentData,
+                        links,
+                    },
+                };
+            });
         } else {
             setQRData((prevData) => ({
                 ...prevData,
                 [name]: value,
             }));
         }
+    };
+
+    // Function to add a new link field in multiplink
+    const handleAddLink = () => {
+        setQRData((prevData) => ({
+            ...prevData,
+            contentData: {
+                ...prevData.contentData,
+                links: [...(prevData.contentData.links || []), { label: '', url: '' }],
+            },
+        }));
     };
 
     const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -368,10 +434,42 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     };
 
     const handleDownload = async (format: "png" | "svg") => {
-        const previewContainer = document.querySelector('.preview-container');
-        if (!previewContainer) return;
-
+        setGenerateQRCode(true);
         try {
+            // Generate the QR code data, including any API calls
+            const url = await generateQRCodeData();
+            if (url) {
+                setGeneratedUrl(url);
+
+                // Update QR code with the actual URL
+                if (qrCodeInstance) {
+                    qrCodeInstance.update({
+                        data: url,
+                        width: qrSize,
+                        height: qrSize,
+                        dotsOptions: {
+                            type: shape,
+                            color: qrColor,
+                        },
+                        backgroundOptions: {
+                            color: qrBackground,
+                        },
+                        cornersSquareOptions: {
+                            type: markerStyle,
+                            color: markerColor,
+                        },
+                        imageOptions: {
+                            imageSize: 0.4,
+                            margin: 0,
+                        },
+                    });
+                }
+            }
+
+            // Proceed to download the QR code
+            const previewContainer = document.querySelector('.preview-container');
+            if (!previewContainer) return;
+
             const canvas = await html2canvas(previewContainer as HTMLElement, {
                 backgroundColor: '#f8f9fa',
                 scale: 4,
@@ -382,15 +480,8 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                     const clonedPreview = clonedDoc.querySelector('.preview-container');
                     if (clonedPreview) {
                         (clonedPreview as HTMLElement).style.padding = '4px';
-                        
-                        if (frame === 'chat') {
-                            const bubbleElement = clonedPreview.querySelector('::before') as HTMLElement;
-                            if (bubbleElement) {
-                                bubbleElement.style.top = '-45px';
-                            }
-                        }
                     }
-                }
+                },
             });
 
             canvas.toBlob((blob) => {
@@ -406,7 +497,10 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                 }
             }, `image/${format}`);
         } catch (error) {
-            console.error('Error generating QR code:', error);
+            console.error('Error generating or downloading QR code:', error);
+            alert('Error generating or downloading QR code. Please try again.');
+        } finally {
+            setGenerateQRCode(false);
         }
     };
 
@@ -456,28 +550,54 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         let isCancelled = false;
 
         const updateQRCode = async () => {
-            if (qrType === "file" && !generateQRCode) {
-                // Don't generate the QR code until the user clicks the button
-                return;
-            }
-
-            // Set loading state if desired
-            const qrCodeData = await generateQRCodeData();
-
-            if (isCancelled) return;
-            if (qrCodeData) {
+            try {
+                // Only update visual preview, don't make API calls here
                 if (qrCodeInstance) {
                     qrCodeInstance.update({
-                        data: qrCodeData,
-                        // ... existing update options
+                        width: qrSize,
+                        height: qrSize,
+                        data: "Preview", // Or some placeholder data
+                        dotsOptions: {
+                            type: shape,
+                            color: qrColor
+                        },
+                        backgroundOptions: {
+                            color: qrBackground
+                        },
+                        cornersSquareOptions: {
+                            type: markerStyle,
+                            color: markerColor
+                        },
+                        imageOptions: {
+                            imageSize: 0.4,
+                            margin: 0
+                        }
                     });
                 } else {
                     const newQrCode = new QRCodeStyling({
-                        data: qrCodeData,
-                        // ... existing options
+                        width: qrSize,
+                        height: qrSize,
+                        data: "Preview", // Or some placeholder data
+                        dotsOptions: {
+                            type: shape,
+                            color: qrColor
+                        },
+                        backgroundOptions: {
+                            color: qrBackground
+                        },
+                        cornersSquareOptions: {
+                            type: markerStyle,
+                            color: markerColor
+                        },
+                        imageOptions: {
+                            imageSize: 0.4,
+                            margin: 0
+                        }
                     });
                     setQrCodeInstance(newQrCode);
                 }
+            } catch (error) {
+                console.error('Error updating QR code preview:', error);
             }
         };
 
@@ -487,16 +607,12 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
             isCancelled = true;
         };
     }, [
-        generateQRCode, // Add this dependency
-        qrType,
-        qrData,
+        qrSize,
+        shape,
         qrColor,
         qrBackground,
-        shape,
         markerStyle,
-        markerColor,
-        logo,
-        customLogo,
+        markerColor
     ]);
 
     const handleMarkerStyleChange = (
@@ -515,39 +631,49 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     const handleGenerateClick = async () => {
         try {
             setGenerateQRCode(true);
-            const url = await generateQRCodeData();
+            const url = await generateQRCodeData(); // This makes the API call
             if (url) {
                 setGeneratedUrl(url);
+                // Update QR code with the actual URL
+                if (qrCodeInstance) {
+                    qrCodeInstance.update({
+                        data: url,
+                        // ... other options remain the same
+                    });
+                }
             }
         } catch (error) {
+            console.error("Error generating QR code:", error);
             alert("Error uploading file. Please try again.");
+        } finally {
             setGenerateQRCode(false);
         }
     };
 
-    // Modify your existing code where you generate the QR code
-    const handleGenerateQRCode = async () => {
-        const url = await generateQRCodeData();
-        if (url) {
-            setGeneratedUrl(url);
-            // Update QR code display
-            if (qrCodeInstance) {
-                qrCodeInstance.update({
-                    data: url,
-                    // ... other options ...
+    const handleTypeChange = (newType: QRType) => {
+        setQRType(newType);
+        switch (newType) {
+            case "multiplink":
+                setQRData({
+                    ...qrData,
+                    contentType: 'multiplink',
+                    contentData: { links: [] }
                 });
-            }
+                break;
+            case "youtube":
+                setQRData({
+                    ...qrData,
+                    youtube: { url: "" }
+                });
+                break;
+            // ... other cases ...
+            default:
+                setQRData({
+                    ...qrData,  // Preserve existing properties
+                    text: ""    // Update only the text field
+                });
         }
     };
-
-    // // Add the download handler
-    // const handleDownload = () => {
-    //     if (generatedUrl) {
-    //         window.open(generatedUrl, '_blank');
-    //     } else {
-    //         alert('Please generate the QR code first');
-    //     }
-    // };
 
     return isMounted ? (
         <Container ref={qrContainerRef}>
@@ -645,6 +771,20 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                         >
                             <Upload size={16} />
                             File
+                        </Tab>
+                        <Tab
+                            active={qrType === "multiplink"}
+                            onClick={() => handleTypeChange("multiplink")}
+                        >
+                            <Plus size={16} />
+                            MultiLink
+                        </Tab>
+                        <Tab
+                            active={qrType === "youtube"}
+                            onClick={() => handleTypeChange("youtube")}
+                        >
+                            <Code size={16} />
+                            YouTube
                         </Tab>
                     </TabContainer>
                     {/* Replace form rendering with QRCodeForm component */}
