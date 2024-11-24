@@ -1,17 +1,23 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import styled from 'styled-components';
-import QRCodeStyling from "qr-code-styling";
+import QRCodeStyling, { DotType } from "qr-code-styling";
 import { DownloadSimple } from "@phosphor-icons/react";
+import  generateQRCodeData  from "./QRCodeGenerator";
 
 interface PreviewProps {
     qrCodeInstance: QRCodeStyling | null;
     handleDownload: (format: "png" | "svg") => Promise<void>;
+    generateQRCodeData: () => Promise<string>;
     frame: string;
-    shape: string;
+    shape: DotType;
     frameColor: string;
+    qrType: string;
+    generatedUrl: string | null;
+    setGeneratedUrl: (url: string | null) => void;
+    setGenerateQRCode: (loading: boolean) => void;
 }
 
-export const Preview: React.FC<PreviewProps> = ({ qrCodeInstance, handleDownload, frame, shape, frameColor }) => {
+export const Preview: React.FC<PreviewProps> = ({ qrCodeInstance, handleDownload, generateQRCodeData, frame, shape, frameColor, qrType, generatedUrl, setGeneratedUrl, setGenerateQRCode }) => {
     const qrCodeRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
@@ -24,10 +30,20 @@ export const Preview: React.FC<PreviewProps> = ({ qrCodeInstance, handleDownload
     const handleDownloadClick = async () => {
         if (!qrCodeInstance) return;
         
-        // First trigger QR code generation
-        await handleDownload('png');
-        
         try {
+            // If it's a file type and hasn't been generated yet, generate first
+            if (qrType === "file" && !generatedUrl) {
+                setGenerateQRCode(true);
+                const url = await generateQRCodeData();
+                if (url) {
+                    setGeneratedUrl(url.toString());
+                    qrCodeInstance.update({
+                        data: url.toString(),
+                    });
+                }
+            }
+            
+            // Get SVG data
             const qrCodeSvg = await qrCodeInstance.getRawData('svg');
             if (!qrCodeSvg) throw new Error('Failed to generate QR code SVG');
 
@@ -249,7 +265,10 @@ export const Preview: React.FC<PreviewProps> = ({ qrCodeInstance, handleDownload
                 URL.revokeObjectURL(url);
             }
         } catch (error) {
-            console.error("Download failed:", error);
+            console.error("Error generating/downloading QR code:", error);
+            alert("Error uploading file. Please try again.");
+        } finally {
+            setGenerateQRCode(false);
         }
     };
 

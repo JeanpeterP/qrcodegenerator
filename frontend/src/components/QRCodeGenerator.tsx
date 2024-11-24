@@ -142,9 +142,14 @@ interface QRCodeFormProps {
 interface PreviewProps {
     qrCodeInstance: QRCodeStyling | null;
     handleDownload: (format: "png" | "svg") => Promise<void>;
+    generateQRCodeData: () => Promise<string>;
     frame: string;
-    shape: string;
+    shape: QRDotType;
     frameColor: string;
+    qrType: string;
+    generatedUrl: string | null;
+    setGeneratedUrl: React.Dispatch<React.SetStateAction<string | null>>;
+    setGenerateQRCode: (loading: boolean) => void;
 }
 
 
@@ -216,8 +221,8 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     // Add a state variable to track when the QR code should be generated
     const [generateQRCode, setGenerateQRCode] = useState(false);
 
-    // Add a state to store the generated URL
-    const [generatedUrl, setGeneratedUrl] = useState<string>("");
+    // Update the state type
+    const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
 
     useEffect(() => {
         setIsMounted(true);
@@ -807,9 +812,14 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                     <Preview
                         qrCodeInstance={qrCodeInstance}
                         handleDownload={handleDownload}
+                        generateQRCodeData={generateQRCodeData}
                         frame={frame}
                         shape={shape}
                         frameColor={frameColor}
+                        qrType={qrType}
+                        generatedUrl={generatedUrl}
+                        setGeneratedUrl={setGeneratedUrl}
+                        setGenerateQRCode={setGenerateQRCode}
                     />
                     {/* Use the new CustomizationTabs component */}
                     <CustomizationTabs
@@ -841,11 +851,6 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                     {/* Include DigitalProductSection if needed */}
                 </PreviewCard>
             </PreviewColumn>
-            {qrType === "file" && !generateQRCode && (
-                <GenerateButton onClick={handleGenerateClick}>
-                    Generate QR Code
-                </GenerateButton>
-            )}
         </Container>
     ) : null;
 }
