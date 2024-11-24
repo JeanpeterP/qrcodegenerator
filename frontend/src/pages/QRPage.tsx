@@ -15,6 +15,7 @@ interface QRCodeData {
     links?: { url: string; label: string }[];
     url?: string;
   };
+  logoUrl?: string;
 }
 
 const QRPage: React.FC = () => {
@@ -24,94 +25,115 @@ const QRPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!id) return;
+    if (!id) {
+      setError('No QR ID provided');
+      setLoading(false);
+      return;
+    }
 
-    const apiUrl = `${getBackendUrl()}/api/qr/${id}`;
-    console.log('Fetching QR data from:', apiUrl);
+    const fetchData = async () => {
+      try {
+        const apiUrl = `${getBackendUrl()}/api/qr/${id}`;
+        console.log('Fetching QR data from:', apiUrl);
 
-    fetch(apiUrl, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(async (res) => {
-        if (!res.ok) {
-          const text = await res.text();
+        const response = await fetch(apiUrl, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          const text = await response.text();
           console.error('Error response:', text);
-          throw new Error(`HTTP error! status: ${res.status}`);
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-        return res.json();
-      })
-      .then(data => {
+
+        const data = await response.json();
         console.log('Received data:', data);
         setQrData(data);
-      })
-      .catch(err => {
+      } catch (err) {
         console.error('Error fetching QR code:', err);
         setError(err instanceof Error ? err.message : 'An error occurred');
-      })
-      .finally(() => {
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchData();
   }, [id]);
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
-  if (!qrData) return <div>No data found</div>;
-  console.log("QRDATA", qrData);
+  // Add debug logging
+  console.log('Current state:', { loading, error, qrData });
+
+  if (loading) {
+    return (
+      <PageContainer>
+        <ContentWrapper>
+          <LoadingMessage>Loading...</LoadingMessage>
+        </ContentWrapper>
+      </PageContainer>
+    );
+  }
+
+  if (error) {
+    return (
+      <PageContainer>
+        <ContentWrapper>
+          <ErrorMessage>Error: {error}</ErrorMessage>
+        </ContentWrapper>
+      </PageContainer>
+    );
+  }
+
+  if (!qrData) {
+    return (
+      <PageContainer>
+        <ContentWrapper>
+          <ErrorMessage>No data found</ErrorMessage>
+        </ContentWrapper>
+      </PageContainer>
+    );
+  }
+
+  // Debug log the content type and links
+  console.log('Content type:', qrData.contentType);
+  console.log('Links:', qrData.contentData?.links);
 
   return (
     <PageContainer>
       <ContentWrapper>
-        <Title>{qrData.title}</Title>
-        <Description>{qrData.description}</Description>
+        <ProfileSection>
+          {qrData.logoUrl && (
+            <LogoContainer>
+              <LogoImage src={qrData.logoUrl} alt="Company Logo" />
+            </LogoContainer>
+          )}
+          <Title>{qrData.title || 'Untitled'}</Title>
+          {qrData.description && <Description>{qrData.description}</Description>}
+        </ProfileSection>
 
-        {/* Download Content Type */}
-        {qrData.contentType === 'download' && qrData.fileUrl && (
-          <>
-            {qrData.originalFileName?.toLowerCase().endsWith('.pdf') ? (
-              <PDFViewer src={qrData.fileUrl} type="application/pdf" />
-            ) : (
-              <DownloadButton
-                href={qrData.fileUrl}
-                download={qrData.originalFileName}
-                style={{ backgroundColor: qrData.buttonColor || '#ff6320' }}
-              >
-                {qrData.buttonText || 'Download File'}
-              </DownloadButton>
-            )}
-          </>
-        )}
-
-        {/* Multilink Content Type */}
         {qrData.contentType === 'multilink' && qrData.contentData?.links && (
-          <LinkList>
-            {qrData.contentData.links.map((link, index) => {
-              const cleanUrl = link.url
-                .replace(/^(?!https?:\/\/)/, 'https://'); // Ensure URL starts with 'https://'
-
-              return (
-                <LinkItem key={index}>
-                  <a href={cleanUrl} target="_blank" rel="noopener noreferrer">
-                    {link.label}
-                  </a>
-                </LinkItem>
-              );
-            })}
-          </LinkList>
-        )}
-
-        {/* YouTube Content Type */}
-        {qrData.contentType === 'youtube' && qrData.contentData?.url && (
-          <VideoContainer>
-            <iframe
-              src={qrData.contentData.url.replace('watch?v=', 'embed/')}
-              frameBorder="0"
-              allowFullScreen
-            />
-          </VideoContainer>
+          <LinksContainer>
+            {qrData.contentData.links.map((link, index) => (
+              <LinkButton 
+                key={index} 
+                href={link.url.startsWith('http') ? link.url : `https://${link.url}`}
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                <LinkContent>
+                  <LinkText>{link.label || 'Untitled Link'}</LinkText>
+                  <ShareButton aria-label="Share link">
+                    <svg width="3" height="12" viewBox="0 0 3 12" fill="currentColor">
+                      <path d="M1.5 12.0122C1.0875 12.0122 0.734375 11.8653 0.440625 11.5716C0.146875 11.2778 0 10.9247 0 10.5122C0 10.0997 0.146875 9.74658 0.440625 9.45283C0.734375 9.15908 1.0875 9.01221 1.5 9.01221C1.9125 9.01221 2.26562 9.15908 2.55938 9.45283C2.85313 9.74658 3 10.0997 3 10.5122C3 10.9247 2.85313 11.2778 2.55938 11.5716C2.26562 11.8653 1.9125 12.0122 1.5 12.0122Z" fill="currentColor"/>
+                    </svg>
+                  </ShareButton>
+                </LinkContent>
+              </LinkButton>
+            ))}
+          </LinksContainer>
         )}
       </ContentWrapper>
     </PageContainer>
@@ -123,33 +145,27 @@ export default QRPage;
 /* Styled Components */
 const PageContainer = styled.div`
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
+  background-color: #fafafa;
+  padding: 40px 20px;
 `;
 
 const ContentWrapper = styled.div`
-  background: white;
-  padding: 40px 30px;
-  border-radius: 12px;
-  box-shadow: 0 15px 25px rgba(0,0,0,0.1);
-  text-align: center;
-  max-width: 600px;
   width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
 `;
 
 const Title = styled.h1`
-  font-size: 2.5rem;
-  margin-bottom: 20px;
-  color: #333;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #333333;
+  margin-bottom: 8px;
 `;
 
 const Description = styled.p`
-  font-size: 1.2rem;
-  color: #666;
-  margin-bottom: 40px;
+  font-size: 1rem;
+  color: #666666;
+  margin-bottom: 24px;
 `;
 
 const DownloadButton = styled.a`
@@ -180,24 +196,6 @@ const LinkList = styled.ul`
   margin: 0;
 `;
 
-const LinkItem = styled.li`
-  margin-bottom: 20px;
-
-  a {
-    display: block;
-    padding: 15px;
-    background-color: #ff6320;
-    color: white;
-    text-decoration: none;
-    border-radius: 8px;
-    font-size: 1.2rem;
-    transition: background-color 0.3s;
-
-    &:hover {
-      background-color: #e55a1b;
-    }
-  }
-`;
 
 const VideoContainer = styled.div`
   position: relative;
@@ -213,4 +211,96 @@ const VideoContainer = styled.div`
     width: 100%;
     height: 100%;
   }
+`;
+
+const LogoContainer = styled.div`
+  margin-bottom: 24px;
+`;
+
+const LogoImage = styled.img`
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+`;
+
+const LinksContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0 16px;
+`;
+
+const LinkButton = styled.a`
+  display: block;
+  text-decoration: none;
+  background: white;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 16px 20px;
+  transition: all 0.2s ease;
+  position: relative;
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: rgba(0, 0, 0, 0.2);
+  }
+`;
+
+const LinkContent = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const LinkText = styled.span`
+  color: #333;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+  flex-grow: 1;
+`;
+
+const ShareButton = styled.button`
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+  color: #333;
+  border-radius: 50%;
+
+  &:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.05);
+  }
+`;
+
+const ProfileSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 32px;
+`;
+
+const LoadingMessage = styled.div`
+  text-align: center;
+  padding: 20px;
+  font-size: 1.2rem;
+  color: #666;
+`;
+
+const ErrorMessage = styled.div`
+  text-align: center;
+  padding: 20px;
+  font-size: 1.2rem;
+  color: #ff0000;
 `; 
