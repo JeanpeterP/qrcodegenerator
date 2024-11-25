@@ -957,7 +957,7 @@ const PreviewCard = styled.div`
     padding: 1rem;
     width: 100%;
     min-height: 625px;
-    overflow-y: auto;
+    overflow-y: hidden;
     display: flex;
     flex-direction: column;
     align-items: center;

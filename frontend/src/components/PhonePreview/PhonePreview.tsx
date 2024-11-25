@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import iphone16Frame from '../../images/iphone16pro.png';
 
 
 const PreviewColumn = styled.div`
@@ -7,14 +8,16 @@ const PreviewColumn = styled.div`
   display: flex;
   flex-direction: column;
   min-height: 100%;
+
 `;
 
 const PhonePreviewColumn = styled(PreviewColumn)<{ show: boolean }>`
   display: ${props => props.show ? 'flex' : 'none'};
-  max-width: 375px;
+  max-width: 238px;
   background: #f8f9fa;
   align-items: center;
   padding: 20px;
+
   
   @media (max-width: 1200px) {
     display: none;
@@ -22,33 +25,32 @@ const PhonePreviewColumn = styled(PreviewColumn)<{ show: boolean }>`
 `;
 
 const PhoneFrame = styled.div`
-  width: 240px;
-  height: 487px;
-  background: white;
-  border-radius: 40px;
-  border: 12px solid #1b294b;
-  overflow: hidden;
   position: relative;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 238px;
+  height: 487px;
+  overflow: hidden;
   
   &:before {
     content: '';
     position: absolute;
+    width: 238px;
+    height: 487px;
+    left: 0;
     top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 150px;
-    height: 25px;
-    background: #1b294b;
-    border-bottom-left-radius: 15px;
-    border-bottom-right-radius: 15px;
+    background: url(${iphone16Frame}) no-repeat center center;
+    background-blend-mode: darken;
+    border: 1px solid #000000;
+    pointer-events: none;
   }
 `;
 
 const PhoneContent = styled.div`
-
   height: 100%;
   overflow-y: hidden;
+s
+  width: 238px;
+  height: 387px;
+  margin: 52px auto;
 `;
 
 const Title = styled.h2`
