@@ -98,7 +98,7 @@ const Container = styled.div`
 `;
 
 const GeneratorColumn = styled.div`
-    flex: 0 1 35%;
+    flex: 0 1 40%;
     height: 100%;
     box-sizing: border-box;
     display: flex;
@@ -126,24 +126,10 @@ const PreviewColumn = styled.div`
     }
 `;
 
-// Add PhonePreviewColumn styled component
-const PhonePreviewColumn = styled.div<{ show: boolean }>`
-    flex: 0 1 25%;
-    height: 100%;
-    box-sizing: border-box;
-    display: ${props => props.show ? 'flex' : 'none'};
-    flex-direction: column;
-    position: relative;
-
-    @media (max-width: 1200px) {
-        display: none;
-    }
-`;
-
 // Update the HandleInputChangeFunction type
 type HandleInputChangeFunction = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-    nestedKey?: string | null,
+    nestedKey?: keyof QRData | null,
     index?: number | null,
     subKey?: string | null
 ) => void;
@@ -169,6 +155,28 @@ interface PreviewProps {
     setGeneratedUrl: React.Dispatch<React.SetStateAction<string | null>>;
     setGenerateQRCode: (loading: boolean) => void;
 }
+
+const getPlaceholder = (type: keyof QRData): string => {
+    switch (type) {
+        case 'url': return 'Enter URL';
+        case 'email': return 'Enter email details';
+        case 'vcard': return 'Enter contact details';
+        case 'wifi': return 'Enter WiFi details';
+        case 'text': return 'Enter text';
+        case 'whatsapp': return 'Enter WhatsApp details';
+        case 'sms': return 'Enter SMS details';
+        case 'twitter': return 'Enter Twitter details';
+        case 'facebook': return 'Enter Facebook URL';
+        case 'pdf': return 'Enter PDF URL';
+        case 'mp3': return 'Enter MP3 URL';
+        case 'app': return 'Enter App URL';
+        case 'file': return 'Upload file';
+        case 'multiplink': return 'Enter multiple links';
+        case 'youtube': return 'Enter YouTube URL';
+        case 'image': return 'Enter image URL';
+        default: return 'Enter details';
+    }
+};
 
 export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     const [isMounted, setIsMounted] = useState(false);
@@ -249,6 +257,8 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
 
     const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
+
+    const [previewMode, setPreviewMode] = useState<'qr' | 'phone'>('qr');
 
     useEffect(() => {
         setIsMounted(true);
@@ -406,7 +416,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         }
     };
 
-    // Modify the handleInputChange function
+    // Update the handleInputChange function
     const handleInputChange: HandleInputChangeFunction = (
         e,
         nestedKey = null,
@@ -415,23 +425,34 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     ) => {
         const { name, value } = e.target;
 
-        if (nestedKey === 'contentData') {
-            if (name === 'title') {
-                // Handle title change
-                setQRData(prevData => ({
+        setQRData((prevData: QRData) => {
+            if (nestedKey && Object.prototype.hasOwnProperty.call(prevData, nestedKey)) {
+                return {
                     ...prevData,
-                    contentData: {
-                        ...prevData.contentData,
-                        title: value
+                    [nestedKey]: {
+                        ...(prevData[nestedKey as keyof QRData] as Record<string, any>),
+                        [name]: value
                     }
-                }));
-            } else if (index !== null && subKey) {
-                // Handle links array changes
-                setQRData(prevData => {
-                    const newLinks = [...prevData.contentData.links];
-                    if (!newLinks[index]) {
-                        newLinks[index] = { label: '', url: '' };
+                };
+            }
+
+            // Handle file upload separately
+            if (name === 'fileData' && nestedKey === 'file') {
+                const file = (e.target as HTMLInputElement).files?.[0];
+                return {
+                    ...prevData,
+                    file: {
+                        ...prevData.file,
+                        fileData: file || null
                     }
+                };
+            }
+
+            // Handle nested objects (like email, vcard, wifi, etc.)
+            if (nestedKey) {
+                // Handle multiplink links array
+                if (nestedKey === 'contentData' && index !== null && subKey) {
+                    const newLinks = [...(prevData.contentData?.links || [])];
                     newLinks[index] = {
                         ...newLinks[index],
                         [subKey]: value
@@ -443,22 +464,24 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             links: newLinks
                         }
                     };
-                });
+                }
+
+                // Handle regular nested objects
+                return {
+                    ...prevData,
+                    [nestedKey]: {
+                        ...(prevData[nestedKey as keyof QRData] as Record<string, any>),
+                        [name]: value
+                    }
+                };
             }
-        } else if (nestedKey && nestedKey in qrData) {
-            setQRData((prevData) => ({
+
+            // Handle non-nested values (like text)
+            return {
                 ...prevData,
-                [nestedKey as keyof QRData]: {
-                    ...(prevData[nestedKey as keyof QRData] as object),
-                    [name]: value,
-                },
-            }));
-        } else {
-            setQRData((prevData) => ({
-                ...prevData,
-                [name]: value,
-            }));
-        }
+                [name]: value
+            };
+        });
     };
 
     // Function to add a new link field in multiplink
@@ -599,12 +622,13 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
 
         const updateQRCode = async () => {
             try {
-                // Only update visual preview, don't make API calls here
-                if (qrCodeInstance) {
+                const qrData = await generateQRCodeData();
+                
+                if (!isCancelled && qrCodeInstance) {
                     qrCodeInstance.update({
                         width: qrSize,
                         height: qrSize,
-                        data: "Preview", // Or some placeholder data
+                        data: qrData || 'Preview',
                         dotsOptions: {
                             type: shape,
                             color: qrColor
@@ -621,31 +645,9 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             margin: 0
                         }
                     });
-                } else {
-                    const newQrCode = new QRCodeStyling({
-                        width: qrSize,
-                        height: qrSize,
-                        data: "Preview", // Or some placeholder data
-                        dotsOptions: {
-                            type: shape,
-                            color: qrColor
-                        },
-                        backgroundOptions: {
-                            color: qrBackground
-                        },
-                        cornersSquareOptions: {
-                            type: markerStyle,
-                            color: markerColor
-                        },
-                        imageOptions: {
-                            imageSize: 0.4,
-                            margin: 0
-                        }
-                    });
-                    setQrCodeInstance(newQrCode);
                 }
             } catch (error) {
-                console.error('Error updating QR code preview:', error);
+                console.error('Error updating QR code:', error);
             }
         };
 
@@ -660,7 +662,9 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         qrColor,
         qrBackground,
         markerStyle,
-        markerColor
+        markerColor,
+        qrData, // Add qrData to dependencies
+        qrType  // Add qrType to dependencies
     ]);
 
     const handleMarkerStyleChange = (
@@ -698,35 +702,45 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         }
     };
 
+    // Update the handleTypeChange function
     const handleTypeChange = (newType: QRType) => {
-        setQRType(newType);
-        switch (newType) {
-            case "multiplink":
-                setQRData({
-                    ...qrData,
-                    contentType: 'multiplink',
-                    contentData: { 
-                        title: '',
-                        links: [
-                            { label: '', url: '' },
-                            { label: '', url: '' },
-                            { label: '', url: '' }
-                        ]
-                    }
-                });
-                break;
-            case "youtube":
-                setQRData({
-                    ...qrData,
-                    youtube: { url: "" }
-                });
-                break;
-            // ... other cases ...
-            default:
-                setQRData({
-                    ...qrData,  // Preserve existing properties
-                    text: ""    // Update only the text field
-                });
+        setQRType(newType as keyof QRData); // Explicitly cast to keyof QRData
+        setIsTypeDropdownOpen(false); // Close dropdown after selection
+        
+        // Reset QR data based on type
+        const defaultData: Partial<QRData> = {
+            url: newType === 'url' ? 'https://example.com' : '',
+            email: { address: '', subject: '', message: '' },
+            vcard: { name: '', phone: '', company: '', address: '' },
+            wifi: { ssid: '', password: '', security: 'WPA' },
+            text: '',
+            whatsapp: { number: '', message: '' },
+            sms: { number: '', message: '' },
+            twitter: { username: '', tweet: '' },
+            facebook: { url: '' },
+            pdf: { url: '' },
+            mp3: { url: '' },
+            app: { url: '' },
+            image: { url: '' },
+            file: {
+                fileData: null,
+                title: '',
+                description: '',
+                buttonText: 'Download',
+                buttonColor: '#ff6320',
+            },
+            multiplink: { title: '', links: [] },
+            youtube: { url: '' },
+        };
+
+        setQRData(prevData => ({
+            ...prevData,
+            ...defaultData
+        }));
+
+        // Reset preview mode if needed
+        if (!shouldShowPhonePreview(newType)) {
+            setPreviewMode('qr');
         }
     };
 
@@ -740,62 +754,62 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
             <GeneratorColumn>
                 <GeneratorCard>
                     <Title>QR Code Generator</Title>
-                    {/* <TypeDropdown>
+                    <TypeDropdown>
                         <DropdownButton onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}>
                             {qrType.charAt(0).toUpperCase() + qrType.slice(1)}
                             <ChevronDown size={20} />
                         </DropdownButton>
                         <DropdownContent isOpen={isTypeDropdownOpen}>
                             <TabContainer>
-                                <Tab active={qrType === "url"} onClick={() => { setQRType("url"); setIsTypeDropdownOpen(false); }}>
+                                <Tab active={qrType === "url"} onClick={() => handleTypeChange("url")}>
                                     <Link size={16} />
                                     URL
                                 </Tab>
-                                <Tab active={qrType === "email"} onClick={() => { setQRType("email"); setIsTypeDropdownOpen(false); }}>
+                                <Tab active={qrType === "email"} onClick={() => handleTypeChange("email")}>
                                     <Mail size={16} />
                                     Email
                                 </Tab>
-                                <Tab active={qrType === "vcard"} onClick={() => { setQRType("vcard"); setIsTypeDropdownOpen(false); }}>
+                                <Tab active={qrType === "vcard"} onClick={() => handleTypeChange("vcard")}>
                                     <CreditCard size={16} />
                                     VCard
                                 </Tab>
-                                <Tab active={qrType === "wifi"} onClick={() => { setQRType("wifi"); setIsTypeDropdownOpen(false); }}>
+                                <Tab active={qrType === "wifi"} onClick={() => handleTypeChange("wifi")}>
                                     <Wifi size={16} />
                                     WiFi
                                 </Tab>
-                                <Tab active={qrType === "text"} onClick={() => { setQRType("text"); setIsTypeDropdownOpen(false); }}>
+                                <Tab active={qrType === "text"} onClick={() => handleTypeChange("text")}>
                                     <AlignLeft size={16} />
                                     Text
                                 </Tab>
-                                <Tab active={qrType === "whatsapp"} onClick={() => { setQRType("whatsapp"); setIsTypeDropdownOpen(false); }}>
+                                <Tab active={qrType === "whatsapp"} onClick={() => handleTypeChange("whatsapp")}>
                                     <MessageSquare size={16} />
                                     WhatsApp
                                 </Tab>
-                                <Tab active={qrType === "sms"} onClick={() => { setQRType("sms"); setIsTypeDropdownOpen(false); }}>
+                                <Tab active={qrType === "sms"} onClick={() => handleTypeChange("sms")}>
                                     <Send size={16} />
                                     SMS
                                 </Tab>
-                                <Tab active={qrType === "twitter"} onClick={() => { setQRType("twitter"); setIsTypeDropdownOpen(false); }}>
+                                <Tab active={qrType === "twitter"} onClick={() => handleTypeChange("twitter")}>
                                     <Twitter size={16} />
                                     Twitter
                                 </Tab>
-                                <Tab active={qrType === "facebook"} onClick={() => { setQRType("facebook"); setIsTypeDropdownOpen(false); }}>
+                                <Tab active={qrType === "facebook"} onClick={() => handleTypeChange("facebook")}>
                                     <Facebook size={16} />
                                     Facebook
                                 </Tab>
-                                <Tab active={qrType === "pdf"} onClick={() => { setQRType("pdf"); setIsTypeDropdownOpen(false); }}>
+                                <Tab active={qrType === "pdf"} onClick={() => handleTypeChange("pdf")}>
                                     <FileText size={16} />
                                     PDF
                                 </Tab>
-                                <Tab active={qrType === "mp3"} onClick={() => { setQRType("mp3"); setIsTypeDropdownOpen(false); }}>
+                                <Tab active={qrType === "mp3"} onClick={() => handleTypeChange("mp3")}>
                                     <Music size={16} />
                                     MP3
                                 </Tab>
-                                <Tab active={qrType === "app"} onClick={() => { setQRType("app"); setIsTypeDropdownOpen(false); }}>
+                                <Tab active={qrType === "app"} onClick={() => handleTypeChange("app")}>
                                     <Download size={16} />
                                     App Store
                                 </Tab>
-                                <Tab active={qrType === "file"} onClick={() => { setQRType("file"); setIsTypeDropdownOpen(false); }}>
+                                <Tab active={qrType === "file"} onClick={() => handleTypeChange("file")}>
                                     <Upload size={16} />
                                     File
                                 </Tab>
@@ -809,83 +823,91 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                                 </Tab>
                             </TabContainer>
                         </DropdownContent>
-                    </TypeDropdown> */}
-                    {/* Replace form rendering with QRCodeForm component */}
-                    <QRCodeForm
-                        qrType={qrType}
-                        qrData={qrData}
-                        handleInputChange={(e) => {
-                            // Make sure this actually updates the qrType state
-                            if (e.target.name === 'qrType') {
-                                setQRType(e.target.value as keyof QRData);
-                            }
-                            // ... rest of your handleInputChange logic
-                        }}
-                        placeholder={
-                            qrType === "url"
-                                ? "Enter your website\nYour QR Code will be generated automatically"
-                                : "Enter your website<br />Your QR Code will be generated automatically"
-                        }
-                        handleAddLink={handleAddLink}
-                    />
+                    </TypeDropdown>
+                    <FormContainer>
+                        <QRCodeForm
+                            qrType={qrType}
+                            qrData={qrData}
+                            handleInputChange={handleInputChange}
+                            placeholder={getPlaceholder(qrType)}
+                            handleAddLink={handleAddLink}
+                        />
+                    </FormContainer>
                 </GeneratorCard>
             </GeneratorColumn>
             <PreviewColumn>
                 <PreviewCard>
-                    <Title>QR Code Preview</Title>
-                    {/* Use the new Preview component */}
-                    <Preview
-                        qrCodeInstance={qrCodeInstance}
-                        handleDownload={handleDownload}
-                        generateQRCodeData={generateQRCodeData}
-                        frame={frame}
-                        shape={shape}
-                        frameColor={frameColor}
-                        qrType={qrType}
-                        generatedUrl={generatedUrl}
-                        setGeneratedUrl={setGeneratedUrl}
-                        setGenerateQRCode={setGenerateQRCode}
-                    />
-                    {/* Use the new CustomizationTabs component */}
-                    <CustomizationTabs
-                        activeTab={activeTab}
-                        setActiveTab={setActiveTab}
-                        frame={frame}
-                        setFrame={setFrame}
-                        frameColor={frameColor}
-                        setFrameColor={setFrameColor}
-                        shape={shape}
-                        setShape={setShape}
-                        qrColor={qrColor}
-                        setQRColor={setQRColor}
-                        qrBackground={qrBackground}
-                        setQRBackground={setQRBackground}
-                        currentFramePage={currentFramePage}
-                        setCurrentFramePage={setCurrentFramePage}
-                        logo={logo}
-                        setLogo={setLogo}
-                        markerStyle={markerStyle}
-                        setMarkerStyle={setMarkerStyle}
-                        markerColor={markerColor}
-                        setMarkerColor={setMarkerColor}
-                        currentShapePage={currentShapePage}
-                        setCurrentShapePage={setCurrentShapePage}
-                        customLogo={customLogo}
-                        setCustomLogo={setCustomLogo}
-                    />
-                    {/* Include DigitalProductSection if needed */}
+                    <ToggleContainer>
+                        <ToggleButton 
+                            active={previewMode === 'qr'} 
+                            onClick={() => setPreviewMode('qr')}
+                        >
+                            QR Code
+                        </ToggleButton>
+                        <ToggleButton 
+                            active={previewMode === 'phone'} 
+                            onClick={() => setPreviewMode('phone')}
+                            disabled={!shouldShowPhonePreview(qrType)}
+                            title={!shouldShowPhonePreview(qrType) ? 'Phone preview is not available for this QR type' : ''}
+                        >
+                            Preview
+                        </ToggleButton>
+                    </ToggleContainer>
+                    {previewMode === 'qr' && (
+                        <>
+                            <Title>QR Code Preview</Title>
+                            <Preview
+                                qrCodeInstance={qrCodeInstance}
+                                handleDownload={handleDownload}
+                                generateQRCodeData={generateQRCodeData}
+                                frame={frame}
+                                shape={shape}
+                                frameColor={frameColor}
+                                qrType={qrType}
+                                generatedUrl={generatedUrl}
+                                setGeneratedUrl={setGeneratedUrl}
+                                setGenerateQRCode={setGenerateQRCode}
+                            />
+                            <CustomizationTabs
+                                activeTab={activeTab}
+                                setActiveTab={setActiveTab}
+                                frame={frame}
+                                setFrame={setFrame}
+                                frameColor={frameColor}
+                                setFrameColor={setFrameColor}
+                                shape={shape}
+                                setShape={setShape}
+                                qrColor={qrColor}
+                                setQRColor={setQRColor}
+                                qrBackground={qrBackground}
+                                setQRBackground={setQRBackground}
+                                currentFramePage={currentFramePage}
+                                setCurrentFramePage={setCurrentFramePage}
+                                logo={logo}
+                                setLogo={setLogo}
+                                markerStyle={markerStyle}
+                                setMarkerStyle={setMarkerStyle}
+                                markerColor={markerColor}
+                                setMarkerColor={setMarkerColor}
+                                currentShapePage={currentShapePage}
+                                setCurrentShapePage={setCurrentShapePage}
+                                customLogo={customLogo}
+                                setCustomLogo={setCustomLogo}
+                            />
+                        </>
+                    )}
+                    {previewMode === 'phone' && (
+                        <>
+                            <Title>Phone Preview</Title>
+                            <PhonePreview 
+                                show={shouldShowPhonePreview(qrType)}
+                                qrType={qrType}
+                                qrData={qrData}
+                            />
+                        </>
+                    )}
                 </PreviewCard>
             </PreviewColumn>
-            <PhonePreviewColumn show={shouldShowPhonePreview(qrType)}>
-                <PreviewCard>
-                    <Title>Phone Preview</Title>
-                    <PhonePreview 
-                        show={shouldShowPhonePreview(qrType)}
-                        qrType={qrType}
-                        qrData={qrData}
-                    />
-                </PreviewCard>
-            </PhonePreviewColumn>
         </Container>
     ) : null;
 }
@@ -1903,5 +1925,49 @@ const DropdownContent = styled.div<{ isOpen: boolean }>`
     z-index: 1000;
     display: ${props => props.isOpen ? 'block' : 'none'};
     margin-top: 0.5rem;
+`;
+
+const ToggleContainer = styled.div`
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+`;
+
+const ToggleButton = styled.button<{ active: boolean }>`
+    padding: 0.5rem 1rem;
+    background-color: ${props => props.active ? '#ff6320' : '#f8f9fa'};
+    color: ${props => props.active ? 'white' : '#616568'};
+    border: none;
+    border-bottom: ${props => props.active ? '2px solid #ff6320' : '2px solid transparent'};
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0.5rem;
+    outline: none;
+    position: relative;
+    
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    &:hover {
+        background-color: ${props => props.active ? '#ff6320' : '#e9ecef'};
+    }
+
+    // Tooltip styling
+    &[title]:hover::after {
+        content: attr(title);
+        position: absolute;
+        bottom: -1.5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #333;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        white-space: nowrap;
+        font-size: 0.8rem;
+    }
 `;
 
