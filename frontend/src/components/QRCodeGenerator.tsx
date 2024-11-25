@@ -248,6 +248,8 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     // Update the state type
     const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
 
+    const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
+
     useEffect(() => {
         setIsMounted(true);
         return () => setIsMounted(false);
@@ -738,123 +740,93 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
             <GeneratorColumn>
                 <GeneratorCard>
                     <Title>QR Code Generator</Title>
-                    <TabContainer>
-                        <Tab
-                            active={qrType === "url"}
-                            onClick={() => setQRType("url")}
-                        >
-                            <Link size={16} />
-                            URL
-                        </Tab>
-                        <Tab
-                            active={qrType === "email"}
-                            onClick={() => setQRType("email")}
-                        >
-                            <Mail size={16} />
-                            Email
-                        </Tab>
-                        <Tab
-                            active={qrType === "vcard"}
-                            onClick={() => setQRType("vcard")}
-                        >
-                            <CreditCard size={16} />
-                            VCard
-                        </Tab>
-                        <Tab
-                            active={qrType === "wifi"}
-                            onClick={() => setQRType("wifi")}
-                        >
-                            <Wifi size={16} />
-                            WiFi
-                        </Tab>
-                        <Tab
-                            active={qrType === "text"}
-                            onClick={() => setQRType("text")}
-                        >
-                            <AlignLeft size={16} />
-                            Text
-                        </Tab>
-                        <Tab
-                            active={qrType === "whatsapp"}
-                            onClick={() => setQRType("whatsapp")}
-                        >
-                            <MessageSquare size={16} />
-                            WhatsApp
-                        </Tab>
-                        <Tab
-                            active={qrType === "sms"}
-                            onClick={() => setQRType("sms")}
-                        >
-                            <Send size={16} />
-                            SMS
-                        </Tab>
-                        <Tab
-                            active={qrType === "twitter"}
-                            onClick={() => setQRType("twitter")}
-                        >
-                            <Twitter size={16} />
-                            Twitter
-                        </Tab>
-                        <Tab
-                            active={qrType === "facebook"}
-                            onClick={() => setQRType("facebook")}
-                        >
-                            <Facebook size={16} />
-                            Facebook
-                        </Tab>
-                        <Tab
-                            active={qrType === "pdf"}
-                            onClick={() => setQRType("pdf")}
-                        >
-                            <FileText size={16} />
-                            PDF
-                        </Tab>
-                        <Tab
-                            active={qrType === "mp3"}
-                            onClick={() => setQRType("mp3")}
-                        >
-                            <Music size={16} />
-                            MP3
-                        </Tab>
-                        <Tab
-                            active={qrType === "app"}
-                            onClick={() => setQRType("app")}
-                        >
-                            <Download size={16} />
-                            App Store
-                        </Tab>
-                        <Tab
-                            active={qrType === "file"}
-                            onClick={() => setQRType("file")}
-                        >
-                            <Upload size={16} />
-                            File
-                        </Tab>
-                        <Tab
-                            active={qrType === "multiplink"}
-                            onClick={() => handleTypeChange("multiplink")}
-                        >
-                            <Plus size={16} />
-                            MultiLink
-                        </Tab>
-                        <Tab
-                            active={qrType === "youtube"}
-                            onClick={() => handleTypeChange("youtube")}
-                        >
-                            <Code size={16} />
-                            YouTube
-                        </Tab>
-                    </TabContainer>
+                    {/* <TypeDropdown>
+                        <DropdownButton onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}>
+                            {qrType.charAt(0).toUpperCase() + qrType.slice(1)}
+                            <ChevronDown size={20} />
+                        </DropdownButton>
+                        <DropdownContent isOpen={isTypeDropdownOpen}>
+                            <TabContainer>
+                                <Tab active={qrType === "url"} onClick={() => { setQRType("url"); setIsTypeDropdownOpen(false); }}>
+                                    <Link size={16} />
+                                    URL
+                                </Tab>
+                                <Tab active={qrType === "email"} onClick={() => { setQRType("email"); setIsTypeDropdownOpen(false); }}>
+                                    <Mail size={16} />
+                                    Email
+                                </Tab>
+                                <Tab active={qrType === "vcard"} onClick={() => { setQRType("vcard"); setIsTypeDropdownOpen(false); }}>
+                                    <CreditCard size={16} />
+                                    VCard
+                                </Tab>
+                                <Tab active={qrType === "wifi"} onClick={() => { setQRType("wifi"); setIsTypeDropdownOpen(false); }}>
+                                    <Wifi size={16} />
+                                    WiFi
+                                </Tab>
+                                <Tab active={qrType === "text"} onClick={() => { setQRType("text"); setIsTypeDropdownOpen(false); }}>
+                                    <AlignLeft size={16} />
+                                    Text
+                                </Tab>
+                                <Tab active={qrType === "whatsapp"} onClick={() => { setQRType("whatsapp"); setIsTypeDropdownOpen(false); }}>
+                                    <MessageSquare size={16} />
+                                    WhatsApp
+                                </Tab>
+                                <Tab active={qrType === "sms"} onClick={() => { setQRType("sms"); setIsTypeDropdownOpen(false); }}>
+                                    <Send size={16} />
+                                    SMS
+                                </Tab>
+                                <Tab active={qrType === "twitter"} onClick={() => { setQRType("twitter"); setIsTypeDropdownOpen(false); }}>
+                                    <Twitter size={16} />
+                                    Twitter
+                                </Tab>
+                                <Tab active={qrType === "facebook"} onClick={() => { setQRType("facebook"); setIsTypeDropdownOpen(false); }}>
+                                    <Facebook size={16} />
+                                    Facebook
+                                </Tab>
+                                <Tab active={qrType === "pdf"} onClick={() => { setQRType("pdf"); setIsTypeDropdownOpen(false); }}>
+                                    <FileText size={16} />
+                                    PDF
+                                </Tab>
+                                <Tab active={qrType === "mp3"} onClick={() => { setQRType("mp3"); setIsTypeDropdownOpen(false); }}>
+                                    <Music size={16} />
+                                    MP3
+                                </Tab>
+                                <Tab active={qrType === "app"} onClick={() => { setQRType("app"); setIsTypeDropdownOpen(false); }}>
+                                    <Download size={16} />
+                                    App Store
+                                </Tab>
+                                <Tab active={qrType === "file"} onClick={() => { setQRType("file"); setIsTypeDropdownOpen(false); }}>
+                                    <Upload size={16} />
+                                    File
+                                </Tab>
+                                <Tab active={qrType === "multiplink"} onClick={() => handleTypeChange("multiplink")}>
+                                    <Plus size={16} />
+                                    MultiLink
+                                </Tab>
+                                <Tab active={qrType === "youtube"} onClick={() => handleTypeChange("youtube")}>
+                                    <Code size={16} />
+                                    YouTube
+                                </Tab>
+                            </TabContainer>
+                        </DropdownContent>
+                    </TypeDropdown> */}
                     {/* Replace form rendering with QRCodeForm component */}
                     <QRCodeForm
                         qrType={qrType}
                         qrData={qrData}
-                        handleInputChange={handleInputChange}
+                        handleInputChange={(e) => {
+                            // Make sure this actually updates the qrType state
+                            if (e.target.name === 'qrType') {
+                                setQRType(e.target.value as keyof QRData);
+                            }
+                            // ... rest of your handleInputChange logic
+                        }}
                         placeholder={
                             qrType === "url"
                                 ? "Enter your website\nYour QR Code will be generated automatically"
                                 : "Enter your website<br />Your QR Code will be generated automatically"
                         }
+                        handleAddLink={handleAddLink}
                     />
                 </GeneratorCard>
             </GeneratorColumn>
@@ -996,46 +968,48 @@ const Title = styled.h2`
 
 const TabContainer = styled.div`
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 0.25rem;
-    margin-bottom: 0.5rem;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-height: 300px;
+    overflow-y: auto;
 
     @media (max-width: 768px) {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(3, 1fr);
     }
 
     @media (max-width: 350px) {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(2, 1fr);
     }
 `;
+
 const Tab = styled.button<{ active: boolean }>`
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 0.25rem;
+    padding: 0.5rem;
     background-color: ${(props) => (props.active ? "#ff6320" : "#f8f9fa")};
     color: ${(props) => (props.active ? "white" : "#616568")};
     border: none;
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-size: 0.6rem;
+    font-size: 0.75rem;
+    width: 100%;
 
     svg {
-        width: 14px;
-        height: 14px;
-        margin-bottom: 0.15rem;
+        width: 16px;
+        height: 16px;
+        margin-bottom: 0.25rem;
     }
 
     &:hover {
         background-color: ${(props) =>
             props.active ? "#e0551c" : "#e9ecef"};
-    }
-
-    @media (max-width: 768px) {
-        padding: 0.35rem;
-        font-size: 0.65rem;
     }
 `;
 
@@ -1890,5 +1864,44 @@ const GenerateButton = styled.button`
     &:hover {
         background-color: #e55a1b;
     }
+`;
+
+const TypeDropdown = styled.div`
+    position: relative;
+    width: 100%;
+    margin-bottom: 1rem;
+`;
+
+const DropdownButton = styled.button`
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    font-family: "Aspekta 550", Arial, sans-serif;
+    border-radius: 10px;
+    border: 2px solid #ccc;
+    background-color: #f9f9f9;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    &:focus {
+        border-color: #ff6320;
+        outline: none;
+    }
+`;
+
+const DropdownContent = styled.div<{ isOpen: boolean }>`
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    display: ${props => props.isOpen ? 'block' : 'none'};
+    margin-top: 0.5rem;
 `;
 
