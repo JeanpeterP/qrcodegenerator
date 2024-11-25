@@ -160,7 +160,6 @@ const LinksContainer = styled.div`
   width: 100%;
   max-width: 680px;
   margin: 0 auto;
-  padding: 0 16px;
 `;
 
 const LinkButton = styled.a`

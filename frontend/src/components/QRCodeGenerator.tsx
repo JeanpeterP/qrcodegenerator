@@ -126,6 +126,20 @@ const PreviewColumn = styled.div`
     }
 `;
 
+// Add PhonePreviewColumn styled component
+const PhonePreviewColumn = styled.div<{ show: boolean }>`
+    flex: 0 1 25%;
+    height: 100%;
+    box-sizing: border-box;
+    display: ${props => props.show ? 'flex' : 'none'};
+    flex-direction: column;
+    position: relative;
+
+    @media (max-width: 1200px) {
+        display: none;
+    }
+`;
+
 // Update the HandleInputChangeFunction type
 type HandleInputChangeFunction = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
@@ -890,11 +904,16 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                     {/* Include DigitalProductSection if needed */}
                 </PreviewCard>
             </PreviewColumn>
-            <PhonePreview 
-                show={shouldShowPhonePreview(qrType)}
-                qrType={qrType}
-                qrData={qrData}
-            />
+            <PhonePreviewColumn show={shouldShowPhonePreview(qrType)}>
+                <PreviewCard>
+                    <Title>Phone Preview</Title>
+                    <PhonePreview 
+                        show={shouldShowPhonePreview(qrType)}
+                        qrType={qrType}
+                        qrData={qrData}
+                    />
+                </PreviewCard>
+            </PhonePreviewColumn>
         </Container>
     ) : null;
 }

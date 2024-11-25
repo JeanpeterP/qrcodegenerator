@@ -46,9 +46,9 @@ const PhoneFrame = styled.div`
 `;
 
 const PhoneContent = styled.div`
-  padding: 20px;
+
   height: 100%;
-  overflow-y: auto;
+  overflow-y: hidden;
 `;
 
 const Title = styled.h2`
@@ -81,46 +81,133 @@ interface PhonePreviewProps {
 export const PhonePreview: React.FC<PhonePreviewProps> = ({ show, qrType, qrData }) => {
     return (
         <PhonePreviewColumn show={show}>
-            <Title>Phone Preview</Title>
             <PhoneFrame>
                 <PhoneContent>
                     {qrType === 'file' && (
-                        <div className="download-preview">
-                            <h1>{qrData.file?.title || 'Download File'}</h1>
-                            <p>{qrData.file?.description || 'No description provided'}</p>
-                            <button 
-                                style={{ 
-                                    backgroundColor: qrData.file?.buttonColor || '#ff6320',
-                                    padding: '10px 20px',
-                                    border: 'none',
-                                    borderRadius: '5px',
-                                    color: 'white',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                {qrData.file?.buttonText || 'Download'}
-                            </button>
+                        <div className="download-preview" style={{
+                            minHeight: '100vh',
+                            backgroundColor: '#fafafa',
+                            padding: '40px 20px',
+                        }}>
+                            <div style={{
+                                width: '100%',
+                                maxWidth: '680px',
+                                margin: '0 auto',
+                                textAlign: 'center'
+                            }}>
+                                <h1 style={{
+                                    fontSize: '1.25rem',
+                                    fontWeight: 700,
+                                    color: '#333',
+                                    marginBottom: '8px'
+                                }}>
+                                    {qrData.file?.title || 'Download File'}
+                                </h1>
+                                <p style={{
+                                    fontSize: '1rem',
+                                    color: '#666',
+                                    marginBottom: '24px'
+                                }}>
+                                    {qrData.file?.description || 'No description provided'}
+                                </p>
+                                <button 
+                                    style={{ 
+                                        backgroundColor: qrData.file?.buttonColor || '#ff6320',
+                                        padding: '15px 30px',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        color: 'white',
+                                        cursor: 'pointer',
+                                        fontSize: '1.2rem',
+                                        marginTop: '20px',
+                                        display: 'inline-block',
+                                        textDecoration: 'none'
+                                    }}
+                                >
+                                    {qrData.file?.buttonText || 'Download'}
+                                </button>
+                            </div>
                         </div>
                     )}
                     {qrType === 'multiplink' && (
-                        <div className="multilink-preview">
-                            <h1>{qrData.contentData?.title || 'My Links'}</h1>
-                            <div className="links-container">
-                                {qrData.contentData?.links?.map((link, index) => (
-                                    <div 
-                                        key={index}
-                                        className="link-item"
-                                        style={{
-                                            padding: '15px',
-                                            margin: '10px 0',
-                                            backgroundColor: 'white',
-                                            borderRadius: '12px',
-                                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                                        }}
-                                    >
-                                        <p>{link.label || `Link ${index + 1}`}</p>
-                                    </div>
-                                ))}
+                        <div className="multilink-preview" style={{
+                            height: '100%',
+                            backgroundColor: '#fafafa',
+                            padding: '40px 20px',
+                            overflowY: 'hidden'
+                        }}>
+                            <div style={{
+                                width: '100%',
+                                maxWidth: '680px',
+                                margin: '0 auto'
+                            }}>
+                                <div style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    marginBottom: '32px'
+                                }}>
+                                    <h1 style={{
+                                        fontSize: '1.25rem',
+                                        fontWeight: 700,
+                                        color: '#333',
+                                        marginBottom: '8px',
+                                        textAlign: 'center'
+                                    }}>{qrData.contentData?.title || 'My Links'}</h1>
+                                </div>
+
+                                <div style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '16px',
+                                    width: '100%',
+                                    maxWidth: '680px',
+                                    margin: '0 auto',
+                                }}>
+                                    {qrData.contentData?.links?.map((link, index) => (
+                                        <div 
+                                            key={index}
+                                            style={{
+                                                background: 'white',
+                                                border: '2px solid rgba(0, 0, 0, 0.1)',
+                                                borderRadius: '12px',
+                                                padding: '16px 20px',
+                                                position: 'relative'
+                                            }}
+                                        >
+                                            <div style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'space-between'
+                                            }}>
+                                                <span style={{
+                                                    color: '#333',
+                                                    fontSize: '1rem',
+                                                    fontWeight: 600,
+                                                    textAlign: 'center',
+                                                    flexGrow: 1
+                                                }}>{link.label || `Link ${index + 1}`}</span>
+                                                <button style={{
+                                                    position: 'absolute',
+                                                    right: '16px',
+                                                    top: '50%',
+                                                    transform: 'translateY(-50%)',
+                                                    background: 'transparent',
+                                                    border: 'none',
+                                                    padding: '8px',
+                                                    cursor: 'pointer',
+                                                    opacity: 0.5,
+                                                    color: '#333',
+                                                    borderRadius: '50%'
+                                                }}>
+                                                    <svg width="3" height="12" viewBox="0 0 3 12" fill="currentColor">
+                                                        <path d="M1.5 12.0122C1.0875 12.0122 0.734375 11.8653 0.440625 11.5716C0.146875 11.2778 0 10.9247 0 10.5122C0 10.0997 0.146875 9.74658 0.440625 9.45283C0.734375 9.15908 1.0875 9.01221 1.5 9.01221C1.9125 9.01221 2.26562 9.15908 2.55938 9.45283C2.85313 9.74658 3 10.0997 3 10.5122C3 10.9247 2.85313 11.2778 2.55938 11.5716C2.26562 11.8653 1.9125 12.0122 1.5 12.0122Z" fill="currentColor"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     )}
