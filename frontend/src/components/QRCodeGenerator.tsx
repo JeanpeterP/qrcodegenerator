@@ -31,6 +31,7 @@ import html2canvas from 'html2canvas';
 import { QRCodeForm } from './QRCodeForm';
 import { CustomizationTabs } from './CustomizationTabs';
 import { Preview } from './Preview';
+import { PhonePreview } from './PhonePreview/PhonePreview';
 
 import { getBackendUrl } from '../utils/constants';
 import { QRData } from '../types/qr';
@@ -82,12 +83,15 @@ const Container = styled.div`
     height: 100%;
     box-sizing: border-box;
     overflow: hidden;
-    gap: 80px;
+    gap: 40px;
     position: relative;
+
+    @media (max-width: 1200px) {
+        gap: 20px;
+    }
 
     @media (max-width: 900px) {
         flex-direction: column;
-        gap: 40px;
         height: auto;
         overflow: visible;
     }
@@ -151,7 +155,6 @@ interface PreviewProps {
     setGeneratedUrl: React.Dispatch<React.SetStateAction<string | null>>;
     setGenerateQRCode: (loading: boolean) => void;
 }
-
 
 export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     const [isMounted, setIsMounted] = useState(false);
@@ -711,6 +714,11 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         }
     };
 
+    // Add this inside your QRCodeGenerator component
+    const shouldShowPhonePreview = (type: string) => {
+        return ['file', 'multiplink', 'youtube'].includes(type);
+    };
+
     return isMounted ? (
         <Container ref={qrContainerRef}>
             <GeneratorColumn>
@@ -882,6 +890,11 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                     {/* Include DigitalProductSection if needed */}
                 </PreviewCard>
             </PreviewColumn>
+            <PhonePreview 
+                show={shouldShowPhonePreview(qrType)}
+                qrType={qrType}
+                qrData={qrData}
+            />
         </Container>
     ) : null;
 }
