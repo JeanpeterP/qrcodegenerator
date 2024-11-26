@@ -20,6 +20,7 @@ import {
     Plus,
     Upload,
 } from "lucide-react";
+import { HandleInputChangeFunction } from './QRCodeGenerator';
 
 // SVG Icon Components (UpArrowIcon and DownArrowIcon)
 const UpArrowIcon = () => (
@@ -55,17 +56,13 @@ const shouldShowPhonePreview = (qrType: string): boolean => {
     return ['file', 'multiplink'].includes(qrType);
 };
 
-interface QRCodeFormProps {
+export interface QRCodeFormProps {
     qrType: keyof QRData;
     qrData: QRData;
-    handleInputChange: (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-        nestedKey?: keyof QRData | null,
-        index?: number,
-        field?: string
-    ) => void;
+    handleInputChange: HandleInputChangeFunction;
     placeholder: string;
     handleAddLink?: () => void;
+    userChoice: 'qr' | 'dynamicBio' | null;
 }
 
 export const QRCodeForm: React.FC<QRCodeFormProps> = ({
@@ -74,6 +71,7 @@ export const QRCodeForm: React.FC<QRCodeFormProps> = ({
     handleInputChange,
     placeholder,
     handleAddLink,
+    userChoice,
 }) => {
     const [activeDropdown, setActiveDropdown] = useState<string | null>('qrData');
 

@@ -34,6 +34,7 @@ import { PhonePreview } from './PhonePreview/PhonePreview';
 
 import { getBackendUrl } from '../utils/constants';
 import { QRData } from '../types/qr';
+import { Preview } from "./Preview";
 
 interface CustomizationTabsProps {
     activeTab: string;
@@ -90,9 +91,9 @@ const RightColumn = styled.div`
 `;
 
 // Update the HandleInputChangeFunction type
-type HandleInputChangeFunction = (
+export type HandleInputChangeFunction = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-    nestedKey?: keyof QRData | null,
+    section?: keyof QRData | null,
     index?: number | null,
     subKey?: string | null
 ) => void;
@@ -103,6 +104,8 @@ interface QRCodeFormProps {
     qrData: QRData;
     handleInputChange: HandleInputChangeFunction;
     placeholder: string;
+    handleAddLink?: () => void;
+    userChoice: 'qr' | 'dynamicBio' | null;
 }
 
 // Update the PreviewProps interface to match the Preview component's actual needs
@@ -227,6 +230,8 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     const [currentStep, setCurrentStep] = useState(1);
 
     const [previewType, setPreviewType] = useState<keyof QRData>("url");
+
+    const [userChoice, setUserChoice] = useState<'qr' | 'dynamicBio' | null>(null);
 
     useEffect(() => {
         setIsMounted(true);
@@ -387,25 +392,25 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     // Update the handleInputChange function
     const handleInputChange: HandleInputChangeFunction = (
         e,
-        nestedKey = null,
+        section = null,
         index = null,
         subKey = null
     ) => {
         const { name, value } = e.target;
 
         setQRData((prevData: QRData) => {
-            if (nestedKey && Object.prototype.hasOwnProperty.call(prevData, nestedKey)) {
+            if (section && Object.prototype.hasOwnProperty.call(prevData, section)) {
                 return {
                     ...prevData,
-                    [nestedKey]: {
-                        ...(prevData[nestedKey as keyof QRData] as Record<string, any>),
+                    [section]: {
+                        ...(prevData[section as keyof QRData] as Record<string, any>),
                         [name]: value
                     }
                 };
             }
 
             // Handle file upload separately
-            if (name === 'fileData' && nestedKey === 'file') {
+            if (name === 'fileData' && section === 'file') {
                 const file = (e.target as HTMLInputElement).files?.[0];
                 return {
                     ...prevData,
@@ -417,9 +422,9 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
             }
 
             // Handle nested objects (like email, vcard, wifi, etc.)
-            if (nestedKey) {
+            if (section) {
                 // Handle multiplink links array
-                if (nestedKey === 'contentData' && index !== null && subKey) {
+                if (section === 'contentData' && index !== null && subKey) {
                     const newLinks = [...(prevData.contentData?.links || [])];
                     newLinks[index] = {
                         ...newLinks[index],
@@ -437,8 +442,8 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                 // Handle regular nested objects
                 return {
                     ...prevData,
-                    [nestedKey]: {
-                        ...(prevData[nestedKey as keyof QRData] as Record<string, any>),
+                    [section]: {
+                        ...(prevData[section as keyof QRData] as Record<string, any>),
                         [name]: value
                     }
                 };
@@ -719,7 +724,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
 
     const handleQRTypeSelect = (type: QRType) => {
         setQRType(type);
-        setCurrentStep(2); // Proceed to the next step
+        setCurrentStep(3); // Proceed to the next step
     };
 
     // Add this function to handle hover
@@ -759,39 +764,91 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         }
     };
 
+    useEffect(() => {
+        const qrCode = new QRCodeStyling({
+            width: 300,
+            height: 300,
+            data: "https://example.com", // Default data
+            dotsOptions: {
+                type: shape,
+                color: qrColor,
+            },
+            backgroundOptions: {
+                color: qrBackground,
+            },
+            cornersSquareOptions: {
+                type: markerStyle,
+                color: markerColor,
+            },
+        });
+        setQrCodeInstance(qrCode);
+    }, []); // Initialize once when component mounts
+
     return (
         <Container>
-            <LeftColumn>
-                {currentStep === 1 && (
-                    <>
-                        <Title>Select a type of QR code</Title>
-                        <QRCodeTypeSelector 
-                            onSelect={handleQRTypeSelect} 
-                            onHover={handleQRTypeHover}  // Add this prop
-                        />
-                    </>
-                )}
-                {currentStep === 2 && (
-                    <>
-                        <BackButton onClick={() => setCurrentStep(1)}>Back</BackButton>
-                        <Title>Configure your QR code</Title>
-                        <QRCodeForm
+            {currentStep === 1 && (
+                <FullPageSelection>
+                    <SelectionButton onClick={() => { setUserChoice('qr'); setCurrentStep(2); }}>
+                        QR Code
+                    </SelectionButton>
+                    <SelectionButton onClick={() => { setUserChoice('dynamicBio'); setCurrentStep(2); }}>
+                        Dynamic Bio
+                    </SelectionButton>
+                </FullPageSelection>
+            )}
+
+            {currentStep === 2 && (
+                <LeftColumn>
+                    <Title>Select a type of QR code</Title>
+                    <QRCodeTypeSelector 
+                        onSelect={handleQRTypeSelect} 
+                        onHover={handleQRTypeHover} 
+                        userChoice={userChoice || 'qr'}
+                    />
+                </LeftColumn>
+            )}
+
+            {currentStep === 3 && (
+                <LeftColumn>
+                    <BackButton onClick={() => setCurrentStep(2)}>Back</BackButton>
+                    <Title>Configure your QR code</Title>
+                    <QRCodeForm
+                        qrType={qrType}
+                        qrData={qrData}
+                        handleInputChange={handleInputChange}
+                        placeholder={getPlaceholder(qrType)}
+                        handleAddLink={handleAddLink}
+                        userChoice={userChoice}
+                    />
+                </LeftColumn>
+            )}
+
+            {currentStep !== 1 && (
+                <RightColumn>
+                    {userChoice === 'qr' ? (
+                        <div className="preview-container">
+                            <Preview 
+                                qrCodeInstance={qrCodeInstance}
+                                handleDownload={handleDownload}
+                                generateQRCodeData={generateQRCodeData}
+                                frame={frame}
+                                shape={shape}
+                                frameColor={frameColor}
+                                qrType={qrType}
+                                generatedUrl={generatedUrl}
+                                setGeneratedUrl={setGeneratedUrl}
+                                setGenerateQRCode={setGenerateQRCode}
+                            />
+                        </div>
+                    ) : (
+                        <PhonePreview
+                            show={true}
                             qrType={qrType}
                             qrData={qrData}
-                            handleInputChange={handleInputChange}
-                            placeholder={getPlaceholder(qrType)}
-                            handleAddLink={handleAddLink}
                         />
-                    </>
-                )}
-            </LeftColumn>
-            <RightColumn>
-                <PhonePreview
-                    show={true}
-                    qrType={currentStep === 1 ? previewType : qrType}
-                    qrData={currentStep === 1 ? getPlaceholderData(previewType) as QRData : qrData}
-                />
-            </RightColumn>
+                    )}
+                </RightColumn>
+            )}
         </Container>
     );
 }
@@ -1864,5 +1921,30 @@ const BackButton = styled.button`
 
     &:hover {
         text-decoration: underline;
+    }
+`;
+
+const FullPageSelection = styled.div`
+    display: flex;
+    width: 100%;
+    height: 100vh; /* Adjust as needed */
+`;
+
+const SelectionButton = styled.button`
+    flex: 1;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    font-size: 2rem;
+    background-color: #f8f9fa;
+    transition: background-color 0.3s;
+
+    &:hover {
+        background-color: #ff6320;
+        color: white;
+    }
+
+    &:first-child {
+        border-right: 1px solid #dee2e6;
     }
 `;

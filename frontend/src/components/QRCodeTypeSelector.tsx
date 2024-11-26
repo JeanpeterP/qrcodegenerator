@@ -23,6 +23,7 @@ import { QRType } from './QRCodeGenerator';
 interface QRCodeTypeSelectorProps {
   onSelect: (qrType: QRType) => void;
   onHover: (qrType: QRType) => void;
+  userChoice: 'qr' | 'dynamicBio';
 }
 
 const GridContainer = styled.div`
@@ -68,7 +69,7 @@ const CardDescription = styled.p`
   color: #666;
 `;
 
-export const QRCodeTypeSelector: React.FC<QRCodeTypeSelectorProps> = ({ onSelect, onHover }) => {
+export const QRCodeTypeSelector: React.FC<QRCodeTypeSelectorProps> = ({ onSelect, onHover, userChoice }) => {
   const qrOptions: { type: QRType; label: string; description: string; icon: any }[] = [
     { type: 'url', label: 'Website', description: 'Link to any website URL', icon: FaLink },
     { type: 'pdf', label: 'PDF', description: 'Show a PDF', icon: FaFilePdf },
