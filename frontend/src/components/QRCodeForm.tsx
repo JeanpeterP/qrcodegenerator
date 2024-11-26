@@ -562,26 +562,15 @@ const DropdownContent = styled.div`
 const Input = styled.input`
     width: 100%;
     padding: 12px;
-    margin-top: 5px;
-    margin-bottom: 10px;
-    font-size: 16px;
-    font-family: 'Aspekta 550', Arial, sans-serif;
-    border-radius: 10px;
-    border: 2px solid #ccc;
-    background-color: #f9f9f9;
-    transition: border-color 0.3s, box-shadow 0.3s;
-    box-sizing: border-box;
-    flex: 1;
+    margin-bottom: 16px;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #1b294b;
 
     &:focus {
-        border-color: #ff6320;
-        box-shadow: 0 0 10px rgba(255, 99, 32, 0.5);
         outline: none;
-    }
-
-    &:disabled {
-        background-color: #e9e9e9;
-        cursor: not-allowed;
+        border-color: #ff6320;
     }
 `;
 

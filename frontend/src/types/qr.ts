@@ -2,6 +2,7 @@ export interface QRData {
     url: string;
     email: { address: string; subject: string; message: string };
     vcard: { name: string; phone: string; company: string; address: string };
+    video: { url: string };
     wifi: { ssid: string; password: string; security: string };
     text: string;
     whatsapp: { number: string; message: string };
@@ -29,6 +30,6 @@ export interface QRData {
         }>;
     };
     youtube: {
-        url: string;  // Changed from title and videoId to just url
+        url: string;
     };
 } 

@@ -29,8 +29,7 @@ import html2canvas from 'html2canvas';
 
 // Import the new components
 import { QRCodeForm } from './QRCodeForm';
-import { CustomizationTabs } from './CustomizationTabs';
-import { Preview } from './Preview';
+import { QRCodeTypeSelector } from './QRCodeTypeSelector';
 import { PhonePreview } from './PhonePreview/PhonePreview';
 
 import { getBackendUrl } from '../utils/constants';
@@ -69,61 +68,25 @@ interface QRCodeGeneratorProps {}
 type LogoType = 'custom' | 'stacked' | 'open-box' | 'closed-box';
 
 // Add this type definition near the top of the file, with other type definitions
-type QRType = 'url' | 'email' | 'vcard' | 'wifi' | 'text' | 'whatsapp' | 'sms' | 
-              'twitter' | 'facebook' | 'pdf' | 'mp3' | 'app' | 'file' | 'multiplink' | 
-              'youtube' | 'image';
+export type QRType = keyof QRData;
 
 const Container = styled.div`
-    padding: 20px 40px;
     display: flex;
     flex-direction: row;
-    align-items: flex-start;
-    font-family: "Aspekta 550", Arial, sans-serif;
     width: 100%;
-    height: 100%;
-    box-sizing: border-box;
-    overflow: hidden;
-    gap: 40px;
-    position: relative;
-
-    @media (max-width: 1200px) {
-        gap: 20px;
-    }
-
-    @media (max-width: 900px) {
-        flex-direction: column;
-        height: auto;
-        overflow: visible;
-    }
 `;
 
-const GeneratorColumn = styled.div`
-    flex: 0 1 40%;
-    height: 100%;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-
-    @media (max-width: 900px) {
-        flex: none;
-        width: 100%;
-        height: auto;
-    }
-`;
-
-const PreviewColumn = styled.div`
+const LeftColumn = styled.div`
     flex: 1;
-    height: 100%;
-    box-sizing: border-box;
+    padding: 0;
     display: flex;
     flex-direction: column;
-    position: relative;
+`;
 
-    @media (max-width: 900px) {
-        width: 100%;
-        height: auto;
-    }
+const RightColumn = styled.div`
+    flex: 1;
+    padding: 0;
+    position: relative;
 `;
 
 // Update the HandleInputChangeFunction type
@@ -185,6 +148,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         url: "https://example.com",
         email: { address: "", subject: "", message: "" },
         vcard: { name: "", phone: "", company: "", address: "" },
+        video: { url: "" },
         wifi: { ssid: "", password: "", security: "WPA" },
         text: "",
         whatsapp: { number: "", message: "" },
@@ -259,6 +223,10 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
 
     const [previewMode, setPreviewMode] = useState<'qr' | 'phone'>('qr');
+
+    const [currentStep, setCurrentStep] = useState(1);
+
+    const [previewType, setPreviewType] = useState<keyof QRData>("url");
 
     useEffect(() => {
         setIsMounted(true);
@@ -749,82 +717,64 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         return ['file', 'multiplink', 'youtube'].includes(type);
     };
 
-    return isMounted ? (
-        <Container ref={qrContainerRef}>
-            <GeneratorColumn>
-                <GeneratorCard>
-                    <Title>QR Code Generator</Title>
-                    <TypeDropdown>
-                        <DropdownButton onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}>
-                            {qrType.charAt(0).toUpperCase() + qrType.slice(1)}
-                            <ChevronDown size={20} />
-                        </DropdownButton>
-                        <DropdownContent isOpen={isTypeDropdownOpen}>
-                            <TabContainer>
-                                <Tab active={qrType === "url"} onClick={() => handleTypeChange("url")}>
-                                    <Link size={16} />
-                                    URL
-                                </Tab>
-                                <Tab active={qrType === "email"} onClick={() => handleTypeChange("email")}>
-                                    <Mail size={16} />
-                                    Email
-                                </Tab>
-                                <Tab active={qrType === "vcard"} onClick={() => handleTypeChange("vcard")}>
-                                    <CreditCard size={16} />
-                                    VCard
-                                </Tab>
-                                <Tab active={qrType === "wifi"} onClick={() => handleTypeChange("wifi")}>
-                                    <Wifi size={16} />
-                                    WiFi
-                                </Tab>
-                                <Tab active={qrType === "text"} onClick={() => handleTypeChange("text")}>
-                                    <AlignLeft size={16} />
-                                    Text
-                                </Tab>
-                                <Tab active={qrType === "whatsapp"} onClick={() => handleTypeChange("whatsapp")}>
-                                    <MessageSquare size={16} />
-                                    WhatsApp
-                                </Tab>
-                                <Tab active={qrType === "sms"} onClick={() => handleTypeChange("sms")}>
-                                    <Send size={16} />
-                                    SMS
-                                </Tab>
-                                <Tab active={qrType === "twitter"} onClick={() => handleTypeChange("twitter")}>
-                                    <Twitter size={16} />
-                                    Twitter
-                                </Tab>
-                                <Tab active={qrType === "facebook"} onClick={() => handleTypeChange("facebook")}>
-                                    <Facebook size={16} />
-                                    Facebook
-                                </Tab>
-                                <Tab active={qrType === "pdf"} onClick={() => handleTypeChange("pdf")}>
-                                    <FileText size={16} />
-                                    PDF
-                                </Tab>
-                                <Tab active={qrType === "mp3"} onClick={() => handleTypeChange("mp3")}>
-                                    <Music size={16} />
-                                    MP3
-                                </Tab>
-                                <Tab active={qrType === "app"} onClick={() => handleTypeChange("app")}>
-                                    <Download size={16} />
-                                    App Store
-                                </Tab>
-                                <Tab active={qrType === "file"} onClick={() => handleTypeChange("file")}>
-                                    <Upload size={16} />
-                                    File
-                                </Tab>
-                                <Tab active={qrType === "multiplink"} onClick={() => handleTypeChange("multiplink")}>
-                                    <Plus size={16} />
-                                    MultiLink
-                                </Tab>
-                                <Tab active={qrType === "youtube"} onClick={() => handleTypeChange("youtube")}>
-                                    <Code size={16} />
-                                    YouTube
-                                </Tab>
-                            </TabContainer>
-                        </DropdownContent>
-                    </TypeDropdown>
-                    <FormContainer>
+    const handleQRTypeSelect = (type: QRType) => {
+        setQRType(type);
+        setCurrentStep(2); // Proceed to the next step
+    };
+
+    // Add this function to handle hover
+    const handleQRTypeHover = (type: QRType) => {
+        setPreviewType(type);
+    };
+
+    // Add this function to get placeholder data for preview
+    const getPlaceholderData = (type: QRType): Partial<QRData> => {
+        switch (type) {
+            case 'url':
+                return { url: 'https://example.com' };
+            case 'file':
+                return {
+                    file: {
+                        fileData: null,
+                        title: 'Sample File',
+                        description: 'This is a sample file description',
+                        buttonText: 'Download',
+                        buttonColor: '#ff6320',
+                    }
+                };
+            case 'multiplink':
+                return {
+                    contentData: {
+                        title: 'My Links',
+                        links: [
+                            { label: 'Website', url: 'https://example.com' },
+                            { label: 'Blog', url: 'https://blog.example.com' },
+                            { label: 'Contact', url: 'https://example.com/contact' },
+                        ]
+                    }
+                };
+            // Add more cases for other QR types...
+            default:
+                return {};
+        }
+    };
+
+    return (
+        <Container>
+            <LeftColumn>
+                {currentStep === 1 && (
+                    <>
+                        <Title>Select a type of QR code</Title>
+                        <QRCodeTypeSelector 
+                            onSelect={handleQRTypeSelect} 
+                            onHover={handleQRTypeHover}  // Add this prop
+                        />
+                    </>
+                )}
+                {currentStep === 2 && (
+                    <>
+                        <BackButton onClick={() => setCurrentStep(1)}>Back</BackButton>
+                        <Title>Configure your QR code</Title>
                         <QRCodeForm
                             qrType={qrType}
                             qrData={qrData}
@@ -832,84 +782,18 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             placeholder={getPlaceholder(qrType)}
                             handleAddLink={handleAddLink}
                         />
-                    </FormContainer>
-                </GeneratorCard>
-            </GeneratorColumn>
-            <PreviewColumn>
-                <PreviewCard>
-                    <ToggleContainer>
-                        <ToggleButton 
-                            active={previewMode === 'qr'} 
-                            onClick={() => setPreviewMode('qr')}
-                        >
-                            QR Code
-                        </ToggleButton>
-                        <ToggleButton 
-                            active={previewMode === 'phone'} 
-                            onClick={() => setPreviewMode('phone')}
-                            disabled={!shouldShowPhonePreview(qrType)}
-                            title={!shouldShowPhonePreview(qrType) ? 'Phone preview is not available for this QR type' : ''}
-                        >
-                            Preview
-                        </ToggleButton>
-                    </ToggleContainer>
-                    {previewMode === 'qr' && (
-                        <>
-                            <Title>QR Code Preview</Title>
-                            <Preview
-                                qrCodeInstance={qrCodeInstance}
-                                handleDownload={handleDownload}
-                                generateQRCodeData={generateQRCodeData}
-                                frame={frame}
-                                shape={shape}
-                                frameColor={frameColor}
-                                qrType={qrType}
-                                generatedUrl={generatedUrl}
-                                setGeneratedUrl={setGeneratedUrl}
-                                setGenerateQRCode={setGenerateQRCode}
-                            />
-                            <CustomizationTabs
-                                activeTab={activeTab}
-                                setActiveTab={setActiveTab}
-                                frame={frame}
-                                setFrame={setFrame}
-                                frameColor={frameColor}
-                                setFrameColor={setFrameColor}
-                                shape={shape}
-                                setShape={setShape}
-                                qrColor={qrColor}
-                                setQRColor={setQRColor}
-                                qrBackground={qrBackground}
-                                setQRBackground={setQRBackground}
-                                currentFramePage={currentFramePage}
-                                setCurrentFramePage={setCurrentFramePage}
-                                logo={logo}
-                                setLogo={setLogo}
-                                markerStyle={markerStyle}
-                                setMarkerStyle={setMarkerStyle}
-                                markerColor={markerColor}
-                                setMarkerColor={setMarkerColor}
-                                currentShapePage={currentShapePage}
-                                setCurrentShapePage={setCurrentShapePage}
-                                customLogo={customLogo}
-                                setCustomLogo={setCustomLogo}
-                            />
-                        </>
-                    )}
-                    {previewMode === 'phone' && (
-                        <>
-                            <Title>Phone Preview</Title>
-                            <PhonePreview 
-                                show={shouldShowPhonePreview(qrType)}
-                                qrType={qrType}
-                                qrData={qrData}
-                            />
-                        </>
-                    )}
-                </PreviewCard>
-            </PreviewColumn>
+                    </>
+                )}
+            </LeftColumn>
+            <RightColumn>
+                <PhonePreview
+                    show={true}
+                    qrType={currentStep === 1 ? previewType : qrType}
+                    qrData={currentStep === 1 ? getPlaceholderData(previewType) as QRData : qrData}
+                />
+            </RightColumn>
         </Container>
-    ) : null;
+    );
 }
 
 // Styled Components
@@ -1968,6 +1852,18 @@ const ToggleButton = styled.button<{ active: boolean }>`
         border-radius: 4px;
         white-space: nowrap;
         font-size: 0.8rem;
+    }
+`;
+
+const BackButton = styled.button`
+    background: none;
+    border: none;
+    color: #007bff;
+    cursor: pointer;
+    margin-bottom: 10px;
+
+    &:hover {
+        text-decoration: underline;
     }
 `;
 
