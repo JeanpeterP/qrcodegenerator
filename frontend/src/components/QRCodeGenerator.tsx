@@ -77,7 +77,7 @@ const Container = styled.div`
 `;
 
 const LeftColumn = styled.div`
-    flex: 1;
+    flex: 2;
     padding: 0;
     display: flex;
     flex-direction: column;
@@ -1866,4 +1866,3 @@ const BackButton = styled.button`
         text-decoration: underline;
     }
 `;
-

@@ -1,8 +1,11 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { getBackendUrl } from '../utils/constants';
-import styled from 'styled-components';
 import { ErrorPage } from '../components/ErrorPage';
+import { File } from '../components/pageContent/File';
+import { LoadingMessage } from '../components/common/LoadingMessage';
+import { ErrorMessage } from '../components/common/ErrorMessage';
+import { PageContainer } from '../components/common/PageContainer';
 
 interface DownloadQRData {
   title: string;
@@ -68,77 +71,20 @@ const DownloadQRPage: React.FC = () => {
 
   return (
     <PageContainer>
-      <ContentWrapper>
-        <Title>{qrData.title || 'Download'}</Title>
-        {qrData.description && <Description>{qrData.description}</Description>}
-        
-        {qrData.fileUrl && (
-          <DownloadButton 
-            href={qrData.fileUrl}
-            download={qrData.originalFileName}
-            style={{ backgroundColor: qrData.buttonColor || '#ff6320' }}
-          >
-            {qrData.buttonText || 'Download'}
-          </DownloadButton>
-        )}
-      </ContentWrapper>
+      <File
+        fileData={{
+          title: qrData.title,
+          description: qrData.description,
+          buttonColor: qrData.buttonColor,
+          buttonText: qrData.buttonText,
+          fileUrl: qrData.fileUrl,
+          originalFileName: qrData.originalFileName,
+        }}
+      />
     </PageContainer>
   );
 };
 
 export default DownloadQRPage;
 
-// Styled Components
-const PageContainer = styled.div`
-  min-height: 100vh;
-  background-color: #fafafa;
-  padding: 40px 20px;
-`;
-
-const ContentWrapper = styled.div`
-  width: 100%;
-  max-width: 680px;
-  margin: 0 auto;
-  text-align: center;
-`;
-
-const Title = styled.h1`
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #333;
-  margin-bottom: 8px;
-`;
-
-const Description = styled.p`
-  font-size: 1rem;
-  color: #666;
-  margin-bottom: 24px;
-`;
-
-const DownloadButton = styled.a`
-  display: inline-block;
-  color: white;
-  padding: 15px 30px;
-  border-radius: 8px;
-  text-decoration: none;
-  font-size: 1.2rem;
-  margin-top: 20px;
-
-  &:hover {
-    opacity: 0.9;
-  }
-`;
-
-const LoadingMessage = styled.div`
-  text-align: center;
-  padding: 20px;
-  font-size: 1.2rem;
-  color: #666;
-`;
-
-const ErrorMessage = styled.div`
-  text-align: center;
-  padding: 20px;
-  font-size: 1.2rem;
-  color: #ff0000;
-`; 
+// Remove the unnecessary styled components as they are moved to the component 
