@@ -65,8 +65,13 @@ interface CustomizationTabsProps {
 
 interface QRCodeGeneratorProps {}
 
-// Add new interface for logo types
-type LogoType = 'custom' | 'stacked' | 'open-box' | 'closed-box';
+// Update the LogoType definition
+type LogoType = {
+    type: 'stacked' | 'open-box' | 'closed-box' | 'custom';
+    src: string | null;
+    width?: number;
+    height?: number;
+} | null;
 
 // Add this type definition near the top of the file, with other type definitions
 export type QRType = keyof QRData;
@@ -188,7 +193,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     const [qrSize, setQRSize] = useState(125);
     const [frame, setFrame] = useState("none");
     const [shape, setShape] = useState<QRDotType>("square");
-    const [logo, setLogo] = useState<LogoType>("custom");
+    const [logo, setLogo] = useState<LogoType>(null);
     const [activeTab, setActiveTab] = useState("frame");
     const qrContainerRef = useRef<HTMLDivElement>(null);
 
@@ -550,7 +555,9 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
 
     // Add these helper functions
     const getLogoContent = (logoType: LogoType) => {
-        switch (logoType) {
+        if (!logoType) return undefined;
+        
+        switch (logoType.type) {
             case 'stacked':
                 return 'data:image/svg+xml,' + encodeURIComponent(`
                     <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">

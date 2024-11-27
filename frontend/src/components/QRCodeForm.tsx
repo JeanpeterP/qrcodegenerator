@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, Dispatch, SetStateAction } from 'react';
 import styled from 'styled-components';
 import { QRData } from '../types/qr';
 import {
@@ -21,6 +21,15 @@ import {
     Upload,
 } from "lucide-react";
 import { HandleInputChangeFunction } from './QRCodeGenerator';
+import { CustomizationTabs } from './CustomizationTabs';
+import { CornerSquareType } from 'qr-code-styling';
+
+// Update the LogoType definition
+type LogoType = {
+    src: string | null;
+    width?: number;
+    height?: number;
+} | null;
 
 // SVG Icon Components (UpArrowIcon and DownArrowIcon)
 const UpArrowIcon = () => (
@@ -65,6 +74,52 @@ export interface QRCodeFormProps {
     userChoice: 'qr' | 'dynamicBio' | null;
 }
 
+type DotType = 'square' | 'dots' | 'rounded' | 'classy' | 'extra-rounded' | 'classy-rounded';
+
+// Add this interface before the QRCodeForm component
+interface CustomizationTabsProps {
+    activeTab: string;
+    setActiveTab: Dispatch<SetStateAction<string>>;
+    frame: string;
+    setFrame: Dispatch<SetStateAction<string>>;
+    frameColor: string;
+    setFrameColor: Dispatch<SetStateAction<string>>;
+    shape: DotType;
+    setShape: Dispatch<SetStateAction<DotType>>;
+    qrColor: string;
+    setQRColor: Dispatch<SetStateAction<string>>;
+    qrBackground: string;
+    setQRBackground: Dispatch<SetStateAction<string>>;
+    logo: LogoType;
+    setLogo: Dispatch<SetStateAction<LogoType>>;
+    logoSize: number;
+    setLogoSize: Dispatch<SetStateAction<number>>;
+    gradient: boolean;
+    setGradient: Dispatch<SetStateAction<boolean>>;
+    gradientColor1: string;
+    setGradientColor1: Dispatch<SetStateAction<string>>;
+    gradientColor2: string;
+    setGradientColor2: Dispatch<SetStateAction<string>>;
+    gradientType: string;
+    setGradientType: Dispatch<SetStateAction<string>>;
+    gradientRotation: number;
+    setGradientRotation: Dispatch<SetStateAction<number>>;
+    cornerDots: string;
+    setCornerDots: Dispatch<SetStateAction<string>>;
+    cornerSquares: string;
+    setCornerSquares: Dispatch<SetStateAction<string>>;
+    markerStyle: CornerSquareType;
+    setMarkerStyle: Dispatch<SetStateAction<string>>;
+    markerColor: string;
+    setMarkerColor: Dispatch<SetStateAction<string>>;
+    currentFramePage: number;
+    setCurrentFramePage: Dispatch<SetStateAction<number>>;
+    currentShapePage: number;
+    setCurrentShapePage: Dispatch<SetStateAction<number>>;
+    customLogo: string | null;
+    setCustomLogo: Dispatch<SetStateAction<string | null>>;
+}
+
 export const QRCodeForm: React.FC<QRCodeFormProps> = ({
     qrType,
     qrData,
@@ -74,6 +129,24 @@ export const QRCodeForm: React.FC<QRCodeFormProps> = ({
     userChoice,
 }) => {
     const [activeDropdown, setActiveDropdown] = useState<string | null>('qrData');
+    const [activeTab, setActiveTab] = useState('frame');
+    const [frame, setFrame] = useState('default');
+    const [frameColor, setFrameColor] = useState('#000000');
+    const [shape, setShape] = useState<DotType>('square');
+    const [qrColor, setQRColor] = useState('#000000');
+    const [qrBackground, setQRBackground] = useState('#ffffff');
+    const [logo, setLogo] = useState<LogoType>(null);
+    const [logoSize, setLogoSize] = useState(150);
+    const [gradient, setGradient] = useState(false);
+    const [gradientColor1, setGradientColor1] = useState('#000000');
+    const [gradientColor2, setGradientColor2] = useState('#000000');
+    const [gradientType, setGradientType] = useState('linear');
+    const [gradientRotation, setGradientRotation] = useState(0);
+    const [cornerDots, setCornerDots] = useState('square');
+    const [cornerSquares, setCornerSquares] = useState('square');
+    const [currentFramePage, setCurrentFramePage] = useState(0);
+    const [currentShapePage, setCurrentShapePage] = useState(0);
+    const [customLogo, setCustomLogo] = useState<string | null>(null);
 
     // Function to toggle dropdowns, ensuring only one is open at a time
     const toggleDropdown = (dropdownName: string) => {
@@ -510,6 +583,48 @@ export const QRCodeForm: React.FC<QRCodeFormProps> = ({
                 {activeDropdown === 'designOptions' && shouldShowPhonePreview(qrType) && (
                     <DropdownContent>
                         {/* Design options content */}
+                        <CustomizationTabs 
+                    activeTab={activeTab}
+                    setActiveTab={setActiveTab}
+                    frame={frame}
+                    setFrame={setFrame}
+                    frameColor={frameColor}
+                    setFrameColor={setFrameColor}
+                    shape={shape}
+                    setShape={setShape}
+                    qrColor={qrColor}
+                    setQRColor={setQRColor}
+                    qrBackground={qrBackground}
+                    setQRBackground={setQRBackground}
+                    logo={logo}
+                    setLogo={setLogo}
+                    logoSize={logoSize}
+                    setLogoSize={setLogoSize}
+                    gradient={gradient}
+                    setGradient={setGradient}
+                    gradientColor1={gradientColor1}
+                    setGradientColor1={setGradientColor1}
+                    gradientColor2={gradientColor2}
+                    setGradientColor2={setGradientColor2}
+                    gradientType={gradientType}
+                    setGradientType={setGradientType}
+                    gradientRotation={gradientRotation}
+                    setGradientRotation={setGradientRotation}
+                    cornerDots={cornerDots}
+                    setCornerDots={setCornerDots}
+                    cornerSquares={cornerSquares}
+                    setCornerSquares={setCornerSquares}
+                    markerStyle={cornerSquares as CornerSquareType}
+                    setMarkerStyle={setCornerSquares}
+                    markerColor={cornerDots}
+                    setMarkerColor={setCornerDots}
+                    currentFramePage={currentFramePage}
+                    setCurrentFramePage={setCurrentFramePage}
+                    currentShapePage={currentShapePage}
+                    setCurrentShapePage={setCurrentShapePage}
+                    customLogo={customLogo}
+                    setCustomLogo={setCustomLogo}
+                />
                     </DropdownContent>
                 )}
             </DropdownContainer>

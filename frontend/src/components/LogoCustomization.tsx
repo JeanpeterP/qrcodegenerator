@@ -5,17 +5,57 @@ import { LogoPreview } from './LogoPreview';
 export type LogoType = 'custom' | 'stacked' | 'open-box' | 'closed-box';
 
 interface LogoCustomizationProps {
-    logo: LogoType;
-    setLogo: (logo: LogoType) => void;
+    logo: {
+        src: string | null;
+        width?: number;
+        height?: number;
+    } | null;
+    setLogo: React.Dispatch<React.SetStateAction<{
+        src: string | null;
+        width?: number;
+        height?: number;
+    } | null>>;
     customLogo: string;
-    setCustomLogo: (logo: string) => void;
+    setCustomLogo: (logo: string | null) => void;
+    logoSize: number;
+    setLogoSize: React.Dispatch<React.SetStateAction<number>>;
+    gradient: boolean;
+    setGradient: React.Dispatch<React.SetStateAction<boolean>>;
+    gradientColor1: string;
+    setGradientColor1: React.Dispatch<React.SetStateAction<string>>;
+    gradientColor2: string;
+    setGradientColor2: React.Dispatch<React.SetStateAction<string>>;
+    gradientType: string;
+    setGradientType: React.Dispatch<React.SetStateAction<string>>;
+    gradientRotation: number;
+    setGradientRotation: React.Dispatch<React.SetStateAction<number>>;
+    cornerDots: string;
+    setCornerDots: React.Dispatch<React.SetStateAction<string>>;
+    cornerSquares: string;
+    setCornerSquares: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export const LogoCustomization: React.FC<LogoCustomizationProps> = ({
     logo,
     setLogo,
     customLogo,
-    setCustomLogo
+    setCustomLogo,
+    logoSize,
+    setLogoSize,
+    gradient,
+    setGradient,
+    gradientColor1,
+    setGradientColor1,
+    gradientColor2,
+    setGradientColor2,
+    gradientType,
+    setGradientType,
+    gradientRotation,
+    setGradientRotation,
+    cornerDots,
+    setCornerDots,
+    cornerSquares,
+    setCornerSquares
 }) => {
     const logoOptions: { type: LogoType; label: string }[] = [
         { type: 'custom', label: 'Custom Upload' },
@@ -30,7 +70,7 @@ export const LogoCustomization: React.FC<LogoCustomizationProps> = ({
             const reader = new FileReader();
             reader.onload = (e) => {
                 setCustomLogo(e.target?.result as string);
-                setLogo('custom');
+                setLogo({ src: e.target?.result as string });
             };
             reader.readAsDataURL(file);
         }
@@ -42,8 +82,8 @@ export const LogoCustomization: React.FC<LogoCustomizationProps> = ({
                 {logoOptions.map((option) => (
                     <LogoOption
                         key={option.type}
-                        active={logo === option.type}
-                        onClick={() => option.type !== 'custom' && setLogo(option.type)}
+                        active={option.type === 'custom' ? !!logo?.src : false}
+                        onClick={() => option.type !== 'custom' && setLogo({ src: option.type })}
                     >
                         <LogoPreviewContainer>
                             {option.type === 'custom' && customLogo ? (

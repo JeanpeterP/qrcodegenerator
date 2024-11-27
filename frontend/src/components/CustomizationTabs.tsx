@@ -8,8 +8,6 @@ import { ChevronDown } from "lucide-react";
 import { DotType } from "qr-code-styling";
 import { CornerSquareType } from 'qr-code-styling';
 
-type LogoType = 'custom' | 'stacked' | 'open-box' | 'closed-box';
-
 interface CustomizationTabsProps {
     activeTab: string;
     setActiveTab: (tab: string) => void;
@@ -31,8 +29,32 @@ interface CustomizationTabsProps {
     markerColor: string;
     setMarkerColor: (color: string) => void;
     // Logo props
-    logo: LogoType;
-    setLogo: (logo: LogoType) => void;
+    logo: {
+        src: string | null;
+        width?: number;
+        height?: number;
+    } | null;
+    setLogo: React.Dispatch<React.SetStateAction<{
+        src: string | null;
+        width?: number;
+        height?: number;
+    } | null>>;
+    logoSize: number;
+    setLogoSize: React.Dispatch<React.SetStateAction<number>>;
+    gradient: boolean;
+    setGradient: React.Dispatch<React.SetStateAction<boolean>>;
+    gradientColor1: string;
+    setGradientColor1: React.Dispatch<React.SetStateAction<string>>;
+    gradientColor2: string;
+    setGradientColor2: React.Dispatch<React.SetStateAction<string>>;
+    gradientType: string;
+    setGradientType: React.Dispatch<React.SetStateAction<string>>;
+    gradientRotation: number;
+    setGradientRotation: React.Dispatch<React.SetStateAction<number>>;
+    cornerDots: string;
+    setCornerDots: React.Dispatch<React.SetStateAction<string>>;
+    cornerSquares: string;
+    setCornerSquares: React.Dispatch<React.SetStateAction<string>>;
     // Navigation props
     currentFramePage: number;
     setCurrentFramePage: (page: number) => void;
@@ -69,6 +91,22 @@ export const CustomizationTabs: React.FC<CustomizationTabsProps> = ({
     setMarkerColor,
     logo,
     setLogo,
+    logoSize,
+    setLogoSize,
+    gradient,
+    setGradient,
+    gradientColor1,
+    setGradientColor1,
+    gradientColor2,
+    setGradientColor2,
+    gradientType,
+    setGradientType,
+    gradientRotation,
+    setGradientRotation,
+    cornerDots,
+    setCornerDots,
+    cornerSquares,
+    setCornerSquares,
     currentFramePage,
     setCurrentFramePage,
     currentShapePage,
@@ -141,6 +179,22 @@ export const CustomizationTabs: React.FC<CustomizationTabsProps> = ({
                 <LogoCustomization
                     logo={logo}
                     setLogo={setLogo}
+                    logoSize={logoSize}
+                    setLogoSize={setLogoSize}
+                    gradient={gradient}
+                    setGradient={setGradient}
+                    gradientColor1={gradientColor1}
+                    setGradientColor1={setGradientColor1}
+                    gradientColor2={gradientColor2}
+                    setGradientColor2={setGradientColor2}
+                    gradientType={gradientType}
+                    setGradientType={setGradientType}
+                    gradientRotation={gradientRotation}
+                    setGradientRotation={setGradientRotation}
+                    cornerDots={cornerDots}
+                    setCornerDots={setCornerDots}
+                    cornerSquares={cornerSquares}
+                    setCornerSquares={setCornerSquares}
                     customLogo={customLogo || ''}
                     setCustomLogo={setCustomLogo}
                 />
