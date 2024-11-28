@@ -11,10 +11,13 @@ import { QRCodeForm } from './QRCodeForm';
 import { QRCodeTypeSelector } from './QRCodeTypeSelector';
 import { PhonePreview } from './PhonePreview/PhonePreview';
 import { CustomizationTabs } from './CustomizationTabs';
+import { BottomNavigation } from './common/BottomNavigation';
+import { TopNavigation } from './common/TopNavigation';
 
 import { getBackendUrl } from '../utils/constants';
 import { QRData } from '../types/qr';
 import { Preview } from "./Preview";
+import { QRBuilderLayout } from './layouts/QRBuilderLayout';
 
 interface QRCodeGeneratorProps {}
 
@@ -715,103 +718,133 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         setQrCodeInstance(qrCode);
     }, []); // Initialize once when component mounts
 
+    const handleNext = () => {
+        setCurrentStep(prevStep => prevStep + 1);
+    };
+
+    const handleBack = () => {
+        setCurrentStep(prevStep => prevStep - 1);
+    };
+
+    const isContentValid = () => {
+        // Validate your content here based on qrType and qrData
+        // Return true if valid, false otherwise
+        return true; // Placeholder
+    };
+
     return (
         <Container>
-            {/* Left Column */}
-            {currentStep === 1 && (
-                <LeftColumn>
-                    <Title>Select a type of QR code</Title>
-                    <QRCodeTypeSelector 
-                        onSelect={handleQRTypeSelect} 
-                        onHover={handleQRTypeHover} 
-                        userChoice={'dynamicBio'}
-                    />
-                </LeftColumn>
-            )}
-            {currentStep === 2 && (
-                <LeftColumn>
-                    <Title>Customize your content</Title>
-                    <QRCodeForm
-                        qrType={qrType}
-                        qrData={qrData}
-                        handleInputChange={handleInputChange}
-                        placeholder={getPlaceholder(qrType)}
-                        handleAddLink={handleAddLink}
-                        userChoice={'dynamicBio'}
-                    />
-                    <NextButton onClick={() => setCurrentStep(3)}>Next</NextButton>
-                </LeftColumn>
-            )}
-            {currentStep === 3 && (
-                <LeftColumn>
-                    <BackButton onClick={() => setCurrentStep(2)}>Back</BackButton>
-                    <Title>Design your QR code</Title>
-                    <CustomizationTabs
-                        activeTab={activeTab}
-                        setActiveTab={setActiveTab}
-                        // Frame props
-                        frame={frame}
-                        setFrame={setFrame}
-                        frameColor={frameColor}
-                        setFrameColor={setFrameColor}
-                        // Shape props
-                        shape={shape}
-                        setShape={setShape}
-                        qrColor={qrColor}
-                        setQRColor={setQRColor}
-                        qrBackground={qrBackground}
-                        setQRBackground={setQRBackground}
-                        // Marker props
-                        markerStyle={markerStyle}
-                        setMarkerStyle={setMarkerStyle}
-                        markerColor={markerColor}
-                        setMarkerColor={setMarkerColor}
-                        // Logo props
-                        logo={logo}
-                        setLogo={setLogo}
-                        logoSize={logoSize}
-                        setLogoSize={setLogoSize}
-                        gradient={gradient}
-                        setGradient={setGradient}
-                        gradientColor1={gradientColor1}
-                        setGradientColor1={setGradientColor1}
-                        gradientColor2={gradientColor2}
-                        setGradientColor2={setGradientColor2}
-                        gradientType={gradientType}
-                        setGradientType={setGradientType}
-                        gradientRotation={gradientRotation}
-                        setGradientRotation={setGradientRotation}
-                        cornerDots={cornerDots}
-                        setCornerDots={setCornerDots}
-                        cornerSquares={cornerSquares}
-                        setCornerSquares={setCornerSquares}
-                        currentFramePage={currentFramePage}
-                        setCurrentFramePage={setCurrentFramePage}
-                        currentShapePage={currentShapePage}
-                        setCurrentShapePage={setCurrentShapePage}
-                        customLogo={customLogo}
-                        setCustomLogo={setCustomLogo}
-                    />
-                </LeftColumn>
-            )}
-            {/* Right Column */}
-            <RightColumn>
-                <PhonePreview
-                    show={true}
-                    qrType={qrType}
-                    qrData={qrData}
-                    backgroundType={backgroundType}
+            <TopNavigation currentStep={currentStep} />
+            <ContentWrapper>
+                {/* For Step 1, render without the bottom navigation */}
+                {currentStep === 1 && (
+                    <LeftColumn>
+                        <Title>Select a type of QR code</Title>
+                        <QRCodeTypeSelector 
+                            onSelect={handleQRTypeSelect} 
+                            onHover={handleQRTypeHover} 
+                            userChoice={'dynamicBio'}
+                        />
+                    </LeftColumn>
+                )}
+                {/* For Steps beyond Step 1, wrap content with QRBuilderLayout */}
+                {currentStep > 1 && (
+                    <>
+                        <LeftColumn>
+                            {currentStep === 2 && (
+                                <>
+                                    <Title>Customize your content</Title>
+                                    <QRCodeForm
+                                        qrType={qrType}
+                                        qrData={qrData}
+                                        handleInputChange={handleInputChange}
+                                        placeholder={getPlaceholder(qrType)}
+                                        handleAddLink={handleAddLink}
+                                        userChoice={'dynamicBio'}
+                                    />
+                                </>
+                            )}
+                            {currentStep === 3 && (
+                                <>
+                                    <Title>Design your QR code</Title>
+                                    <CustomizationTabs
+                                        activeTab={activeTab}
+                                        setActiveTab={setActiveTab}
+                                        // Frame props
+                                        frame={frame}
+                                        setFrame={setFrame}
+                                        frameColor={frameColor}
+                                        setFrameColor={setFrameColor}
+                                        // Shape props
+                                        shape={shape}
+                                        setShape={setShape}
+                                        qrColor={qrColor}
+                                        setQRColor={setQRColor}
+                                        qrBackground={qrBackground}
+                                        setQRBackground={setQRBackground}
+                                        // Marker props
+                                        markerStyle={markerStyle}
+                                        setMarkerStyle={setMarkerStyle}
+                                        markerColor={markerColor}
+                                        setMarkerColor={setMarkerColor}
+                                        // Logo props
+                                        logo={logo}
+                                        setLogo={setLogo}
+                                        logoSize={logoSize}
+                                        setLogoSize={setLogoSize}
+                                        gradient={gradient}
+                                        setGradient={setGradient}
+                                        gradientColor1={gradientColor1}
+                                        setGradientColor1={setGradientColor1}
+                                        gradientColor2={gradientColor2}
+                                        setGradientColor2={setGradientColor2}
+                                        gradientType={gradientType}
+                                        setGradientType={setGradientType}
+                                        gradientRotation={gradientRotation}
+                                        setGradientRotation={setGradientRotation}
+                                        cornerDots={cornerDots}
+                                        setCornerDots={setCornerDots}
+                                        cornerSquares={cornerSquares}
+                                        setCornerSquares={setCornerSquares}
+                                        currentFramePage={currentFramePage}
+                                        setCurrentFramePage={setCurrentFramePage}
+                                        currentShapePage={currentShapePage}
+                                        setCurrentShapePage={setCurrentShapePage}
+                                        customLogo={customLogo}
+                                        setCustomLogo={setCustomLogo}
+                                    />
+                                </>
+                            )}
+                        </LeftColumn>
+                        <RightColumn>
+                            <PhonePreview
+                                show={true}
+                                qrType={qrType}
+                                qrData={qrData}
+                                backgroundType={backgroundType}
+                            />
+                        </RightColumn>
+                    </>
+                )}
+            </ContentWrapper>
+            {currentStep > 1 && (
+                <BottomNavigation
+                    onNext={handleNext}
+                    onBack={handleBack}
+                    nextLabel={currentStep === 2 ? 'Next' : 'Finish'}
+                    backLabel='Back'
+                    disableNext={currentStep === 2 && !isContentValid()}
+                    disableBack={false}
                 />
-            </RightColumn>
+            )}
         </Container>
     );
 }
 
-// Styled Components
-
+// Update styled components
 const Container = styled.div`
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     width: 100%;
     height: 100vh;
     overflow: hidden;
@@ -820,6 +853,12 @@ const Container = styled.div`
     left: 0;
     right: 0;
     bottom: 0;
+`;
+
+const ContentWrapper = styled.div`
+    display: flex;
+    flex: 1;
+    overflow: hidden;
 `;
 
 const LeftColumn = styled.div`
@@ -859,6 +898,7 @@ const RightColumn = styled.div`
         transform: translateY(-50%);
     }
 `;
+
 const Title = styled.h2`
     font-size: 1.25rem;
     font-weight: bold;

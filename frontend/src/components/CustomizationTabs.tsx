@@ -5,8 +5,7 @@ import { ShapeCustomization } from './ShapeCustomization';
 import MarkerCustomization from './MarkerCustomization';
 import { LogoCustomization } from './LogoCustomization';
 import { ChevronDown } from "lucide-react";
-import { DotType } from "qr-code-styling";
-import { CornerSquareType } from 'qr-code-styling';
+import { DotType, CornerSquareType } from "qr-code-styling";
 
 interface CustomizationTabsProps {
     activeTab: string;
@@ -57,13 +56,12 @@ interface CustomizationTabsProps {
     setCornerDots: React.Dispatch<React.SetStateAction<string>>;
     cornerSquares: string;
     setCornerSquares: React.Dispatch<React.SetStateAction<string>>;
-    // Navigation props
     currentFramePage: number;
-    setCurrentFramePage: (page: number) => void;
+    setCurrentFramePage: React.Dispatch<React.SetStateAction<number>>;
     currentShapePage: number;
-    setCurrentShapePage: (page: number) => void;
+    setCurrentShapePage: React.Dispatch<React.SetStateAction<number>>;
     customLogo: string | null;
-    setCustomLogo: (logo: string | null) => void;
+    setCustomLogo: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 // Rename the styled component to avoid name conflict
