@@ -1,30 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
-import {
-    Wifi,
-    Mail,
-    Link,
-    CreditCard,
-    MessageSquare,
-    AlignLeft,
-    Send,
-    Twitter,
-    Facebook,
-    FileText,
-    Music,
-    Download,
-    Image,
-    ChevronDown,
-    Code,
-    Plus,
-    Upload,
-} from "lucide-react";
 import QRCodeStyling, {
     DotType as QRDotType,
     CornerSquareType,
-    CornerDotType,
 } from "qr-code-styling";
-import { CaretLeft, CaretRight, DownloadSimple } from "@phosphor-icons/react";
 import html2canvas from 'html2canvas';
 
 // Import the new components
@@ -35,33 +14,6 @@ import { PhonePreview } from './PhonePreview/PhonePreview';
 import { getBackendUrl } from '../utils/constants';
 import { QRData } from '../types/qr';
 import { Preview } from "./Preview";
-
-interface CustomizationTabsProps {
-    activeTab: string;
-    setActiveTab: React.Dispatch<React.SetStateAction<string>>;
-    frame: string;
-    setFrame: React.Dispatch<React.SetStateAction<string>>;
-    frameColor: string;
-    setFrameColor: React.Dispatch<React.SetStateAction<string>>;
-    shape: QRDotType;
-    setShape: React.Dispatch<React.SetStateAction<QRDotType>>;
-    qrColor: string;
-    setQRColor: React.Dispatch<React.SetStateAction<string>>;
-    qrBackground: string;
-    setQRBackground: React.Dispatch<React.SetStateAction<string>>;
-    currentFramePage: number;
-    setCurrentFramePage: React.Dispatch<React.SetStateAction<number>>;
-    logo: LogoType;
-    setLogo: React.Dispatch<React.SetStateAction<LogoType>>;
-    markerStyle: CornerSquareType;
-    setMarkerStyle: React.Dispatch<React.SetStateAction<CornerSquareType>>;
-    markerColor: string;
-    setMarkerColor: React.Dispatch<React.SetStateAction<string>>;
-    currentShapePage: number;
-    setCurrentShapePage: React.Dispatch<React.SetStateAction<number>>;
-    customLogo: string | null;
-    setCustomLogo: React.Dispatch<React.SetStateAction<string | null>>;
-}
 
 interface QRCodeGeneratorProps {}
 
@@ -76,24 +28,6 @@ type LogoType = {
 // Add this type definition near the top of the file, with other type definitions
 export type QRType = keyof QRData;
 
-const Container = styled.div`
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-`;
-
-const LeftColumn = styled.div`
-    flex: 2;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-`;
-
-const RightColumn = styled.div`
-    flex: 1;
-    padding: 0;
-    position: relative;
-`;
 
 // Update the HandleInputChangeFunction type
 export type HandleInputChangeFunction = (
@@ -103,29 +37,6 @@ export type HandleInputChangeFunction = (
     subKey?: string | null
 ) => void;
 
-// Update the QRCodeFormProps interface
-interface QRCodeFormProps {
-    qrType: keyof QRData;
-    qrData: QRData;
-    handleInputChange: HandleInputChangeFunction;
-    placeholder: string;
-    handleAddLink?: () => void;
-    userChoice: 'qr' | 'dynamicBio' | null;
-}
-
-// Update the PreviewProps interface to match the Preview component's actual needs
-interface PreviewProps {
-    qrCodeInstance: QRCodeStyling | null;
-    handleDownload: (format: "png" | "svg") => Promise<void>;
-    generateQRCodeData: () => Promise<string>;
-    frame: string;
-    shape: QRDotType;
-    frameColor: string;
-    qrType: string;
-    generatedUrl: string | null;
-    setGeneratedUrl: React.Dispatch<React.SetStateAction<string | null>>;
-    setGenerateQRCode: (loading: boolean) => void;
-}
 
 const getPlaceholder = (type: keyof QRData): string => {
     switch (type) {
@@ -862,68 +773,56 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
 
 // Styled Components
 
-const GeneratorCard = styled.div`
-    background: #fff;
-    border-radius: 6px;
-    box-shadow: 0 14px 16px rgba(0, 0, 0, 0.06);
-    padding: 1rem;
+const Container = styled.div`
+    display: flex;
+    flex-direction: row;
     width: 100%;
-    min-height: 625px;
+    height: 100vh;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+`;
+
+const LeftColumn = styled.div`
+    flex: 2;
+    padding: 2rem;
     display: flex;
     flex-direction: column;
+    height: 100%;
+    overflow-y: auto;
+    background-color: #f8f9fa;
 
-    /* Custom scrollbar for generator side */
+    /* Hide scrollbar but keep functionality */
+    scrollbar-width: thin;
     &::-webkit-scrollbar {
-        width: 8px;
+        width: 6px;
     }
-
-    &::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 4px;
-    }
-
     &::-webkit-scrollbar-thumb {
-        background: #888;
-        border-radius: 4px;
-    }
-
-    &::-webkit-scrollbar-thumb:hover {
-        background: #555;
+        background-color: rgba(0, 0, 0, 0.2);
+        border-radius: 3px;
     }
 `;
 
-const PreviewCard = styled.div`
-    background: #fff;
-    border-radius: 6px;
-    box-shadow: 0 14px 16px rgba(0, 0, 0, 0.06);
-    padding: 1rem;
-    width: 100%;
-    min-height: 625px;
-    overflow-y: hidden;
+const RightColumn = styled.div`
+    flex: 1;
+    padding: 2rem;
+    position: relative;
+    height: 100%;
+    overflow-y: auto;
+    background-color: white;
     display: flex;
-    flex-direction: column;
     align-items: center;
+    justify-content: center;
 
-    /* Custom scrollbar for preview side */
-    &::-webkit-scrollbar {
-        width: 8px;
-    }
-
-    &::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 4px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-        background: #888;
-        border-radius: 4px;
-    }
-
-    &::-webkit-scrollbar-thumb:hover {
-        background: #555;
+    .preview-container {
+        position: sticky;
+        top: 50%;
+        transform: translateY(-50%);
     }
 `;
-
 const Title = styled.h2`
     font-size: 1.25rem;
     font-weight: bold;
@@ -936,988 +835,6 @@ const Title = styled.h2`
     }
 `;
 
-const TabContainer = styled.div`
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.5rem;
-    padding: 1rem;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    max-height: 300px;
-    overflow-y: auto;
-
-    @media (max-width: 768px) {
-        grid-template-columns: repeat(3, 1fr);
-    }
-
-    @media (max-width: 350px) {
-        grid-template-columns: repeat(2, 1fr);
-    }
-`;
-
-const Tab = styled.button<{ active: boolean }>`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 0.5rem;
-    background-color: ${(props) => (props.active ? "#ff6320" : "#f8f9fa")};
-    color: ${(props) => (props.active ? "white" : "#616568")};
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 0.75rem;
-    width: 100%;
-
-    svg {
-        width: 16px;
-        height: 16px;
-        margin-bottom: 0.25rem;
-    }
-
-    &:hover {
-        background-color: ${(props) =>
-            props.active ? "#e0551c" : "#e9ecef"};
-    }
-`;
-
-const Input = styled.input`
-    width: 100%;
-    padding: 12px;
-    margin-top: 5px;
-    margin-bottom: 10px;
-    font-size: 16px;
-    font-family: "Aspekta 550", Arial, sans-serif;
-    border-radius: 10px;
-    border: 2px solid #ccc;
-    background-color: #f9f9f9;
-    transition: border-color 0.3s, box-shadow 0.3s;
-    box-sizing: border-box;
-    flex: 1;
-
-    &:focus {
-        border-color: #ff6320;
-        box-shadow: 0 0 10px rgba(255, 99, 32, 0.5);
-        outline: none;
-    }
-
-    &:disabled {
-        background-color: #e9e9e9;
-        cursor: not-allowed;
-    }
-`;
-
-const TextArea = styled.textarea`
-    width: 100%;
-    flex: 1;
-    min-height: 120px;
-    padding: 12px;
-    margin-top: 5px;
-    font-size: 16px;
-    font-family: "Aspekta 550", Arial, sans-serif;
-    border-radius: 10px;
-    border: 2px solid #ccc;
-    background-color: #f9f9f9;
-    transition: border-color 0.3s, box-shadow 0.3s;
-    box-sizing: border-box;
-    resize: none;
-
-    &:focus {
-        border-color: #ff6320;
-        box-shadow: 0 0 10px rgba(255, 99, 32, 0.5);
-        outline: none;
-    }
-`;
-
-const Select = styled.select`
-    width: 100%;
-    padding: 12px;
-    margin-top: 5px;
-    font-size: 16px;
-    font-family: "Aspekta 550", Arial, sans-serif;
-    border-radius: 10px;
-    border: 2px solid #ccc;
-    background-color: #f9f9f9;
-    transition: border-color 0.3s, box-shadow 0.3s;
-    box-sizing: border-box;
-
-    &:focus {
-        border-color: #ff6320;
-        box-shadow: 0 0 10px rgba(255, 99, 32, 0.5);
-        outline: none;
-    }
-`;
-
-const QRCodePreview = styled.div<{ frame: string; shape: string; frameColor: string }>`
-    border: 1px solid #ced4da;
-    border-radius: 8px;
-    padding: 15px;
-    background-color: #f8f9fa;
-    width: fit-content;
-    margin: 8px auto;
-    transform: scale(0.9);
-    transform-origin: center;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-
-    ${(props) =>
-        props.frame === "simple" &&
-        `
-        border: 4px solid ${props.frameColor};
-    `}
-
-    ${(props) =>
-        props.frame === "rounded" &&
-        `
-        border: 4px solid ${props.frameColor};
-        border-radius: 16px;
-    `}
-
-    ${(props) =>
-        props.frame === "fancy" &&
-        `
-        border: 4px solid ${props.frameColor};
-        border-radius: 16px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    `}
-
-    ${(props) =>
-        props.frame === "chat" &&
-        `
-        border: 4px solid ${props.frameColor};
-        border-radius: 16px;
-        
-        &::before {
-            content: "Scan Me";
-            position: absolute;
-            top: -65px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: ${props.frameColor};
-            color: white;
-            padding: 12px 24px;
-            border-radius: 16px;
-            font-size: 18px;
-            white-space: nowrap;
-            font-weight: bold;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-
-        &::after {
-            content: "";
-            position: absolute;
-            top: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-top: 20px solid ${props.frameColor};
-        }
-    `}
-
-    & > div {
-        display: block;
-    }
-`;
-
-const CustomizationTabsContainer = styled.div`
-    display: flex;
-    flex-wrap: wrap;
-    margin-bottom: 0.5rem;
-    gap: 0.25rem;
-`;
-
-const TabButton = styled.button<{ active: boolean }>`
-    background: none;
-    border: none;
-    padding: 0.25rem 0.5rem;
-    font-size: 0.8rem;
-    font-weight: ${(props) => (props.active ? "bold" : "normal")};
-    color: ${(props) => (props.active ? "#ff6320" : "#616568")};
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    transition: all 0.3s ease;
-
-    svg {
-        margin-left: 0.25rem;
-        transform: ${(props) =>
-            props.active ? "rotate(180deg)" : "rotate(0)"};
-        transition: transform 0.3s ease;
-    }
-
-    &:hover {
-        color: #ff6320;
-    }
-
-    @media (max-width: 350px) {
-        font-size: 0.8rem;
-        padding: 0.4rem 0.8rem;
-    }
-`;
-
-const CustomizerSection = styled.div`
-    margin-top: 1rem;
-`;
-
-const CustomizerTitle = styled.h3`
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #616568;
-    margin-bottom: 0.5rem;
-
-    @media (min-width: 768px) {
-        font-size: 1rem;
-    }
-`;
-
-const ColorPickerContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-
-    @media (min-width: 768px) {
-        flex-direction: row;
-        justify-content: space-between;
-    }
-`;
-
-const ColorPickerLabel = styled.label`
-    display: flex;
-    align-items: center;
-    font-size: 0.8rem;
-
-    @media (min-width: 768px) {
-        font-size: 0.9rem;
-    }
-`;
-
-const ColorPicker = styled.input`
-    -webkit-appearance: none;
-    width: 24px;
-    height: 24px;
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    margin-left: 0.5rem;
-
-    &::-webkit-color-swatch-wrapper {
-        padding: 0;
-    }
-
-    &::-webkit-color-swatch {
-        border: none;
-        border-radius: 50%;
-    }
-
-    @media (min-width: 768px) {
-        width: 32px;
-        height: 32px;
-    }
-`;
-
-const CustomSelect = styled.select`
-    width: 100%;
-    padding: 0.5rem;
-    margin-bottom: 1rem;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    appearance: none;
-
-    @media (min-width: 768px) {
-        font-size: 1rem;
-    }
-`;
-
-const FrameOption = styled.div<{ active: boolean }>`
-    border: 2px solid ${(props) => (props.active ? "#ff6320" : "#ced4da")};
-    border-radius: 8px;
-    padding: 0.5rem;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    transition: all 0.3s ease;
-
-    &:hover {
-        border-color: #ff6320;
-    }
-`;
-
-const FrameLabel = styled.div`
-    font-size: 0.8rem;
-    text-align: center;
-    margin-top: 0.5rem;
-`;
-
-const LogoUploadContainer = styled.div`
-    margin-top: 1rem;
-`;
-
-const LogoUploadLabel = styled.label`
-    display: inline-block;
-    background-color: #ff6320;
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-
-    &:hover {
-        background-color: #e0551c;
-    }
-`;
-
-const LogoUploadInput = styled.input`
-    display: none;
-`;
-
-const MiniPreviewContainer = styled.div<{ frame: string; shape: string; frameColor: string }>`
-    width: 60px;
-    height: 60px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #f8f9fa;
-    border-radius: 4px;
-    margin-top: ${(props) => (props.frame === "chat" ? "20px" : "0")};
-    position: relative;
-
-    & > div {
-        transform: scale(1);
-    }
-
-    ${(props) =>
-        props.frame === "simple" &&
-        `
-        border: 2px solid ${props.frameColor};
-    `}
-
-    ${(props) =>
-        props.frame === "rounded" &&
-        `
-        border: 2px solid ${props.frameColor};
-        border-radius: 8px;
-    `}
-
-    ${(props) =>
-        props.frame === "fancy" &&
-        `
-        border: 2px solid ${props.frameColor};
-        border-radius: 8px;
-        box-shadow: 0 0 5px rgba(0,0,0,0.3);
-    `}
-
-    ${(props) =>
-        props.frame === "chat" &&
-        `
-        border: 2px solid ${props.frameColor};
-        border-radius: 8px;
-        
-        &::before {
-            content: "Scan Me";
-            position: absolute;
-            top: -25px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: ${props.frameColor};
-            color: white;
-            padding: 3px 8px;
-            border-radius: 8px;
-            font-size: 8px;
-            white-space: nowrap;
-            font-weight: bold;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-        }
-
-        &::after {
-            content: "";
-            position: absolute;
-            top: -8px;
-            left: 50%;
-            transform: translateX(-50%);
-            border-left: 5px solid transparent;
-            border-right: 5px solid transparent;
-            border-top: 8px solid ${props.frameColor};
-        }
-    `}
-
-    & > div {
-        width: 80% !important;
-        height: 80% !important;
-    }
-`;
-
-const DownloadButton = styled.button`
-    width: 160px;
-    padding: 8px 0;
-    background: #ff6320;
-    color: white;
-    border-radius: 10px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    cursor: pointer;
-    border: none;
-    outline: none;
-    margin: 0;
-    font-family: "Aspekta 400", Arial, sans-serif;
-    font-size: 16px;
-    transition: background-color 0.3s;
-
-    &:focus {
-        outline: none;
-    }
-
-    &:hover {
-        background: #e0551c;
-    }
-
-    svg {
-        fill: white;
-        margin-right: 8px;
-    }
-`;
-
-const ButtonContainer = styled.div`
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 10px;
-
-    @media (max-width: 390px) {
-        flex-direction: column;
-        gap: 0;
-    }
-
-    & > button {
-        margin: 0;
-    }
-
-    @media (max-width: 390px) {
-        & > button:first-child {
-            margin-top: 0;
-        }
-        & > button + button {
-            margin-top: 20px;
-        }
-    }
-`;
-
-const IconWrapper = styled.span`
-    display: inline-flex;
-    align-items: center;
-    margin-right: 8px;
-`;
-
-
-const ShapeOption = styled.div<{ active: boolean }>`
-    border: 2px solid ${(props) => (props.active ? "#ff6320" : "#ced4da")};
-    border-radius: 8px;
-    padding: 0.5rem;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    transition: all 0.3s ease;
-
-    &:hover {
-        border-color: #ff6320;
-    }
-`;
-
-const ShapePreviewContainer = styled.div`
-    width: 60px;
-    height: 60px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #f8f9fa;
-    border-radius: 4px;
-    overflow: hidden;
-`;
-
-const ShapeExampleContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    height: 100%;
-`;
-
-const DotRow = styled.div`
-    display: flex;
-    gap: 2px;
-    justify-content: center;
-`;
-
-const Dot = styled.div<{ shape: QRDotType }>`
-    width: 12px;
-    height: 12px;
-    background-color: #000;
-    
-    ${props => {
-        switch (props.shape) {
-            case 'dots':
-                return 'border-radius: 50%;';
-            case 'rounded':
-                return 'border-radius: 2px;';
-            case 'classy':
-                return `
-                    transform: rotate(45deg);
-                    border-radius: 1px;
-                `;
-            case 'classy-rounded':
-                return `
-                    transform: rotate(45deg);
-                    border-radius: 2px;
-                `;
-            case 'extra-rounded':
-                return 'border-radius: 4px;';
-            default: // square
-                return 'border-radius: 0;';
-        }
-    }}
-`;
-
-const ShapeLabel = styled.div`
-    font-size: 0.8rem;
-    text-align: center;
-    margin-top: 0.5rem;
-`;
-
-const GridContainer = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
-`;
-
-const PaginationArrow = styled.button<{ disabled?: boolean }>`
-    background: ${props => props.disabled ? '#f0f0f0' : '#fff'};
-    border: 2px solid ${props => props.disabled ? '#e0e0e0' : '#ff6320'};
-    border-radius: 50%;
-    cursor: ${props => props.disabled ? 'default' : 'pointer'};
-    color: ${props => props.disabled ? '#ccc' : '#ff6320'};
-    padding: 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    width: 40px;
-    height: 40px
-
-    &:hover:not(:disabled) {
-        background: #ff6320;
-        color: white;
-        transform: scale(1.1);
-    }
-
-    &:active:not(:disabled) {
-        transform: scale(0.95);
-    }
-`;
-
-const BaseGrid = styled.div<{ itemCount: number }>`
-    display: grid;
-    grid-template-columns: ${props => 
-        props.itemCount <= 4 
-            ? `repeat(${props.itemCount}, 1fr)` 
-            : 'repeat(4, 1fr)'
-    };
-    gap: 1rem;
-    width: ${props => props.itemCount < 4 ? 'auto' : '100%'};
-    max-width: 600px;
-    justify-content: center;
-`;
-
-const FrameGrid = styled(BaseGrid)``;
-const ShapeGrid = styled(BaseGrid)``;
-const MarkerGrid = styled(BaseGrid)``;
-
-const MarkerOption = styled.div<{ active: boolean }>`
-    border: 2px solid ${(props) => (props.active ? "#ff6320" : "#ced4da")};
-    border-radius: 8px;
-    padding: 0.5rem;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    transition: all 0.3s ease;
-
-    &:hover {
-        border-color: #ff6320;
-    }
-`;
-
-const MarkerPreviewContainer = styled.div`
-    width: 60px;
-    height: 60px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #f8f9fa;
-    border-radius: 4px;
-    overflow: hidden;
-`;
-
-const MarkerLabel = styled.div`
-    font-size: 0.8rem;
-    text-align: center;
-    margin-top: 0.5rem;
-`;
-
-const MarkerExampleContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    height: 100%;
-`;
-
-const MarkerOuter = styled.div<{ styleType: CornerSquareType }>`
-    width: 42px;
-    height: 42px;
-    background-color: #000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    
-    ${props => {
-        switch (props.styleType) {
-            case 'dot':
-                return 'border-radius: 50%;';
-            case 'extra-rounded':
-                return 'border-radius: 15px;';
-            default: // square
-                return 'border-radius: 0;';
-        }
-    }}
-`;
-
-const MarkerInner = styled.div<{ styleType: CornerSquareType }>`
-    width: 26px;
-    height: 26px;
-    background-color: #f8f9fa;
-    
-    ${props => {
-        switch (props.styleType) {
-            case 'dot':
-                return 'border-radius: 50%;';
-            case 'extra-rounded':
-                return 'border-radius: 8px;';
-            default: // square
-                return 'border-radius: 0;';
-        }
-    }}
-`;
-
-const PreviewDownloadButton = styled.button`
-    position: absolute;
-    bottom: -16px;
-    right: -16px;
-    background: rgba(255, 99, 32, 0.9);
-    border: none;
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    color: white;
-    padding: 0;
-    z-index: 10;
-
-    &:hover {
-        background: #ff6320;
-        transform: scale(1.1);
-    }
-
-    &:active {
-        transform: scale(0.95);
-    }
-`;
-
-const DigitalProductSection = styled.div`
-    margin-top: 20px;
-    padding: 20px;
-    background-color: #ff6320;
-    border-radius: 8px;
-    color: white;
-    text-align: center;
-`;
-
-const DigitalProductTitle = styled.h3`
-    font-size: 1.2rem;
-    margin-bottom: 10px;
-`;
-
-const DigitalProductDescription = styled.p`
-    font-size: 1rem;
-    margin-bottom: 15px;
-`;
-
-const ExploreButton = styled.a`
-    display: inline-block;
-    padding: 10px 20px;
-    background-color: white;
-    color: #ff6320;
-    border-radius: 5px;
-    text-decoration: none;
-    font-weight: bold;
-    transition: background-color 0.3s;
-
-    &:hover {
-        background-color: #f0f0f0;
-    }
-`;
-
-const LogoGrid = styled(BaseGrid)``;
-
-const LogoOption = styled.div<{ active: boolean }>`
-    border: 2px solid ${(props) => (props.active ? "#ff6320" : "#ced4da")};
-    border-radius: 8px;
-    padding: 0.5rem;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    transition: all 0.3s ease;
-
-    &:hover {
-        border-color: #ff6320;
-    }
-`;
-
-const LogoPreviewContainer = styled.div`
-    width: 60px;
-    height: 60px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #f8f9fa;
-    border-radius: 4px;
-`;
-
-const CustomUploadBox = styled.div`
-    width: 40px;
-    height: 40px;
-    border: 2px dashed #ccc;
-    border-radius: 4px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: #666;
-`;
-
-const StackedText = styled.div`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    font-weight: bold;
-    font-size: 12px;
-    line-height: 1.2;
-    color: #333;
-`;
-
-const OpenBoxContainer = styled.div`
-    position: relative;
-    width: 50px;
-    height: 30px;
-    border: 2px solid #333;
-    border-radius: 4px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 0 8px;
-
-    &::before, &::after {
-        content: '';
-        position: absolute;
-        width: 8px;
-        height: 8px;
-        background: #f8f9fa;
-        top: 50%;
-        transform: translateY(-50%);
-    }
-
-    &::before {
-        left: -2px;
-    }
-
-    &::after {
-        right: -2px;
-    }
-
-    span::before, span::after {
-        content: '';
-        position: absolute;
-        height: 8px;
-        width: 8px;
-        background: #f8f9fa;
-        left: 50%;
-        transform: translateX(-50%);
-    }
-
-    span::before {
-        top: -2px;
-    }
-
-    span::after {
-        bottom: -2px;
-    }
-`;
-
-const OpenBoxText = styled.span`
-    font-size: 8px;
-    font-weight: bold;
-    color: #333;
-`;
-
-const ClosedBoxContainer = styled.div`
-    width: 50px;
-    height: 30px;
-    border: 2px solid #333;
-    border-radius: 4px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 0 8px;
-`;
-
-const ClosedBoxText = styled.span`
-    font-size: 8px;
-    font-weight: bold;
-    color: #333;
-`;
-
-const LogoLabel = styled.div`
-    font-size: 0.8rem;
-    text-align: center;
-    margin-top: 0.5rem;
-`;
-
-const FormContainer = styled.div`
-    flex: 1;
-    min-height: 200px;
-    display: flex;
-    flex-direction: column;
-`;
-
-const StyledInput = styled(Input)`
-    &::placeholder {
-        font-family: "Aspekta 400", Arial, sans-serif;
-        white-space: pre-line;
-    }
-`;
-
-const GenerateButton = styled.button`
-    background-color: #ff6320;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    margin-top: 10px;
-
-    &:hover {
-        background-color: #e55a1b;
-    }
-`;
-
-const TypeDropdown = styled.div`
-    position: relative;
-    width: 100%;
-    margin-bottom: 1rem;
-`;
-
-const DropdownButton = styled.button`
-    width: 100%;
-    padding: 12px;
-    font-size: 16px;
-    font-family: "Aspekta 550", Arial, sans-serif;
-    border-radius: 10px;
-    border: 2px solid #ccc;
-    background-color: #f9f9f9;
-    text-align: left;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    &:focus {
-        border-color: #ff6320;
-        outline: none;
-    }
-`;
-
-const DropdownContent = styled.div<{ isOpen: boolean }>`
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
-    display: ${props => props.isOpen ? 'block' : 'none'};
-    margin-top: 0.5rem;
-`;
-
-const ToggleContainer = styled.div`
-    display: flex;
-    justify-content: center;
-    margin-bottom: 1rem;
-`;
-
-const ToggleButton = styled.button<{ active: boolean }>`
-    padding: 0.5rem 1rem;
-    background-color: ${props => props.active ? '#ff6320' : '#f8f9fa'};
-    color: ${props => props.active ? 'white' : '#616568'};
-    border: none;
-    border-bottom: ${props => props.active ? '2px solid #ff6320' : '2px solid transparent'};
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: 600;
-    margin: 0 0.5rem;
-    outline: none;
-    position: relative;
-    
-    &:disabled {
-        cursor: not-allowed;
-        opacity: 0.5;
-    }
-
-    &:hover {
-        background-color: ${props => props.active ? '#ff6320' : '#e9ecef'};
-    }
-
-    // Tooltip styling
-    &[title]:hover::after {
-        content: attr(title);
-        position: absolute;
-        bottom: -1.5rem;
-        left: 50%;
-        transform: translateX(-50%);
-        background-color: #333;
-        color: white;
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
-        white-space: nowrap;
-        font-size: 0.8rem;
-    }
-`;
 
 const BackButton = styled.button`
     background: none;
@@ -1934,7 +851,10 @@ const BackButton = styled.button`
 const FullPageSelection = styled.div`
     display: flex;
     width: 100%;
-    height: 100vh; /* Adjust as needed */
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
 `;
 
 const SelectionButton = styled.button`
@@ -1944,11 +864,35 @@ const SelectionButton = styled.button`
     cursor: pointer;
     font-size: 2rem;
     background-color: #f8f9fa;
-    transition: background-color 0.3s;
+    position: relative;
+    overflow: hidden;
+    transition: background-color 0.3s, color 0.3s;
 
     &:hover {
         background-color: #ff6320;
         color: white;
+    }
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background-size: 40px 40px;
+        background-image: linear-gradient(135deg, transparent 75%, rgba(0, 0, 0, 0.05) 75%),
+                          linear-gradient(225deg, transparent 75%, rgba(0, 0, 0, 0.05) 75%),
+                          linear-gradient(45deg, transparent 75%, rgba(0, 0, 0, 0.05) 75%),
+                          linear-gradient(315deg, transparent 75%, rgba(0, 0, 0, 0.05) 75%);
+        background-position: 0 0, 0 0, 20px 20px, 20px 20px;
+        background-repeat: repeat;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    &:hover::before {
+        opacity: 1;
     }
 
     &:first-child {
