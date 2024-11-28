@@ -42,7 +42,7 @@ const StepperContainer = styled.div`
     display: flex;
     align-items: center;
     position: relative;
-    padding: 1rem 3rem;
+    padding: 3rem;
     background-color: #f8f9fa;
     z-index: 200;
     justify-content: space-between;

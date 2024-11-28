@@ -30,7 +30,7 @@ type LogoType = {
 } | null;
 
 // Add this type definition near the top of the file, with other type definitions
-export type QRType = keyof QRData;
+export type QRType = 'url' | 'pdf' | 'image' | 'video' | 'wifi' | 'email' | 'app' | 'multiplink' | 'facebook' | 'twitter' | 'mp3' | 'file' | 'crypto' | 'ar' | 'dynamicVcard' | 'iotConfig';
 
 
 // Update the HandleInputChangeFunction type
@@ -94,14 +94,18 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         contentData: {
             title: '',
             links: [
-                { label: '', url: '' }, // Required first link
-                { label: '', url: '' }, // Default second link
-                { label: '', url: '' }, // Default third link
+                { label: '', url: '' },
+                { label: '', url: '' },
+                { label: '', url: '' },
             ]
         },
-        youtube: {
-            url: ""  // Changed from title and videoId to just url
-        },
+        youtube: { url: "" },
+        ar: { arUrl: "" },
+        crypto: { 
+            currency: "BTC",
+            address: "",
+            amount: ""
+        }
     });
     const [qrColor, setQRColor] = useState("#000000");
     const [qrBackground, setQRBackground] = useState("#ffffff");
@@ -638,6 +642,12 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
             },
             multiplink: { title: '', links: [] },
             youtube: { url: '' },
+            ar: { arUrl: '' },
+            crypto: { 
+                currency: "BTC",
+                address: "",
+                amount: ""
+            }
         };
 
         setQRData(prevData => ({

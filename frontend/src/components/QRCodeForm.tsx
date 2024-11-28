@@ -597,6 +597,89 @@ export const QRCodeForm: React.FC<QRCodeFormProps> = ({
                                                 />
                                             </FormContainer>
                                         );
+                                    case 'ar':
+                                        return (
+                                            <Input
+                                                type="text"
+                                                name="arUrl"
+                                                value={qrData.ar?.arUrl || ''}
+                                                onChange={(e) => handleInputChange(e, 'ar')}
+                                                placeholder="Enter AR content URL"
+                                            />
+                                        );
+                                    case 'crypto':
+                                        return (
+                                            <>
+                                                <Select
+                                                    name="currency"
+                                                    value={qrData.crypto?.currency || 'bitcoin'}
+                                                    onChange={(e) => handleInputChange(e, 'crypto')}
+                                                >
+                                                    <option value="bitcoin">Bitcoin</option>
+                                                    <option value="ethereum">Ethereum</option>
+                                                    {/* Add more currencies as needed */}
+                                                </Select>
+                                                <Input
+                                                    type="text"
+                                                    name="address"
+                                                    value={qrData.crypto?.address || ''}
+                                                    onChange={(e) => handleInputChange(e, 'crypto')}
+                                                    placeholder="Enter Wallet Address"
+                                                />
+                                                <Input
+                                                    type="number"
+                                                    name="amount"
+                                                    value={qrData.crypto?.amount || ''}
+                                                    onChange={(e) => handleInputChange(e, 'crypto')}
+                                                    placeholder="Enter Amount (optional)"
+                                                />
+                                            </>
+                                        );
+                                    case 'dynamicVcard':
+                                        return (
+                                            <>
+                                                <Input
+                                                    type="text"
+                                                    name="name"
+                                                    value={qrData.dynamicVcard?.name || ''}
+                                                    onChange={(e) => handleInputChange(e, 'dynamicVcard')}
+                                                    placeholder="Full Name"
+                                                />
+                                                <Input
+                                                    type="text"
+                                                    name="phone"
+                                                    value={qrData.dynamicVcard?.phone || ''}
+                                                    onChange={(e) => handleInputChange(e, 'dynamicVcard')}
+                                                    placeholder="Phone Number"
+                                                />
+                                                <Input
+                                                    type="email"
+                                                    name="email"
+                                                    value={qrData.dynamicVcard?.email || ''}
+                                                    onChange={(e) => handleInputChange(e, 'dynamicVcard')}
+                                                    placeholder="Email"
+                                                />
+                                                {/* Add other fields as needed */}
+                                            </>
+                                        );
+                                    case 'iotConfig':
+                                        return (
+                                            <>
+                                                <Input
+                                                    type="text"
+                                                    name="deviceId"
+                                                    value={qrData.iotConfig?.deviceId || ''}
+                                                    onChange={(e) => handleInputChange(e, 'iotConfig')}
+                                                    placeholder="Device ID"
+                                                />
+                                                <TextArea
+                                                    name="configData"
+                                                    value={qrData.iotConfig?.configData || ''}
+                                                    onChange={(e) => handleInputChange(e, 'iotConfig')}
+                                                    placeholder="Configuration JSON"
+                                                />
+                                            </>
+                                        );
                                     default:
                                         return null;
                                 }

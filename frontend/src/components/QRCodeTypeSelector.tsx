@@ -16,6 +16,10 @@ import {
   FaVideo,
   FaMusic,
   FaFile,
+  FaCube,
+  FaBitcoin,
+  FaIdBadge,
+  FaMicrochip,
 } from 'react-icons/fa';
 
 import { QRType } from './QRCodeGenerator';
@@ -83,6 +87,10 @@ export const QRCodeTypeSelector: React.FC<QRCodeTypeSelectorProps> = ({ onSelect
     { type: 'twitter', label: 'Twitter', description: 'Share your Twitter', icon: FaTwitter },
     { type: 'mp3', label: 'Music', description: 'Play an MP3 file', icon: FaMusic },
     { type: 'file', label: 'File', description: 'Share any file type', icon: FaFile },
+    { type: 'ar', label: 'AR Experience', description: 'Launch an Augmented Reality experience', icon: FaCube },
+    { type: 'crypto', label: 'Cryptocurrency', description: 'Receive cryptocurrency payments', icon: FaBitcoin },
+    { type: 'dynamicVcard', label: 'Dynamic vCard', description: 'Always up-to-date contact info', icon: FaIdBadge },
+    { type: 'iotConfig', label: 'IoT Config', description: 'Configure IoT devices', icon: FaMicrochip },
   ];
 
   return (

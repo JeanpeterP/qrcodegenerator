@@ -32,4 +32,22 @@ export interface QRData {
     youtube: {
         url: string;
     };
+    ar: {
+        arUrl: string;
+    };
+    crypto: {
+        currency: string;
+        address: string;
+        amount?: string;
+    };
+    dynamicVcard?: {
+        name: string;
+        phone: string;
+        email: string;
+        // Add other fields as needed
+    };
+    iotConfig?: {
+        deviceId: string;
+        configData: string;
+    };
 } 
