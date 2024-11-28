@@ -10,6 +10,7 @@ import html2canvas from 'html2canvas';
 import { QRCodeForm } from './QRCodeForm';
 import { QRCodeTypeSelector } from './QRCodeTypeSelector';
 import { PhonePreview } from './PhonePreview/PhonePreview';
+import { CustomizationTabs } from './CustomizationTabs';
 
 import { getBackendUrl } from '../utils/constants';
 import { QRData } from '../types/qr';
@@ -17,7 +18,7 @@ import { Preview } from "./Preview";
 
 interface QRCodeGeneratorProps {}
 
-// Update the LogoType definition
+// Update the LogoType definition to match
 type LogoType = {
     type: 'stacked' | 'open-box' | 'closed-box' | 'custom';
     src: string | null;
@@ -150,6 +151,16 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     const [userChoice, setUserChoice] = useState<'qr' | 'dynamicBio' | null>(null);
 
     const [backgroundType, setBackgroundType] = useState<string>('colorful');
+
+    const [logoSize, setLogoSize] = useState(50);
+    const [gradient, setGradient] = useState(false);
+    const [gradientColor1, setGradientColor1] = useState("#000000");
+    const [gradientColor2, setGradientColor2] = useState("#000000");
+    const [gradientType, setGradientType] = useState("linear");
+    const [gradientRotation, setGradientRotation] = useState(0);
+    const [cornerDots, setCornerDots] = useState("dot");
+    const [cornerSquares, setCornerSquares] = useState("dot");
+
 
     useEffect(() => {
         setIsMounted(true);
@@ -644,7 +655,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
 
     const handleQRTypeSelect = (type: QRType) => {
         setQRType(type);
-        setCurrentStep(3); // Proceed to the next step
+        setCurrentStep(2); // Proceed to the next step after selecting QR Type
     };
 
     // Add this function to handle hover
@@ -706,70 +717,92 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
 
     return (
         <Container>
+            {/* Left Column */}
             {currentStep === 1 && (
-                <FullPageSelection>
-                    <SelectionButton onClick={() => { setUserChoice('qr'); setCurrentStep(2); }}>
-                        QR Code
-                    </SelectionButton>
-                    <SelectionButton onClick={() => { setUserChoice('dynamicBio'); setCurrentStep(2); }}>
-                        Dynamic Bio
-                    </SelectionButton>
-                </FullPageSelection>
-            )}
-
-            {currentStep === 2 && (
                 <LeftColumn>
                     <Title>Select a type of QR code</Title>
                     <QRCodeTypeSelector 
                         onSelect={handleQRTypeSelect} 
                         onHover={handleQRTypeHover} 
-                        userChoice={userChoice || 'qr'}
+                        userChoice={'dynamicBio'}
                     />
                 </LeftColumn>
             )}
-
-            {currentStep === 3 && (
+            {currentStep === 2 && (
                 <LeftColumn>
-                    <BackButton onClick={() => setCurrentStep(2)}>Back</BackButton>
-                    <Title>Configure your QR code</Title>
+                    <Title>Customize your content</Title>
                     <QRCodeForm
                         qrType={qrType}
                         qrData={qrData}
                         handleInputChange={handleInputChange}
                         placeholder={getPlaceholder(qrType)}
                         handleAddLink={handleAddLink}
-                        userChoice={userChoice}
+                        userChoice={'dynamicBio'}
+                    />
+                    <NextButton onClick={() => setCurrentStep(3)}>Next</NextButton>
+                </LeftColumn>
+            )}
+            {currentStep === 3 && (
+                <LeftColumn>
+                    <BackButton onClick={() => setCurrentStep(2)}>Back</BackButton>
+                    <Title>Design your QR code</Title>
+                    <CustomizationTabs
+                        activeTab={activeTab}
+                        setActiveTab={setActiveTab}
+                        // Frame props
+                        frame={frame}
+                        setFrame={setFrame}
+                        frameColor={frameColor}
+                        setFrameColor={setFrameColor}
+                        // Shape props
+                        shape={shape}
+                        setShape={setShape}
+                        qrColor={qrColor}
+                        setQRColor={setQRColor}
+                        qrBackground={qrBackground}
+                        setQRBackground={setQRBackground}
+                        // Marker props
+                        markerStyle={markerStyle}
+                        setMarkerStyle={setMarkerStyle}
+                        markerColor={markerColor}
+                        setMarkerColor={setMarkerColor}
+                        // Logo props
+                        logo={logo}
+                        setLogo={setLogo}
+                        logoSize={logoSize}
+                        setLogoSize={setLogoSize}
+                        gradient={gradient}
+                        setGradient={setGradient}
+                        gradientColor1={gradientColor1}
+                        setGradientColor1={setGradientColor1}
+                        gradientColor2={gradientColor2}
+                        setGradientColor2={setGradientColor2}
+                        gradientType={gradientType}
+                        setGradientType={setGradientType}
+                        gradientRotation={gradientRotation}
+                        setGradientRotation={setGradientRotation}
+                        cornerDots={cornerDots}
+                        setCornerDots={setCornerDots}
+                        cornerSquares={cornerSquares}
+                        setCornerSquares={setCornerSquares}
+                        currentFramePage={currentFramePage}
+                        setCurrentFramePage={setCurrentFramePage}
+                        currentShapePage={currentShapePage}
+                        setCurrentShapePage={setCurrentShapePage}
+                        customLogo={customLogo}
+                        setCustomLogo={setCustomLogo}
                     />
                 </LeftColumn>
             )}
-
-            {currentStep !== 1 && (
-                <RightColumn>
-                    {userChoice === 'qr' ? (
-                        <div className="preview-container">
-                            <Preview 
-                                qrCodeInstance={qrCodeInstance}
-                                handleDownload={handleDownload}
-                                generateQRCodeData={generateQRCodeData}
-                                frame={frame}
-                                shape={shape}
-                                frameColor={frameColor}
-                                qrType={qrType}
-                                generatedUrl={generatedUrl}
-                                setGeneratedUrl={setGeneratedUrl}
-                                setGenerateQRCode={setGenerateQRCode}
-                            />
-                        </div>
-                    ) : (
-                        <PhonePreview
-                            show={true}
-                            qrType={qrType}
-                            qrData={qrData}
-                            backgroundType={backgroundType}
-                        />
-                    )}
-                </RightColumn>
-            )}
+            {/* Right Column */}
+            <RightColumn>
+                <PhonePreview
+                    show={true}
+                    qrType={qrType}
+                    qrData={qrData}
+                    backgroundType={backgroundType}
+                />
+            </RightColumn>
         </Container>
     );
 }
@@ -900,5 +933,27 @@ const SelectionButton = styled.button`
 
     &:first-child {
         border-right: 1px solid #dee2e6;
+    }
+`;
+
+const NextButton = styled.button`
+    background: #ff6320;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+
+    &:hover {
+        background: #e55a1d;
+        transform: translateY(-1px);
+    }
+
+    &:active {
+        transform: translateY(1px);
     }
 `;

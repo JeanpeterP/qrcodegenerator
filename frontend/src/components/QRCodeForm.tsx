@@ -28,6 +28,7 @@ import { FileUploadSection } from './FileUploadSection';
 
 // Update the LogoType definition
 type LogoType = {
+    type: 'stacked' | 'open-box' | 'closed-box' | 'custom';
     src: string | null;
     width?: number;
     height?: number;

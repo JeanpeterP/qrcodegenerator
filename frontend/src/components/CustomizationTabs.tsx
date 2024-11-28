@@ -30,11 +30,13 @@ interface CustomizationTabsProps {
     setMarkerColor: (color: string) => void;
     // Logo props
     logo: {
+        type: 'stacked' | 'open-box' | 'closed-box' | 'custom';
         src: string | null;
         width?: number;
         height?: number;
     } | null;
     setLogo: React.Dispatch<React.SetStateAction<{
+        type: 'stacked' | 'open-box' | 'closed-box' | 'custom';
         src: string | null;
         width?: number;
         height?: number;

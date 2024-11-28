@@ -6,11 +6,13 @@ export type LogoType = 'custom' | 'stacked' | 'open-box' | 'closed-box';
 
 interface LogoCustomizationProps {
     logo: {
+        type: 'stacked' | 'open-box' | 'closed-box' | 'custom';
         src: string | null;
         width?: number;
         height?: number;
     } | null;
     setLogo: React.Dispatch<React.SetStateAction<{
+        type: 'stacked' | 'open-box' | 'closed-box' | 'custom';
         src: string | null;
         width?: number;
         height?: number;
@@ -70,7 +72,7 @@ export const LogoCustomization: React.FC<LogoCustomizationProps> = ({
             const reader = new FileReader();
             reader.onload = (e) => {
                 setCustomLogo(e.target?.result as string);
-                setLogo({ src: e.target?.result as string });
+                setLogo({ type: 'custom', src: e.target?.result as string });
             };
             reader.readAsDataURL(file);
         }
@@ -83,7 +85,7 @@ export const LogoCustomization: React.FC<LogoCustomizationProps> = ({
                     <LogoOption
                         key={option.type}
                         active={option.type === 'custom' ? !!logo?.src : false}
-                        onClick={() => option.type !== 'custom' && setLogo({ src: option.type })}
+                        onClick={() => option.type !== 'custom' && setLogo({ type: option.type, src: option.type })}
                     >
                         <LogoPreviewContainer>
                             {option.type === 'custom' && customLogo ? (
