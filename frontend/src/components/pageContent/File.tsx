@@ -32,8 +32,8 @@ export const File: React.FC<FileProps> = ({ fileData }) => {
       style={{
         width: '100%',
         height: '100%',
-        backgroundColor: '#fafafa',
-        padding: isPreview ? '0' : '40px 20px',
+        backgroundColor: isPreview ? 'transparent' : '#fafafa',
+        padding: 0,
         textAlign: 'center',
       }}
     >

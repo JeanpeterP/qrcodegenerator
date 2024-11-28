@@ -43,23 +43,51 @@ const PreviewColumn = styled.div`
 const PhonePreviewColumn = styled(PreviewColumn)<{ show: boolean }>`
   display: ${props => props.show ? 'flex' : 'none'};
   max-width: 375px;
-  background: #f8f9fa;
+  background: transparent;
   align-items: center;
   padding: 20px;
   justify-content: center;
-
+  position: relative;
   
   @media (max-width: 1200px) {
     display: none;
   }
 `;
 
-const PhoneFrame = styled.div`
+const PhoneFrame = styled.div<{ backgroundType: string }>`
   position: relative;
   width: 375px;
   height: 769px;
-  background: url(${iphone16Frame}) no-repeat center center;
-  background-size: cover;
+  z-index: 2;
+  
+  ${props => props.backgroundType === 'colorful' && `
+    &::before {
+      content: '';
+      position: absolute;
+      top: 19px;
+      left: 20px;
+      width: 335px;
+      height: 733px;
+      background-image: url(${colorfulBioMobile});
+      background-size: cover;
+      background-position: center;
+      border-radius: 25px;
+      z-index: 1;
+    }
+  `}
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url(${iphone16Frame}) no-repeat center center;
+    background-size: contain;
+    z-index: 3;
+    pointer-events: none;
+  }
 `;
 
 const PhoneContent = styled.div<{ backgroundType: string }>`
@@ -69,23 +97,15 @@ const PhoneContent = styled.div<{ backgroundType: string }>`
   width: 335px;
   height: 639px;
   overflow-y: hidden;
-  background-color: #fff;
+  background-color: transparent;
   border-radius: 6px;
-  
-  ${props => props.backgroundType === 'colorful' && `
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-image: url(${colorfulBioMobile});
-      background-size: cover;
-      background-position: center;
-      z-index: 0;
-    }
-  `}
+  z-index: 2;
+
+  & > * {
+    position: relative;
+    z-index: 2;
+    background-color: transparent;
+  }
 `;
 
 const Title = styled.h2`
@@ -138,7 +158,7 @@ export const PhonePreview: React.FC<PhonePreviewProps> = ({ show, qrType, qrData
 
     return (
         <PhonePreviewColumn show={show}>
-            <PhoneFrame>
+            <PhoneFrame backgroundType={backgroundType}>
                 <PhoneContent backgroundType={backgroundType}>
                     {hasImplementedPreview(qrType) ? (
                         <>
