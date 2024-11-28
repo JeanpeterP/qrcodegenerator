@@ -157,6 +157,8 @@ export const QRCodeForm: React.FC<QRCodeFormProps> = ({
     const [buttonText, setButtonText] = useState<string>('Download');
     const [buttonColor, setButtonColor] = useState<string>('#ff6320');
 
+    const [backgroundType, setBackgroundType] = useState<string>('colorful');
+
     // Function to toggle dropdowns, ensuring only one is open at a time
     const toggleDropdown = (dropdownName: string) => {
         setActiveDropdown(activeDropdown === dropdownName ? null : dropdownName);
@@ -625,6 +627,8 @@ export const QRCodeForm: React.FC<QRCodeFormProps> = ({
                         buttonColor={buttonColor}
                         setButtonColor={setButtonColor}
                         dynamicBioType={dynamicBioType}
+                        backgroundType={backgroundType}
+                        setBackgroundType={setBackgroundType}
                     />
                 </>
             )}
@@ -697,6 +701,8 @@ export const QRCodeForm: React.FC<QRCodeFormProps> = ({
                                     buttonColor={buttonColor}
                                     setButtonColor={setButtonColor}
                                     dynamicBioType={dynamicBioType}
+                                    backgroundType={backgroundType}
+                                    setBackgroundType={setBackgroundType}
                                 />
                             )}
                         </DropdownContent>

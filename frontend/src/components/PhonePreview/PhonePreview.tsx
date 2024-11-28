@@ -4,6 +4,8 @@ import iphone16Frame from '../../images/iphone16pro.png';
 import { File } from '../pageContent/File';
 import { MultiLink } from '../pageContent/MultiLink';
 import { YouTube } from '../pageContent/YouTube';
+import colorfulBioMobile from '../../images/ColorFulBioMobile.png';
+import colorfulBioDesktop from '../../images/ColorfulBioDesktop.png';
 
 const PlaceholderContainer = styled.div`
   display: flex;
@@ -60,15 +62,30 @@ const PhoneFrame = styled.div`
   background-size: cover;
 `;
 
-const PhoneContent = styled.div`
+const PhoneContent = styled.div<{ backgroundType: string }>`
   position: absolute;
-  top: 66px;
-  left: 26px;
-  width: 321px;
-  height: 637px;
+  top: 69px;
+  left: 20px;
+  width: 335px;
+  height: 639px;
   overflow-y: hidden;
   background-color: #fff;
-  border-radius: 40px;
+  border-radius: 6px;
+  
+  ${props => props.backgroundType === 'colorful' && `
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: url(${colorfulBioMobile});
+      background-size: cover;
+      background-position: center;
+      z-index: 0;
+    }
+  `}
 `;
 
 const Title = styled.h2`
@@ -98,9 +115,10 @@ interface PhonePreviewProps {
             url: string;
         };
     };
+    backgroundType: string;
 }
 
-export const PhonePreview: React.FC<PhonePreviewProps> = ({ show, qrType, qrData }) => {
+export const PhonePreview: React.FC<PhonePreviewProps> = ({ show, qrType, qrData, backgroundType }) => {
     const hasImplementedPreview = (type: string) => {
         return ['file', 'multiplink', 'youtube'].includes(type);
     };
@@ -121,7 +139,7 @@ export const PhonePreview: React.FC<PhonePreviewProps> = ({ show, qrType, qrData
     return (
         <PhonePreviewColumn show={show}>
             <PhoneFrame>
-                <PhoneContent>
+                <PhoneContent backgroundType={backgroundType}>
                     {hasImplementedPreview(qrType) ? (
                         <>
                             {qrType === 'file' && qrData.file && (
@@ -161,3 +179,18 @@ export const PhonePreview: React.FC<PhonePreviewProps> = ({ show, qrType, qrData
         </PhonePreviewColumn>
     );
 };
+
+const PhoneContainer = styled.div`
+    // Existing styles
+`;
+
+const Screen = styled.div<{ backgroundType: string }>`
+    // Existing styles
+    background-image: url(/images/backgrounds/${(props) => props.backgroundType}Mobile.png);
+    background-size: cover;
+    background-position: center;
+
+    @media (min-width: 768px) {
+        background-image: url(/images/backgrounds/${(props) => props.backgroundType}Desktop.png);
+    }
+`;

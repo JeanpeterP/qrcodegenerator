@@ -4,6 +4,7 @@ import styled from 'styled-components';
 // Import customization components based on Dynamic Bio types
 import { FileCustomization } from './dynamicBioCustomization/FileCustomization';
 import { FileAppearanceCustomization } from './dynamicBioCustomization/FileAppearanceCustomization';
+import { BackgroundCustomization } from './dynamicBioCustomization/BackgroundCustomization';
 // Import other customization components as needed
 
 import { ChevronDown } from 'lucide-react';
@@ -22,6 +23,8 @@ interface DynamicBioCustomizationTabsProps {
     buttonColor: string;
     setButtonColor: (color: string) => void;
     dynamicBioType: string; // E.g., 'file', 'download', etc.
+    backgroundType: string;
+    setBackgroundType: (type: string) => void;
 }
 
 export const DynamicBioCustomizationTabs: React.FC<DynamicBioCustomizationTabsProps> = ({
@@ -36,6 +39,8 @@ export const DynamicBioCustomizationTabs: React.FC<DynamicBioCustomizationTabsPr
     buttonColor,
     setButtonColor,
     dynamicBioType,
+    backgroundType,
+    setBackgroundType,
 }) => {
     return (
         <CustomizerSection>
@@ -51,6 +56,12 @@ export const DynamicBioCustomizationTabs: React.FC<DynamicBioCustomizationTabsPr
                     onClick={() => setActiveTab('appearance')}
                 >
                     Appearance <ChevronDown size={16} />
+                </TabButton>
+                <TabButton
+                    active={activeTab === 'background'}
+                    onClick={() => setActiveTab('background')}
+                >
+                    Background <ChevronDown size={16} />
                 </TabButton>
             </TabsContainer>
 
@@ -69,6 +80,13 @@ export const DynamicBioCustomizationTabs: React.FC<DynamicBioCustomizationTabsPr
 
             {activeTab === 'appearance' && dynamicBioType === 'file' && (
                 <FileAppearanceCustomization />
+            )}
+
+            {activeTab === 'background' && (
+                <BackgroundCustomization
+                    backgroundType={backgroundType}
+                    setBackgroundType={setBackgroundType}
+                />
             )}
         </CustomizerSection>
     );

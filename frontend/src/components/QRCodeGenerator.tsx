@@ -149,6 +149,8 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
 
     const [userChoice, setUserChoice] = useState<'qr' | 'dynamicBio' | null>(null);
 
+    const [backgroundType, setBackgroundType] = useState<string>('colorful');
+
     useEffect(() => {
         setIsMounted(true);
         return () => setIsMounted(false);
@@ -763,6 +765,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             show={true}
                             qrType={qrType}
                             qrData={qrData}
+                            backgroundType={backgroundType}
                         />
                     )}
                 </RightColumn>

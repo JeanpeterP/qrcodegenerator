@@ -6,6 +6,9 @@ import { File } from '../components/pageContent/File';
 import { LoadingMessage } from '../components/common/LoadingMessage';
 import { ErrorMessage } from '../components/common/ErrorMessage';
 import { PageContainer } from '../components/common/PageContainer';
+import colorfulBioMobile from '../images/ColorFulBioMobile.png';
+import colorfulBioDesktop from '../images/ColorfulBioDesktop.png';
+import styled from 'styled-components';
 
 interface DownloadQRData {
   title: string;
@@ -15,6 +18,7 @@ interface DownloadQRData {
   buttonText?: string;
   fileUrl?: string;
   originalFileName?: string;
+  backgroundType?: string;
 }
 
 const DownloadQRPage: React.FC = () => {
@@ -71,19 +75,48 @@ const DownloadQRPage: React.FC = () => {
 
   return (
     <PageContainer>
-      <File
-        fileData={{
-          title: qrData.title,
-          description: qrData.description,
-          buttonColor: qrData.buttonColor,
-          buttonText: qrData.buttonText,
-          fileUrl: qrData.fileUrl,
-          originalFileName: qrData.originalFileName,
-        }}
-      />
+      <BackgroundWrapper backgroundType={qrData.backgroundType}>
+        <File
+          fileData={{
+            title: qrData.title,
+            description: qrData.description,
+            buttonColor: qrData.buttonColor,
+            buttonText: qrData.buttonText,
+            fileUrl: qrData.fileUrl,
+            originalFileName: qrData.originalFileName,
+          }}
+        />
+      </BackgroundWrapper>
     </PageContainer>
   );
 };
+
+const BackgroundWrapper = styled.div<{ backgroundType?: string }>`
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  
+  ${props => props.backgroundType === 'colorful' && `
+    &::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: url(${colorfulBioMobile});
+      background-size: cover;
+      background-position: center;
+      z-index: -1;
+    }
+    
+    @media (min-width: 768px) {
+      &::before {
+        background-image: url(${colorfulBioDesktop});
+      }
+    }
+  `}
+`;
 
 export default DownloadQRPage;
 
