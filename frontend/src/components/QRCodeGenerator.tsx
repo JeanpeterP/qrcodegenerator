@@ -5,6 +5,7 @@ import QRCodeStyling, {
     CornerSquareType,
 } from "qr-code-styling";
 import html2canvas from 'html2canvas';
+import { CaretDown, QrCode, TextT, PaintBrush, DeviceMobile } from 'phosphor-react';
 
 // Import the new components
 import { QRCodeForm } from './QRCodeForm';
@@ -13,13 +14,41 @@ import { PhonePreview } from './PhonePreview/PhonePreview';
 import { CustomizationTabs } from './CustomizationTabs';
 import { BottomNavigation } from './common/BottomNavigation';
 import { TopNavigation } from './common/TopNavigation';
+import { DynamicBioCustomizationTabs } from './DynamicBioCustomizationTabs';
 
 import { getBackendUrl } from '../utils/constants';
-import { QRData } from '../types/qr';
+import { QRType, QRData } from '../types/qr';
 import { Preview } from "./Preview";
 import { QRBuilderLayout } from './layouts/QRBuilderLayout';
 
-interface QRCodeGeneratorProps {}
+interface QRCodeGeneratorProps {
+    userChoice?: 'qr' | 'dynamicBio' | null;
+}
+
+interface PreviewToggleProps {
+    previewType: 'qr' | 'phone';
+    setPreviewType: (type: 'qr' | 'phone') => void;
+}
+
+interface PreviewProps {
+    qrCodeInstance: QRCodeStyling | null;
+    handleDownload: (format: "png" | "svg") => Promise<void>;
+    frame: string;
+    shape: string;
+    frameColor: string;
+    qrType: string;
+    generatedUrl: string | null;
+    setGeneratedUrl: (url: string | null) => void;
+    setGenerateQRCode: (value: boolean) => void;
+    qrData: QRData;
+}
+
+interface PhonePreviewProps {
+    show: boolean;
+    qrType: keyof QRData;
+    qrData: QRData;
+    backgroundType: string;
+}
 
 // Update the LogoType definition to match
 type LogoType = {
@@ -28,10 +57,6 @@ type LogoType = {
     width?: number;
     height?: number;
 } | null;
-
-// Add this type definition near the top of the file, with other type definitions
-export type QRType = 'url' | 'pdf' | 'image' | 'video' | 'wifi' | 'email' | 'app' | 'multiplink' | 'facebook' | 'twitter' | 'mp3' | 'file' | 'crypto' | 'ar' | 'dynamicVcard' | 'iotConfig';
-
 
 // Update the HandleInputChangeFunction type
 export type HandleInputChangeFunction = (
@@ -64,9 +89,51 @@ const getPlaceholder = (type: keyof QRData): string => {
     }
 };
 
+// Add this styled component for the preview toggle section
+const PreviewToggleContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 20px;
+`;
+
+const PreviewToggleButtons = styled.div`
+    display: flex;
+    background: #f9f9f9;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    padding: 4px;
+`;
+
+const ToggleButton = styled.button<{ active: boolean }>`
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: ${props => props.active ? '#ff6320' : 'transparent'};
+    color: ${props => props.active ? '#fff' : '#333'};
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Aspekta 550', Arial, sans-serif;
+    font-size: 14px;
+    transition: all 0.3s ease;
+
+    &:hover {
+        background: ${props => props.active ? '#ff6320' : '#e9ecef'};
+    }
+
+    svg {
+        width: 20px;
+        height: 20px;
+    }
+`;
+
 export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     const [isMounted, setIsMounted] = useState(false);
-    const [qrType, setQRType] = useState<keyof QRData>("url");
+    const [qrType, setQRType] = useState<QRType>('url');
     const [qrData, setQRData] = useState<QRData>({
         url: "https://example.com",
         email: { address: "", subject: "", message: "" },
@@ -109,7 +176,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     });
     const [qrColor, setQRColor] = useState("#000000");
     const [qrBackground, setQRBackground] = useState("#ffffff");
-    const [qrSize, setQRSize] = useState(125);
+    const [qrSize, setQRSize] = useState(200);
     const [frame, setFrame] = useState("none");
     const [shape, setShape] = useState<QRDotType>("square");
     const [logo, setLogo] = useState<LogoType>(null);
@@ -151,9 +218,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
 
     const [previewMode, setPreviewMode] = useState<'qr' | 'phone'>('qr');
 
-    const [currentStep, setCurrentStep] = useState(1);
-
-    const [previewType, setPreviewType] = useState<keyof QRData>("url");
+    const [previewType, setPreviewType] = useState<'qr' | 'phone'>('qr');
 
     const [userChoice, setUserChoice] = useState<'qr' | 'dynamicBio' | null>(null);
 
@@ -168,6 +233,19 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     const [cornerDots, setCornerDots] = useState("dot");
     const [cornerSquares, setCornerSquares] = useState("dot");
 
+    // Add new state for type selector visibility
+    const [isTypeSelectorVisible, setIsTypeSelectorVisible] = useState(false);
+
+    // Add new state for content and design options dropdown visibility
+    const [isContentVisible, setIsContentVisible] = useState(true);
+    const [isDesignOptionsVisible, setIsDesignOptionsVisible] = useState(false);
+
+    // Add new state variables for Dynamic Bio customization
+    const [title, setTitle] = useState<string>('');
+    const [description, setDescription] = useState<string>('');
+    const [buttonText, setButtonText] = useState<string>('Download');
+    const [buttonColor, setButtonColor] = useState<string>('#ff6320');
+    const [dynamicBioType, setDynamicBioType] = useState<string>('file'); // or whatever default you want
 
     useEffect(() => {
         setIsMounted(true);
@@ -179,7 +257,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         const handleResize = () => {
             if (qrContainerRef.current) {
                 const containerWidth = qrContainerRef.current.offsetWidth;
-                const maxSize = Math.min(containerWidth - 40, 200); // 40px for padding, max 300px
+                const maxSize = Math.max(Math.min(containerWidth - 40, 300), 200); // Ensure minimum of 200
                 setQRSize(maxSize);
             }
         };
@@ -615,8 +693,8 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
 
     // Update the handleTypeChange function
     const handleTypeChange = (newType: QRType) => {
-        setQRType(newType as keyof QRData); // Explicitly cast to keyof QRData
-        setIsTypeDropdownOpen(false); // Close dropdown after selection
+        setQRType(newType);
+        setIsTypeDropdownOpen(false);
         
         // Reset QR data based on type
         const defaultData: Partial<QRData> = {
@@ -666,14 +744,15 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         return ['file', 'multiplink', 'youtube'].includes(type);
     };
 
+    // Update the handleQRTypeSelect to not change steps
     const handleQRTypeSelect = (type: QRType) => {
         setQRType(type);
-        setCurrentStep(2); // Proceed to the next step after selecting QR Type
+        setIsTypeSelectorVisible(false); // Close the selector after selection
     };
 
     // Add this function to handle hover
     const handleQRTypeHover = (type: QRType) => {
-        setPreviewType(type);
+        setPreviewType('qr');
     };
 
     // Add this function to get placeholder data for preview
@@ -710,9 +789,9 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
 
     useEffect(() => {
         const qrCode = new QRCodeStyling({
-            width: 300,
-            height: 300,
-            data: "https://example.com", // Default data
+            width: 200,
+            height: 200,
+            data: "https://example.com",
             dotsOptions: {
                 type: shape,
                 color: qrColor,
@@ -728,282 +807,250 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         setQrCodeInstance(qrCode);
     }, []); // Initialize once when component mounts
 
-    const handleNext = () => {
-        setCurrentStep(prevStep => prevStep + 1);
-    };
+    // const handleNext = () => {
+    //     setCurrentStep(prevStep => prevStep + 1);
+    // };
 
-    const handleBack = () => {
-        setCurrentStep(prevStep => prevStep - 1);
-    };
+    // const handleBack = () => {
+    //     setCurrentStep(prevStep => prevStep - 1);
+    // };
 
-    const isContentValid = () => {
-        // Validate your content here based on qrType and qrData
-        // Return true if valid, false otherwise
-        return true; // Placeholder
-    };
+    // const isContentValid = () => {
+    //     // Validate your content here based on qrType and qrData
+    //     // Return true if valid, false otherwise
+    //     return true; // Placeholder
+    // };
+
+    // Add this near your other useEffect hooks
+    useEffect(() => {
+        const sendHeightToParent = () => {
+            const height = document.documentElement.scrollHeight;
+            // Post message to parent with the height
+            window.parent.postMessage({ type: 'frameHeight', height }, '*');
+        };
+
+        // Send initial height
+        sendHeightToParent();
+
+        // Send height on window resize
+        window.addEventListener('resize', sendHeightToParent);
+
+        // Create a MutationObserver to watch for DOM changes
+        const observer = new MutationObserver(sendHeightToParent);
+        
+        // Start observing the document body for DOM changes
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+            attributes: true
+        });
+
+        // Cleanup
+        return () => {
+            window.removeEventListener('resize', sendHeightToParent);
+            observer.disconnect();
+        };
+    }, []);
 
     return (
         <Container>
-            <TopNavigation currentStep={currentStep} />
-            <ContentWrapper>
-                {/* For Step 1, render without the bottom navigation */}
-                {currentStep === 1 && (
-                    <LeftColumn>
-                        <Title>Select a type of QR code</Title>
-                        <QRCodeTypeSelector 
-                            onSelect={handleQRTypeSelect} 
-                            onHover={handleQRTypeHover} 
-                            userChoice={'dynamicBio'}
-                        />
-                    </LeftColumn>
-                )}
-                {/* For Steps beyond Step 1, wrap content with QRBuilderLayout */}
-                {currentStep > 1 && (
-                    <>
-                        <LeftColumn>
-                            {currentStep === 2 && (
-                                <>
-                                    <Title>Customize your content</Title>
-                                    <QRCodeForm
-                                        qrType={qrType}
-                                        qrData={qrData}
-                                        handleInputChange={handleInputChange}
-                                        placeholder={getPlaceholder(qrType)}
-                                        handleAddLink={handleAddLink}
-                                        userChoice={'dynamicBio'}
-                                    />
-                                </>
-                            )}
-                            {currentStep === 3 && (
-                                <>
-                                    <Title>Design your QR code</Title>
-                                    <CustomizationTabs
-                                        activeTab={activeTab}
-                                        setActiveTab={setActiveTab}
-                                        // Frame props
-                                        frame={frame}
-                                        setFrame={setFrame}
-                                        frameColor={frameColor}
-                                        setFrameColor={setFrameColor}
-                                        // Shape props
-                                        shape={shape}
-                                        setShape={setShape}
-                                        qrColor={qrColor}
-                                        setQRColor={setQRColor}
-                                        qrBackground={qrBackground}
-                                        setQRBackground={setQRBackground}
-                                        // Marker props
-                                        markerStyle={markerStyle}
-                                        setMarkerStyle={setMarkerStyle}
-                                        markerColor={markerColor}
-                                        setMarkerColor={setMarkerColor}
-                                        // Logo props
-                                        logo={logo}
-                                        setLogo={setLogo}
-                                        logoSize={logoSize}
-                                        setLogoSize={setLogoSize}
-                                        gradient={gradient}
-                                        setGradient={setGradient}
-                                        gradientColor1={gradientColor1}
-                                        setGradientColor1={setGradientColor1}
-                                        gradientColor2={gradientColor2}
-                                        setGradientColor2={setGradientColor2}
-                                        gradientType={gradientType}
-                                        setGradientType={setGradientType}
-                                        gradientRotation={gradientRotation}
-                                        setGradientRotation={setGradientRotation}
-                                        cornerDots={cornerDots}
-                                        setCornerDots={setCornerDots}
-                                        cornerSquares={cornerSquares}
-                                        setCornerSquares={setCornerSquares}
-                                        currentFramePage={currentFramePage}
-                                        setCurrentFramePage={setCurrentFramePage}
-                                        currentShapePage={currentShapePage}
-                                        setCurrentShapePage={setCurrentShapePage}
-                                        customLogo={customLogo}
-                                        setCustomLogo={setCustomLogo}
-                                    />
-                                </>
-                            )}
-                        </LeftColumn>
-                        <RightColumn>
-                            <PhonePreview
-                                show={true}
-                                qrType={qrType}
-                                qrData={qrData}
-                                backgroundType={backgroundType}
-                            />
-                        </RightColumn>
-                    </>
-                )}
-            </ContentWrapper>
-            {currentStep > 1 && (
-                <BottomNavigation
-                    onNext={handleNext}
-                    onBack={handleBack}
-                    nextLabel={currentStep === 2 ? 'Next' : 'Finish'}
-                    backLabel='Back'
-                    disableNext={currentStep === 2 && !isContentValid()}
-                    disableBack={false}
+            <LeftColumn>
+                {/* QR Type Grid */}
+                <TypeGrid>
+                    <QRCodeTypeSelector
+                        onSelect={handleQRTypeSelect}
+                        onHover={handleQRTypeHover}
+                        selectedType={qrType}
+                        userChoice={userChoice ?? 'qr'}
+                    />
+                </TypeGrid>
+
+                {/* Content Form */}
+                <QRCodeForm
+                    qrType={qrType}
+                    qrData={qrData}
+                    handleInputChange={handleInputChange}
+                    handleAddLink={handleAddLink}
+                    placeholder={getPlaceholder(qrType)}
+                    userChoice={userChoice}
                 />
-            )}
+
+                {/* Customization Tabs */}
+                <CustomizationTabs
+                    activeTab={activeTab}
+                    setActiveTab={setActiveTab}
+                    frame={frame}
+                    setFrame={setFrame}
+                    frameColor={frameColor}
+                    setFrameColor={setFrameColor}
+                    shape={shape}
+                    setShape={setShape}
+                    qrColor={qrColor}
+                    setQRColor={setQRColor}
+                    qrBackground={qrBackground}
+                    setQRBackground={setQRBackground}
+                    markerStyle={markerStyle}
+                    setMarkerStyle={setMarkerStyle}
+                    markerColor={markerColor}
+                    setMarkerColor={setMarkerColor}
+                    logo={logo}
+                    setLogo={setLogo}
+                    logoSize={logoSize}
+                    setLogoSize={setLogoSize}
+                    gradient={gradient}
+                    setGradient={setGradient}
+                    gradientColor1={gradientColor1}
+                    setGradientColor1={setGradientColor1}
+                    gradientColor2={gradientColor2}
+                    setGradientColor2={setGradientColor2}
+                    gradientType={gradientType}
+                    setGradientType={setGradientType}
+                    gradientRotation={gradientRotation}
+                    setGradientRotation={setGradientRotation}
+                    cornerDots={cornerDots}
+                    setCornerDots={setCornerDots}
+                    cornerSquares={cornerSquares}
+                    setCornerSquares={setCornerSquares}
+                    currentFramePage={currentFramePage}
+                    setCurrentFramePage={setCurrentFramePage}
+                    currentShapePage={currentShapePage}
+                    setCurrentShapePage={setCurrentShapePage}
+                    customLogo={customLogo}
+                    setCustomLogo={setCustomLogo}
+                />
+
+                {/* Updated DynamicBioCustomizationTabs with all required props */}
+                <DynamicBioCustomizationTabs
+                    qrType={qrType}
+                    qrData={qrData}
+                    handleInputChange={handleInputChange}
+                    
+                    // Content customization props
+                    title={title}
+                    setTitle={setTitle}
+                    description={description}
+                    setDescription={setDescription}
+                    buttonText={buttonText}
+                    setButtonText={setButtonText}
+                    buttonColor={buttonColor}
+                    setButtonColor={setButtonColor}
+                    
+                    // Type and background props
+                    dynamicBioType={dynamicBioType}
+                    backgroundType={backgroundType}
+                    setBackgroundType={setBackgroundType}
+                />
+            </LeftColumn>
+
+            <RightColumn>
+                {/* Preview Toggle */}
+                <PreviewToggleContainer>
+                    <PreviewToggleButtons>
+                        <ToggleButton 
+                            active={previewType === 'qr'} 
+                            onClick={() => setPreviewType('qr')}
+                        >
+                            <QrCode weight="bold" />
+                            QR Code
+                        </ToggleButton>
+                        <ToggleButton 
+                            active={previewType === 'phone'} 
+                            onClick={() => setPreviewType('phone')}
+                        >
+                            <DeviceMobile weight="bold" />
+                            Phone Preview
+                        </ToggleButton>
+                    </PreviewToggleButtons>
+                    
+                    {/* Render Preview */}
+                    {previewType === 'qr' ? (
+                        <Preview 
+                            qrCodeInstance={qrCodeInstance}
+                            handleDownload={handleDownload}
+                            generateQRCodeData={generateQRCodeData}
+                            frame={frame}
+                            shape={shape}
+                            frameColor={frameColor}
+                            qrType={qrType}
+                            generatedUrl={generatedUrl}
+                            setGeneratedUrl={setGeneratedUrl}
+                            setGenerateQRCode={setGenerateQRCode}
+                            qrData={qrData}
+                        />
+                    ) : (
+                        <PhonePreview 
+                            show={true}
+                            qrType={qrType}
+                            qrData={qrData}
+                            backgroundType={backgroundType}
+                        />
+                    )}
+                </PreviewToggleContainer>
+            </RightColumn>
         </Container>
     );
 }
 
 // Update styled components
 const Container = styled.div`
+    padding: 20px;
     display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: 100vh;
-    overflow: hidden;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-`;
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
 
-const ContentWrapper = styled.div`
-    display: flex;
-    flex: 1;
-    overflow: hidden;
+     
+    // Add subtle gradient shadows to indicate scrollability
+    &::before,
+    &::after {
+        content: '';
+        position: fixed;
+        left: 0;
+        right: 0;
+        height: 40px;
+        pointer-events: none;
+        z-index: 10;
+    }
+
+    // Top shadow (appears when scrolled down)
+    &::before {
+        top: 0;
+        background: linear-gradient(to bottom, 
+            rgba(255, 255, 255, 0.95) 0%, 
+            rgba(255, 255, 255, 0) 100%
+        );
+    }
+
+    // Bottom shadow (appears when can scroll further)
+    &::after {
+        bottom: 0;
+        background: linear-gradient(to top, 
+            rgba(255, 255, 255, 0.95) 0%, 
+            rgba(255, 255, 255, 0) 100%
+        );
+    }
 `;
 
 const LeftColumn = styled.div`
-    flex: 2;
-    padding: 2rem;
+    flex: 1;
     display: flex;
     flex-direction: column;
-    height: 100%;
-    overflow-y: auto;
-    background-color: #f8f9fa;
-
-    /* Hide scrollbar but keep functionality */
-    scrollbar-width: thin;
-    &::-webkit-scrollbar {
-        width: 6px;
-    }
-    &::-webkit-scrollbar-thumb {
-        background-color: rgba(0, 0, 0, 0.2);
-        border-radius: 3px;
-    }
+    gap: 20px;
 `;
 
 const RightColumn = styled.div`
-    flex: 1;
-    padding: 2rem;
-    position: relative;
-    height: 100%;
-    overflow-y: auto;
-    background-color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    .preview-container {
-        position: sticky;
-        top: 50%;
-        transform: translateY(-50%);
-    }
+    width: 375px;
+    position: sticky;
+    top: 20px;
+    height: fit-content;
 `;
 
-const Title = styled.h2`
-    font-size: 1.25rem;
-    font-weight: bold;
-    margin-bottom: 1rem;
-    color: #1b294b;
-
-    @media (min-width: 768px) {
-        font-size: 1.5rem;
-        margin-bottom: 1.5rem;
-    }
-`;
-
-
-const BackButton = styled.button`
-    background: none;
-    border: none;
-    color: #007bff;
-    cursor: pointer;
-    margin-bottom: 10px;
-
-    &:hover {
-        text-decoration: underline;
-    }
-`;
-
-const FullPageSelection = styled.div`
-    display: flex;
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
-`;
-
-const SelectionButton = styled.button`
-    flex: 1;
-    border: none;
-    outline: none;
-    cursor: pointer;
-    font-size: 2rem;
-    background-color: #f8f9fa;
-    position: relative;
-    overflow: hidden;
-    transition: background-color 0.3s, color 0.3s;
-
-    &:hover {
-        background-color: #ff6320;
-        color: white;
-    }
-
-    &::before {
-        content: "";
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background-size: 40px 40px;
-        background-image: linear-gradient(135deg, transparent 75%, rgba(0, 0, 0, 0.05) 75%),
-                          linear-gradient(225deg, transparent 75%, rgba(0, 0, 0, 0.05) 75%),
-                          linear-gradient(45deg, transparent 75%, rgba(0, 0, 0, 0.05) 75%),
-                          linear-gradient(315deg, transparent 75%, rgba(0, 0, 0, 0.05) 75%);
-        background-position: 0 0, 0 0, 20px 20px, 20px 20px;
-        background-repeat: repeat;
-        opacity: 0;
-        transition: opacity 0.3s;
-    }
-
-    &:hover::before {
-        opacity: 1;
-    }
-
-    &:first-child {
-        border-right: 1px solid #dee2e6;
-    }
-`;
-
-const NextButton = styled.button`
-    background: #ff6320;
-    color: white;
-    border: none;
-    padding: 12px 24px;
+const TypeGrid = styled.div`
+    display: grid;
+    grid-template-columns: column;
+    gap: 8px;
+    padding: 16px;
+    background: white;
     border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-top: 20px;
-
-    &:hover {
-        background: #e55a1d;
-        transform: translateY(-1px);
-    }
-
-    &:active {
-        transform: translateY(1px);
-    }
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 `;

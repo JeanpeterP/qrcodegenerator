@@ -1,4 +1,5 @@
 export interface QRData {
+    data?: string;
     url: string;
     email: { address: string; subject: string; message: string };
     vcard: { name: string; phone: string; company: string; address: string };
@@ -51,3 +52,7 @@ export interface QRData {
         configData: string;
     };
 } 
+
+export type QRType = 'url' | 'email' | 'vcard' | 'wifi' | 'text' | 'whatsapp' | 'sms' | 
+    'twitter' | 'facebook' | 'pdf' | 'mp3' | 'app' | 'image' | 'multiplink' | 
+    'youtube' | 'file' | 'ar' | 'crypto' | 'dynamicVcard' | 'iotConfig' | 'video';

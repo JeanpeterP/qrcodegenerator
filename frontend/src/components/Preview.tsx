@@ -3,10 +3,11 @@ import styled from 'styled-components';
 import QRCodeStyling, { DotType } from "qr-code-styling";
 import { DownloadSimple } from "@phosphor-icons/react";
 import  generateQRCodeData  from "./QRCodeGenerator";
+import { QRData } from "../types/qr";
 
 interface PreviewProps {
     qrCodeInstance: QRCodeStyling | null;
-    handleDownload: (format: "png" | "svg") => Promise<void>;
+    handleDownload: (format: "png" | "svg") => void;
     generateQRCodeData: () => Promise<string>;
     frame: string;
     shape: DotType;
@@ -14,10 +15,11 @@ interface PreviewProps {
     qrType: string;
     generatedUrl: string | null;
     setGeneratedUrl: (url: string | null) => void;
-    setGenerateQRCode: (loading: boolean) => void;
+    setGenerateQRCode: (value: boolean) => void;
+    qrData: QRData;
 }
 
-export const Preview: React.FC<PreviewProps> = ({ qrCodeInstance, handleDownload, generateQRCodeData, frame, shape, frameColor, qrType, generatedUrl, setGeneratedUrl, setGenerateQRCode }) => {
+export const Preview: React.FC<PreviewProps> = ({ qrCodeInstance, handleDownload, generateQRCodeData, frame, shape, frameColor, qrType, generatedUrl, setGeneratedUrl, setGenerateQRCode, qrData }) => {
     const qrCodeRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
@@ -296,7 +298,7 @@ const QRCodePreview = styled.div<{ frame: string; shape: string; frameColor: str
     justify-content: center;
     align-items: center;
     position: relative;
-    margin-top: ${(props) => props.frame === "chat" ? "80px" : "8px"};
+    margin-top: ${(props) => props.frame === "chat" ? "80px" : "20px"};
 
     ${(props) =>
         props.frame === "simple" &&

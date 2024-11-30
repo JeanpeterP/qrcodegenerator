@@ -15,8 +15,54 @@ code {
 html, body, #root {
     margin: 0;
     padding: 0;
-    overflow: hidden;
     height: 100%;
-    position: fixed;
-    width: 100%;
+    overflow: hidden;
+}
+
+#root {
+    height: 100%;
+    overflow: auto;
+    
+    /* Modern Scrollbar Styling */
+    &::-webkit-scrollbar {
+        width: 8px;  /* width of the entire scrollbar */
+    }
+
+    &::-webkit-scrollbar-track {
+        background: #f1f1f1;  /* color of the tracking area */
+        border-radius: 10px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: #ff6320;  /* your theme's primary color */
+        border-radius: 10px;
+        transition: background 0.3s ease;
+
+        /* Add subtle gradient */
+        background: linear-gradient(
+            45deg,
+            #ff6320,
+            #ff7a40
+        );
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+        background: #e0551c;  /* darker shade on hover */
+        
+        /* Hover gradient */
+        background: linear-gradient(
+            45deg,
+            #e0551c,
+            #ff6320
+        );
+    }
+
+    /* For Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: #ff6320 #f1f1f1;
+}
+
+/* Optional: Add smooth scrolling to the entire page */
+* {
+    scroll-behavior: smooth;
 }

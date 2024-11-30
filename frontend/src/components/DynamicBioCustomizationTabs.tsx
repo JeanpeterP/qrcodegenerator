@@ -1,5 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
+import { QRData } from '../types/qr';
+import { HandleInputChangeFunction } from './QRCodeGenerator';
+
+// Add necessary imports
+import { Input, ColorPicker, ColorPickerLabel } from './common/FormElements';
 
 // Import customization components based on Dynamic Bio types
 import { FileCustomization } from './dynamicBioCustomization/FileCustomization';
@@ -10,8 +15,9 @@ import { BackgroundCustomization } from './dynamicBioCustomization/BackgroundCus
 import { ChevronDown } from 'lucide-react';
 
 interface DynamicBioCustomizationTabsProps {
-    activeTab: string;
-    setActiveTab: (tab: string) => void;
+    qrType: string;
+    qrData: QRData;
+    handleInputChange: HandleInputChangeFunction;
     // Add props specific to Dynamic Bio customization
     // For example, for file customization:
     title: string;
@@ -28,8 +34,9 @@ interface DynamicBioCustomizationTabsProps {
 }
 
 export const DynamicBioCustomizationTabs: React.FC<DynamicBioCustomizationTabsProps> = ({
-    activeTab,
-    setActiveTab,
+    qrType,
+    qrData,
+    handleInputChange,
     title,
     setTitle,
     description,
@@ -42,9 +49,12 @@ export const DynamicBioCustomizationTabs: React.FC<DynamicBioCustomizationTabsPr
     backgroundType,
     setBackgroundType,
 }) => {
+    const [activeTab, setActiveTab] = useState<string>('content');
+
     return (
-        <CustomizerSection>
-            <TabsContainer>
+        <TabsContainer>
+            <SectionTitle>Dynamic Bio Styling</SectionTitle>
+            <TabList>
                 <TabButton
                     active={activeTab === 'content'}
                     onClick={() => setActiveTab('content')}
@@ -63,71 +73,84 @@ export const DynamicBioCustomizationTabs: React.FC<DynamicBioCustomizationTabsPr
                 >
                     Background <ChevronDown size={16} />
                 </TabButton>
-            </TabsContainer>
+            </TabList>
 
-            {activeTab === 'content' && dynamicBioType === 'file' && (
-                <FileCustomization
-                    title={title}
-                    setTitle={setTitle}
-                    description={description}
-                    setDescription={setDescription}
-                    buttonText={buttonText}
-                    setButtonText={setButtonText}
-                    buttonColor={buttonColor}
-                    setButtonColor={setButtonColor}
-                />
-            )}
+            <TabContent>
+                {activeTab === 'content' && dynamicBioType === 'file' && (
+                    <FileCustomization
+                        title={title}
+                        setTitle={setTitle}
+                        description={description}
+                        setDescription={setDescription}
+                        buttonText={buttonText}
+                        setButtonText={setButtonText}
+                        buttonColor={buttonColor}
+                        setButtonColor={setButtonColor}
+                    />
+                )}
 
-            {activeTab === 'appearance' && dynamicBioType === 'file' && (
-                <FileAppearanceCustomization />
-            )}
+                {activeTab === 'appearance' && dynamicBioType === 'file' && (
+                    <FileAppearanceCustomization />
+                )}
 
-            {activeTab === 'background' && (
-                <BackgroundCustomization
-                    backgroundType={backgroundType}
-                    setBackgroundType={setBackgroundType}
-                />
-            )}
-        </CustomizerSection>
+                {activeTab === 'background' && (
+                    <BackgroundCustomization
+                        backgroundType={backgroundType}
+                        setBackgroundType={setBackgroundType}
+                    />
+                )}
+            </TabContent>
+        </TabsContainer>
     );
 };
 
-// Styled Components
-const CustomizerSection = styled.div`
-    margin-top: 1rem;
-    max-width: 529px;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+// Styled Components (matching CustomizationTabs exactly)
+const TabsContainer = styled.div`
+    width: 100%;
+    margin-top: 20px;
 `;
 
-const TabsContainer = styled.div`
+const SectionTitle = styled.h2`
+    font-size: 1.25rem;
+    color: #1b294b;
+    margin-bottom: 16px;
+`;
+
+const TabList = styled.div`
     display: flex;
-    flex-wrap: wrap;
-    margin-bottom: 1rem;
-    gap: 0.5rem;
+    margin-bottom: 20px;
 `;
 
 const TabButton = styled.button<{ active: boolean }>`
-    background: ${(props) => (props.active ? '#ff6320' : '#f8f9fa')};
-    border: none;
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: ${(props) => (props.active ? 'white' : '#616568')};
+    flex: 1;
+    padding: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    background-color: ${props => (props.active ? '#ff6320' : '#f9f9f9')};
+    color: ${props => (props.active ? '#fff' : '#333')};
+    border: 2px solid ${props => (props.active ? '#ff6320' : '#ccc')};
+    border-radius: 10px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    border-radius: 4px;
-    margin-right: 0.5rem;
+    transition: background-color 0.3s;
 
     &:hover {
-        background-color: #ff6320;
-        color: white;
+        background-color: ${props => (props.active ? '#e0551c' : '#e9e9e9')};
+    }
+
+    & + & {
+        margin-left: 10px;
     }
 
     svg {
         margin-left: 0.5rem;
-        transform: ${(props) => (props.active ? 'rotate(180deg)' : 'rotate(0)')};
+        transform: ${props => (props.active ? 'rotate(180deg)' : 'rotate(0)')};
         transition: transform 0.3s ease;
     }
+`;
+
+const TabContent = styled.div`
+    padding: 16px;
+    background-color: #fff;
+    border: 2px solid #ccc;
+    border-radius: 10px;
 `;

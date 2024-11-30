@@ -25,6 +25,9 @@ import { CustomizationTabs } from './CustomizationTabs';
 import { CornerSquareType } from 'qr-code-styling';
 import { DynamicBioCustomizationTabs } from './DynamicBioCustomizationTabs';
 import { FileUploadSection } from './FileUploadSection';
+import { InfoTooltip } from './common/InfoTooltip';
+import { ToggleSwitch } from './common/ToggleSwitch';
+import { Input } from './common/FormElements';
 
 // Update the LogoType definition
 type LogoType = {
@@ -123,6 +126,74 @@ interface CustomizationTabsProps {
     setCustomLogo: Dispatch<SetStateAction<string | null>>;
 }
 
+// Add this function before your component definition
+const formatAndHandleUrl = (
+    e: React.ChangeEvent<HTMLInputElement>, 
+    index: number,
+    handleInputChange: HandleInputChangeFunction
+) => {
+    let url = e.target.value;
+    
+    // If URL doesn't start with http:// or https://, add https://
+    if (url && !url.match(/^https?:\/\//i)) {
+        url = `https://${url}`;
+    }
+
+    // Create a synthetic event with the formatted URL
+    const syntheticEvent = {
+        target: {
+            name: e.target.name,
+            value: url
+        }
+    } as React.ChangeEvent<HTMLInputElement>;
+
+    // Call the original handleInputChange with the formatted URL
+    handleInputChange(syntheticEvent, 'contentData', index, 'url');
+};
+
+// Add this function before your component definition
+const extractYouTubeVideoId = (url: string): string => {
+    // Handle different YouTube URL formats
+    const patterns = [
+        /(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([^&]+)/i,    // Standard URL
+        /(?:https?:\/\/)?(?:www\.)?youtube\.com\/embed\/([^/?]+)/i,     // Embed URL
+        /(?:https?:\/\/)?(?:www\.)?youtu\.be\/([^/?]+)/i,              // Short URL
+        /^([a-zA-Z0-9_-]{11})$/                                         // Direct video ID
+    ];
+
+    for (const pattern of patterns) {
+        const match = url.match(pattern);
+        if (match && match[1]) {
+            return match[1];
+        }
+    }
+
+    return url; // Return original input if no valid YouTube URL pattern is found
+};
+
+// Add styled components for FieldContainer and Label
+const FieldContainer = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+`;
+
+const Label = styled.label`
+    display: flex;
+    align-items: center;
+    font-size: 18px; /* Adjust font size as needed */
+    font-weight: bold;
+    font-family: 'Aspekta 550', Arial, sans-serif;
+`;
+
+const SectionTitle = styled.h2`
+  font-size: 1.25rem;
+  color: #1b294b;
+  margin-bottom: 16px;
+`;
+
+
 export const QRCodeForm: React.FC<QRCodeFormProps> = ({
     qrType,
     qrData,
@@ -131,749 +202,501 @@ export const QRCodeForm: React.FC<QRCodeFormProps> = ({
     handleAddLink,
     userChoice,
 }) => {
-    const [activeDropdown, setActiveDropdown] = useState<string | null>('qrData');
-    const [activeTab, setActiveTab] = useState('frame');
-    const [frame, setFrame] = useState('default');
-    const [frameColor, setFrameColor] = useState('#000000');
-    const [shape, setShape] = useState<DotType>('square');
-    const [qrColor, setQRColor] = useState('#000000');
-    const [qrBackground, setQRBackground] = useState('#ffffff');
-    const [logo, setLogo] = useState<LogoType>(null);
-    const [logoSize, setLogoSize] = useState(150);
-    const [gradient, setGradient] = useState(false);
-    const [gradientColor1, setGradientColor1] = useState('#000000');
-    const [gradientColor2, setGradientColor2] = useState('#000000');
-    const [gradientType, setGradientType] = useState('linear');
-    const [gradientRotation, setGradientRotation] = useState(0);
-    const [cornerDots, setCornerDots] = useState('square');
-    const [cornerSquares, setCornerSquares] = useState('square');
-    const [currentFramePage, setCurrentFramePage] = useState(0);
-    const [currentShapePage, setCurrentShapePage] = useState(0);
-    const [customLogo, setCustomLogo] = useState<string | null>(null);
-    const [dynamicBioType, setDynamicBioType] = useState<string>('file'); // Default to 'file', adjust as needed
-
-    // State variables for customization
-    const [title, setTitle] = useState<string>('Download');
-    const [description, setDescription] = useState<string>('No description provided');
-    const [buttonText, setButtonText] = useState<string>('Download');
-    const [buttonColor, setButtonColor] = useState<string>('#ff6320');
-
-    const [backgroundType, setBackgroundType] = useState<string>('colorful');
-
-    // Function to toggle dropdowns, ensuring only one is open at a time
-    const toggleDropdown = (dropdownName: string) => {
-        setActiveDropdown(activeDropdown === dropdownName ? null : dropdownName);
-    };
-
-    // Function to extract YouTube video ID
-    const extractYouTubeVideoId = (url: string) => {
-        const regex = /[?&]v=([^&#]*)/;
-        const match = regex.exec(url);
-        return match && match[1] ? match[1] : '';
-    };
-
-    // Function to format and handle URL
-    const formatAndHandleUrl = (
-        e: React.ChangeEvent<HTMLInputElement>,
-        index: number
-    ) => {
-        const url = e.target.value;
-        const formattedUrl =
-            url.startsWith('http://') || url.startsWith('https://')
-                ? url
-                : `https://${url}`;
-        handleInputChange(
-            {
-                target: { name: e.target.name, value: formattedUrl },
-            } as React.ChangeEvent<HTMLInputElement>,
-            'contentData',
-            index,
-            'url'
-        );
-    };
-
-    const handleGenerateDynamicBio = async () => {
-        // Prepare data
-        const dynamicBioData = {
-            type: dynamicBioType,
-            customization: {
-                title,
-                description,
-                buttonText,
-                buttonColor,
-            },
-            // Include other necessary data
-        };
-
-        // Send data to backend or handle accordingly
-        // ...
-    };
-
-    // Remove 'qrData' from activeDropdown if userChoice is 'dynamicBio' and qrType is 'file'
-    const shouldShowQRDataDropdown =
-        !(userChoice === 'dynamicBio' && qrType === 'file');
+    const [useUpperCase, setUseUpperCase] = useState(false);
 
     return (
         <FormContainer>
-            {/* Only render the DropdownContainer if shouldShowQRDataDropdown is true */}
-            {shouldShowQRDataDropdown && (
-                <DropdownContainer>
-                    <DropdownHeader onClick={() => toggleDropdown('qrData')}>
-                        Enter QR Code Data
-                        {activeDropdown === 'qrData' ? <UpArrowIcon /> : <DownArrowIcon />}
-                    </DropdownHeader>
-                    {activeDropdown === 'qrData' && (
-                        <DropdownContent>
-                            {(() => {
-                                switch (qrType) {
-                                    case 'url':
-                                        return (
-                                            <Input
-                                                type="text"
-                                                name="url"
-                                                value={qrData.url}
-                                                onChange={handleInputChange}
-                                                placeholder={placeholder}
-                                            />
-                                        );
-                                    case 'email':
-                                        return (
-                                            <>
-                                                <Input
-                                                    type="email"
-                                                    name="address"
-                                                    value={qrData.email.address}
-                                                    onChange={(e) => handleInputChange(e, 'email')}
-                                                    placeholder="Email Address"
-                                                />
-                                                <Input
-                                                    type="text"
-                                                    name="subject"
-                                                    value={qrData.email.subject}
-                                                    onChange={(e) => handleInputChange(e, 'email')}
-                                                    placeholder="Subject"
-                                                />
-                                                <TextArea
-                                                    name="message"
-                                                    value={qrData.email.message}
-                                                    onChange={(e) => handleInputChange(e, 'email')}
-                                                    placeholder="Message"
-                                                    rows={4}
-                                                />
-                                            </>
-                                        );
-                                    case 'vcard':
-                                        return (
-                                            <>
-                                                <Input
-                                                    type="text"
-                                                    name="name"
-                                                    value={qrData.vcard.name}
-                                                    onChange={(e) => handleInputChange(e, 'vcard')}
-                                                    placeholder="Full Name"
-                                                />
-                                                <Input
-                                                    type="text"
-                                                    name="phone"
-                                                    value={qrData.vcard.phone}
-                                                    onChange={(e) => handleInputChange(e, 'vcard')}
-                                                    placeholder="Phone Number"
-                                                />
-                                                <Input
-                                                    type="text"
-                                                    name="company"
-                                                    value={qrData.vcard.company}
-                                                    onChange={(e) => handleInputChange(e, 'vcard')}
-                                                    placeholder="Company"
-                                                />
-                                                <TextArea
-                                                    name="address"
-                                                    value={qrData.vcard.address}
-                                                    onChange={(e) => handleInputChange(e, 'vcard')}
-                                                    placeholder="Address"
-                                                    rows={3}
-                                                />
-                                            </>
-                                        );
-                                    case 'wifi':
-                                        return (
-                                            <>
-                                                <Input
-                                                    type="text"
-                                                    name="ssid"
-                                                    value={qrData.wifi.ssid}
-                                                    onChange={(e) => handleInputChange(e, 'wifi')}
-                                                    placeholder="WiFi SSID"
-                                                />
-                                                <Input
-                                                    type="password"
-                                                    name="password"
-                                                    value={qrData.wifi.password}
-                                                    onChange={(e) => handleInputChange(e, 'wifi')}
-                                                    placeholder="WiFi Password"
-                                                />
-                                                <Select
-                                                    name="security"
-                                                    value={qrData.wifi.security}
-                                                    onChange={(e) => handleInputChange(e, 'wifi')}
-                                                >
-                                                    <option value="WEP">WEP</option>
-                                                    <option value="WPA">WPA/WPA2</option>
-                                                    <option value="nopass">No Pass</option>
-                                                </Select>
-                                            </>
-                                        );
-                                    case 'text':
-                                        return (
-                                            <TextArea
-                                                name="text"
-                                                value={qrData.text}
-                                                onChange={handleInputChange}
-                                                placeholder="Enter Text"
-                                                rows={6}
-                                            />
-                                        );
-                                    case 'whatsapp':
-                                        return (
-                                            <>
-                                                <Input
-                                                    type="text"
-                                                    name="number"
-                                                    value={qrData.whatsapp.number}
-                                                    onChange={(e) => handleInputChange(e, 'whatsapp')}
-                                                    placeholder="WhatsApp Number (with country code)"
-                                                />
-                                                <TextArea
-                                                    name="message"
-                                                    value={qrData.whatsapp.message}
-                                                    onChange={(e) => handleInputChange(e, 'whatsapp')}
-                                                    placeholder="Message"
-                                                    rows={4}
-                                                />
-                                            </>
-                                        );
-                                    case 'sms':
-                                        return (
-                                            <>
-                                                <Input
-                                                    type="text"
-                                                    name="number"
-                                                    value={qrData.sms.number}
-                                                    onChange={(e) => handleInputChange(e, 'sms')}
-                                                    placeholder="Phone Number"
-                                                />
-                                                <TextArea
-                                                    name="message"
-                                                    value={qrData.sms.message}
-                                                    onChange={(e) => handleInputChange(e, 'sms')}
-                                                    placeholder="Message"
-                                                    rows={4}
-                                                />
-                                            </>
-                                        );
-                                    case 'twitter':
-                                        return (
-                                            <>
-                                                <Input
-                                                    type="text"
-                                                    name="username"
-                                                    value={qrData.twitter.username}
-                                                    onChange={(e) => handleInputChange(e, 'twitter')}
-                                                    placeholder="Twitter Username"
-                                                />
-                                                <TextArea
-                                                    name="tweet"
-                                                    value={qrData.twitter.tweet}
-                                                    onChange={(e) => handleInputChange(e, 'twitter')}
-                                                    placeholder="Tweet Text"
-                                                    rows={4}
-                                                />
-                                            </>
-                                        );
-                                    case 'facebook':
-                                        return (
-                                            <Input
-                                                type="text"
-                                                name="url"
-                                                value={qrData.facebook.url}
-                                                onChange={(e) => handleInputChange(e, 'facebook')}
-                                                placeholder="Facebook URL"
-                                            />
-                                        );
-                                    case 'pdf':
-                                        return (
-                                            <Input
-                                                type="text"
-                                                name="url"
-                                                value={qrData.pdf.url}
-                                                onChange={(e) => handleInputChange(e, 'pdf')}
-                                                placeholder="PDF URL"
-                                            />
-                                        );
-                                    case 'mp3':
-                                        return (
-                                            <Input
-                                                type="text"
-                                                name="url"
-                                                value={qrData.mp3.url}
-                                                onChange={(e) => handleInputChange(e, 'mp3')}
-                                                placeholder="MP3 URL"
-                                            />
-                                        );
-                                    case 'app':
-                                        return (
-                                            <Input
-                                                type="text"
-                                                name="url"
-                                                value={qrData.app.url}
-                                                onChange={(e) => handleInputChange(e, 'app')}
-                                                placeholder="App Store URL"
-                                            />
-                                        );
-                                    case 'image':
-                                        return (
-                                            <Input
-                                                type="text"
-                                                name="url"
-                                                value={qrData.image.url}
-                                                onChange={(e) => handleInputChange(e, 'image')}
-                                                placeholder="Image URL"
-                                            />
-                                        );
-                                    case 'file':
-                                        return (
-                                            <FormGroup>
-                                                <FileUploadLabel>Upload File</FileUploadLabel>
-                                                <FileInput
-                                                    type="file"
-                                                    onChange={(e) => {
-                                                        const file = e.target.files?.[0];
-                                                        if (file) {
-                                                            handleInputChange({
-                                                                target: {
-                                                                    value: file,
-                                                                    name: 'fileData'
-                                                                }
-                                                            } as any, 'file');
-                                                        }
-                                                    }}
-                                                />
-                                                <Input
-                                                    type="text"
-                                                    placeholder="Title"
-                                                    value={qrData.file.title}
-                                                    onChange={(e) => handleInputChange(e, 'file')}
-                                                    name="title"
-                                                    required
-                                                />
-                                                <TextArea
-                                                    placeholder="Description"
-                                                    value={qrData.file.description}
-                                                    onChange={(e) => handleInputChange(e, 'file')}
-                                                    name="description"
-                                                />
-                                                <Input
-                                                    type="text"
-                                                    placeholder="Button Text"
-                                                    value={qrData.file.buttonText}
-                                                    onChange={(e) => handleInputChange(e, 'file')}
-                                                    name="buttonText"
-                                                />
-                                                <ColorPickerLabel>
-                                                    Button Color:
-                                                    <ColorPicker
-                                                        type="color"
-                                                        value={qrData.file.buttonColor}
-                                                        onChange={(e) => handleInputChange(e, 'file')}
-                                                        name="buttonColor"
-                                                    />
-                                                </ColorPickerLabel>
-                                            </FormGroup>
-                                        );
-                                    case 'multiplink':
-                                        return (
-                                            <>
-                                                <Input
-                                                    type="text"
-                                                    name="title"
-                                                    value={qrData.contentData.title || ''}
-                                                    onChange={(e) => handleInputChange(e, 'contentData')}
-                                                    placeholder="Multiplink Title"
-                                                />
-                                                {/* First Link - Required */}
-                                                <LinkContainer>
-                                                    <RequiredLabel>Required</RequiredLabel>
-                                                    <Input
-                                                        type="text"
-                                                        name="linkLabel0"
-                                                        value={qrData.contentData.links[0]?.label || ''}
-                                                        onChange={(e) => handleInputChange(e, 'contentData', 0, 'label')}
-                                                        placeholder="Link 1 Label"
-                                                        required
-                                                    />
-                                                    <Input
-                                                        type="url"
-                                                        name="linkUrl0"
-                                                        value={qrData.contentData.links[0]?.url || ''}
-                                                        onChange={(e) => formatAndHandleUrl(e, 0)}
-                                                        placeholder="Link 1 URL"
-                                                        required
-                                                    />
-                                                </LinkContainer>
-                                                {/* Second Link - Optional */}
-                                                <LinkContainer>
-                                                    <Input
-                                                        type="text"
-                                                        name="linkLabel1"
-                                                        value={qrData.contentData.links[1]?.label || ''}
-                                                        onChange={(e) => handleInputChange(e, 'contentData', 1, 'label')}
-                                                        placeholder="Link 2 Label (Optional)"
-                                                    />
-                                                    <Input
-                                                        type="url"
-                                                        name="linkUrl1"
-                                                        value={qrData.contentData.links[1]?.url || ''}
-                                                        onChange={(e) => formatAndHandleUrl(e, 1)}
-                                                        placeholder="Link 2 URL (Optional)"
-                                                    />
-                                                </LinkContainer>
-                                                {/* Third Link - Optional */}
-                                                <LinkContainer>
-                                                    <Input
-                                                        type="text"
-                                                        name="linkLabel2"
-                                                        value={qrData.contentData.links[2]?.label || ''}
-                                                        onChange={(e) => handleInputChange(e, 'contentData', 2, 'label')}
-                                                        placeholder="Link 3 Label (Optional)"
-                                                    />
-                                                    <Input
-                                                        type="url"
-                                                        name="linkUrl2"
-                                                        value={qrData.contentData.links[2]?.url || ''}
-                                                        onChange={(e) => formatAndHandleUrl(e, 2)}
-                                                        placeholder="Link 3 URL (Optional)"
-                                                    />
-                                                </LinkContainer>
-                                                {/* Additional Links */}
-                                                {qrData.contentData.links.slice(3).map((link, index) => (
-                                                    <LinkContainer key={index + 3}>
-                                                        <Input
-                                                            type="text"
-                                                            name={`linkLabel${index + 3}`}
-                                                            value={link.label}
-                                                            onChange={(e) => handleInputChange(e, 'contentData', index + 3, 'label')}
-                                                            placeholder={`Link ${index + 4} Label`}
-                                                        />
-                                                        <Input
-                                                            type="url"
-                                                            name={`linkUrl${index + 3}`}
-                                                            value={link.url}
-                                                            onChange={(e) => formatAndHandleUrl(e, index + 3)}
-                                                            placeholder={`Link ${index + 4} URL`}
-                                                        />
-                                                    </LinkContainer>
-                                                ))}
-                                                {qrData.contentData.links.length < 10 && (
-                                                    <AddLinkButton onClick={handleAddLink}>
-                                                        Add Another Link
-                                                    </AddLinkButton>
-                                                )}
-                                            </>
-                                        );
-                                    case 'youtube':
-                                        return (
-                                            <FormContainer>
-                                                <Input
-                                                    type="text"
-                                                    name="url"
-                                                    value={qrData.youtube.url}
-                                                    onChange={(e) => {
-                                                        const videoId = extractYouTubeVideoId(e.target.value);
-                                                        handleInputChange({
-                                                            target: { name: 'url', value: videoId }
-                                                        } as React.ChangeEvent<HTMLInputElement>, "youtube");
-                                                    }}
-                                                    placeholder="Enter full YouTube URL (e.g., https://www.youtube.com/watch?v=...)"
-                                                />
-                                            </FormContainer>
-                                        );
-                                    case 'ar':
-                                        return (
-                                            <Input
-                                                type="text"
-                                                name="arUrl"
-                                                value={qrData.ar?.arUrl || ''}
-                                                onChange={(e) => handleInputChange(e, 'ar')}
-                                                placeholder="Enter AR content URL"
-                                            />
-                                        );
-                                    case 'crypto':
-                                        return (
-                                            <>
-                                                <Select
-                                                    name="currency"
-                                                    value={qrData.crypto?.currency || 'bitcoin'}
-                                                    onChange={(e) => handleInputChange(e, 'crypto')}
-                                                >
-                                                    <option value="bitcoin">Bitcoin</option>
-                                                    <option value="ethereum">Ethereum</option>
-                                                    {/* Add more currencies as needed */}
-                                                </Select>
-                                                <Input
-                                                    type="text"
-                                                    name="address"
-                                                    value={qrData.crypto?.address || ''}
-                                                    onChange={(e) => handleInputChange(e, 'crypto')}
-                                                    placeholder="Enter Wallet Address"
-                                                />
-                                                <Input
-                                                    type="number"
-                                                    name="amount"
-                                                    value={qrData.crypto?.amount || ''}
-                                                    onChange={(e) => handleInputChange(e, 'crypto')}
-                                                    placeholder="Enter Amount (optional)"
-                                                />
-                                            </>
-                                        );
-                                    case 'dynamicVcard':
-                                        return (
-                                            <>
-                                                <Input
-                                                    type="text"
-                                                    name="name"
-                                                    value={qrData.dynamicVcard?.name || ''}
-                                                    onChange={(e) => handleInputChange(e, 'dynamicVcard')}
-                                                    placeholder="Full Name"
-                                                />
-                                                <Input
-                                                    type="text"
-                                                    name="phone"
-                                                    value={qrData.dynamicVcard?.phone || ''}
-                                                    onChange={(e) => handleInputChange(e, 'dynamicVcard')}
-                                                    placeholder="Phone Number"
-                                                />
-                                                <Input
-                                                    type="email"
-                                                    name="email"
-                                                    value={qrData.dynamicVcard?.email || ''}
-                                                    onChange={(e) => handleInputChange(e, 'dynamicVcard')}
-                                                    placeholder="Email"
-                                                />
-                                                {/* Add other fields as needed */}
-                                            </>
-                                        );
-                                    case 'iotConfig':
-                                        return (
-                                            <>
-                                                <Input
-                                                    type="text"
-                                                    name="deviceId"
-                                                    value={qrData.iotConfig?.deviceId || ''}
-                                                    onChange={(e) => handleInputChange(e, 'iotConfig')}
-                                                    placeholder="Device ID"
-                                                />
-                                                <TextArea
-                                                    name="configData"
-                                                    value={qrData.iotConfig?.configData || ''}
-                                                    onChange={(e) => handleInputChange(e, 'iotConfig')}
-                                                    placeholder="Configuration JSON"
-                                                />
-                                            </>
-                                        );
-                                    default:
-                                        return null;
-                                }
-                            })()}
-                        </DropdownContent>
-                    )}
-                </DropdownContainer>
-            )}
-
-            {/* In Dynamic Bio with QR type 'file', render FileUploadSection directly */}
-            {userChoice === 'dynamicBio' && qrType === 'file' && (
-                <>
-                    {/* File Upload Section */}
-                    <FileUploadSection
-                        qrData={qrData}
-                        handleInputChange={handleInputChange}
-                    />
-
-                    {/* Customization Options */}
-                    <DynamicBioCustomizationTabs
-                        activeTab={activeTab}
-                        setActiveTab={setActiveTab}
-                        title={title}
-                        setTitle={setTitle}
-                        description={description}
-                        setDescription={setDescription}
-                        buttonText={buttonText}
-                        setButtonText={setButtonText}
-                        buttonColor={buttonColor}
-                        setButtonColor={setButtonColor}
-                        dynamicBioType={dynamicBioType}
-                        backgroundType={backgroundType}
-                        setBackgroundType={setBackgroundType}
-                    />
-                </>
-            )}
-
-            {/* Remove Design Options dropdown when in Dynamic Bio and QR type is 'file' */}
-            {!(userChoice === 'dynamicBio' && qrType === 'file') && (
-                <DropdownContainer>
-                    <DropdownHeader
-                        onClick={() => toggleDropdown('designOptions')}
-                    >
-                        Design Options
-                        {activeDropdown === 'designOptions' ? <UpArrowIcon /> : <DownArrowIcon />}
-                    </DropdownHeader>
-                    {activeDropdown === 'designOptions' && (
-                        <DropdownContent>
-                            {userChoice === 'qr' && (
-                                <CustomizationTabs
-                                    activeTab={activeTab}
-                                    setActiveTab={setActiveTab}
-                                    frame={frame}
-                                    setFrame={setFrame}
-                                    frameColor={frameColor}
-                                    setFrameColor={setFrameColor}
-                                    shape={shape}
-                                    setShape={setShape}
-                                    qrColor={qrColor}
-                                    setQRColor={setQRColor}
-                                    qrBackground={qrBackground}
-                                    setQRBackground={setQRBackground}
-                                    logo={logo}
-                                    setLogo={setLogo}
-                                    logoSize={logoSize}
-                                    setLogoSize={setLogoSize}
-                                    gradient={gradient}
-                                    setGradient={setGradient}
-                                    gradientColor1={gradientColor1}
-                                    setGradientColor1={setGradientColor1}
-                                    gradientColor2={gradientColor2}
-                                    setGradientColor2={setGradientColor2}
-                                    gradientType={gradientType}
-                                    setGradientType={setGradientType}
-                                    gradientRotation={gradientRotation}
-                                    setGradientRotation={setGradientRotation}
-                                    cornerDots={cornerDots}
-                                    setCornerDots={setCornerDots}
-                                    cornerSquares={cornerSquares}
-                                    setCornerSquares={setCornerSquares}
-                                    markerStyle={cornerSquares as CornerSquareType}
-                                    setMarkerStyle={setCornerSquares}
-                                    markerColor={cornerDots}
-                                    setMarkerColor={setCornerDots}
-                                    currentFramePage={currentFramePage}
-                                    setCurrentFramePage={setCurrentFramePage}
-                                    currentShapePage={currentShapePage}
-                                    setCurrentShapePage={setCurrentShapePage}
-                                    customLogo={customLogo}
-                                    setCustomLogo={setCustomLogo}
+            <SectionTitle>Configure QR Data</SectionTitle>
+            {/* <FieldContainer>
+                <Label>
+                    Include Uppercase Letters
+                    <InfoTooltip explanation="Toggle to include uppercase letters in your code." />
+                </Label>
+                <ToggleSwitch
+                    checked={useUpperCase}
+                    onChange={setUseUpperCase}
+                />
+            </FieldContainer> */}
+            {(() => {
+                switch (qrType) {
+                    case 'url':
+                        return (
+                            <Input
+                                type="text"
+                                name="url"
+                                value={qrData.url}
+                                onChange={handleInputChange}
+                                placeholder={placeholder}
+                            />
+                        );
+                    case 'email':
+                        return (
+                            <>
+                                <Input
+                                    type="email"
+                                    name="address"
+                                    value={qrData.email.address}
+                                    onChange={(e) => handleInputChange(e, 'email')}
+                                    placeholder="Email Address"
                                 />
-                            )}
-                            {userChoice === 'dynamicBio' && (
-                                <DynamicBioCustomizationTabs
-                                    activeTab={activeTab}
-                                    setActiveTab={setActiveTab}
-                                    title={title}
-                                    setTitle={setTitle}
-                                    description={description}
-                                    setDescription={setDescription}
-                                    buttonText={buttonText}
-                                    setButtonText={setButtonText}
-                                    buttonColor={buttonColor}
-                                    setButtonColor={setButtonColor}
-                                    dynamicBioType={dynamicBioType}
-                                    backgroundType={backgroundType}
-                                    setBackgroundType={setBackgroundType}
+                                <Input
+                                    type="text"
+                                    name="subject"
+                                    value={qrData.email.subject}
+                                    onChange={(e) => handleInputChange(e, 'email')}
+                                    placeholder="Subject"
                                 />
-                            )}
-                        </DropdownContent>
-                    )}
-                </DropdownContainer>
-            )}
+                                <TextArea
+                                    name="message"
+                                    value={qrData.email.message}
+                                    onChange={(e) => handleInputChange(e, 'email')}
+                                    placeholder="Message"
+                                    rows={4}
+                                />
+                            </>
+                        );
+                    case 'vcard':
+                        return (
+                            <>
+                                <Input
+                                    type="text"
+                                    name="name"
+                                    value={qrData.vcard.name}
+                                    onChange={(e) => handleInputChange(e, 'vcard')}
+                                    placeholder="Full Name"
+                                />
+                                <Input
+                                    type="text"
+                                    name="phone"
+                                    value={qrData.vcard.phone}
+                                    onChange={(e) => handleInputChange(e, 'vcard')}
+                                    placeholder="Phone Number"
+                                />
+                                <Input
+                                    type="text"
+                                    name="company"
+                                    value={qrData.vcard.company}
+                                    onChange={(e) => handleInputChange(e, 'vcard')}
+                                    placeholder="Company"
+                                />
+                                <TextArea
+                                    name="address"
+                                    value={qrData.vcard.address}
+                                    onChange={(e) => handleInputChange(e, 'vcard')}
+                                    placeholder="Address"
+                                    rows={3}
+                                />
+                            </>
+                        );
+                    case 'wifi':
+                        return (
+                            <>
+                                <Input
+                                    type="text"
+                                    name="ssid"
+                                    value={qrData.wifi.ssid}
+                                    onChange={(e) => handleInputChange(e, 'wifi')}
+                                    placeholder="WiFi SSID"
+                                />
+                                <Input
+                                    type="password"
+                                    name="password"
+                                    value={qrData.wifi.password}
+                                    onChange={(e) => handleInputChange(e, 'wifi')}
+                                    placeholder="WiFi Password"
+                                />
+                                <Select
+                                    name="security"
+                                    value={qrData.wifi.security}
+                                    onChange={(e) => handleInputChange(e, 'wifi')}
+                                >
+                                    <option value="WEP">WEP</option>
+                                    <option value="WPA">WPA/WPA2</option>
+                                    <option value="nopass">No Pass</option>
+                                </Select>
+                            </>
+                        );
+                    case 'text':
+                        return (
+                            <TextArea
+                                name="text"
+                                value={qrData.text}
+                                onChange={handleInputChange}
+                                placeholder="Enter Text"
+                                rows={6}
+                            />
+                        );
+                    case 'whatsapp':
+                        return (
+                            <>
+                                <Input
+                                    type="text"
+                                    name="number"
+                                    value={qrData.whatsapp.number}
+                                    onChange={(e) => handleInputChange(e, 'whatsapp')}
+                                    placeholder="WhatsApp Number (with country code)"
+                                />
+                                <TextArea
+                                    name="message"
+                                    value={qrData.whatsapp.message}
+                                    onChange={(e) => handleInputChange(e, 'whatsapp')}
+                                    placeholder="Message"
+                                    rows={4}
+                                />
+                            </>
+                        );
+                    case 'sms':
+                        return (
+                            <>
+                                <Input
+                                    type="text"
+                                    name="number"
+                                    value={qrData.sms.number}
+                                    onChange={(e) => handleInputChange(e, 'sms')}
+                                    placeholder="Phone Number"
+                                />
+                                <TextArea
+                                    name="message"
+                                    value={qrData.sms.message}
+                                    onChange={(e) => handleInputChange(e, 'sms')}
+                                    placeholder="Message"
+                                    rows={4}
+                                />
+                            </>
+                        );
+                    case 'twitter':
+                        return (
+                            <>
+                                <Input
+                                    type="text"
+                                    name="username"
+                                    value={qrData.twitter.username}
+                                    onChange={(e) => handleInputChange(e, 'twitter')}
+                                    placeholder="Twitter Username"
+                                />
+                                <TextArea
+                                    name="tweet"
+                                    value={qrData.twitter.tweet}
+                                    onChange={(e) => handleInputChange(e, 'twitter')}
+                                    placeholder="Tweet Text"
+                                    rows={4}
+                                />
+                            </>
+                        );
+                    case 'facebook':
+                        return (
+                            <Input
+                                type="text"
+                                name="url"
+                                value={qrData.facebook.url}
+                                onChange={(e) => handleInputChange(e, 'facebook')}
+                                placeholder="Facebook URL"
+                            />
+                        );
+                    case 'pdf':
+                        return (
+                            <Input
+                                type="text"
+                                name="url"
+                                value={qrData.pdf.url}
+                                onChange={(e) => handleInputChange(e, 'pdf')}
+                                placeholder="PDF URL"
+                            />
+                        );
+                    case 'mp3':
+                        return (
+                            <Input
+                                type="text"
+                                name="url"
+                                value={qrData.mp3.url}
+                                onChange={(e) => handleInputChange(e, 'mp3')}
+                                placeholder="MP3 URL"
+                            />
+                        );
+                    case 'app':
+                        return (
+                            <Input
+                                type="text"
+                                name="url"
+                                value={qrData.app.url}
+                                onChange={(e) => handleInputChange(e, 'app')}
+                                placeholder="App Store URL"
+                            />
+                        );
+                    case 'image':
+                        return (
+                            <Input
+                                type="text"
+                                name="url"
+                                value={qrData.image.url}
+                                onChange={(e) => handleInputChange(e, 'image')}
+                                placeholder="Image URL"
+                            />
+                        );
+                    case 'file':
+                        return (
+                            <FormGroup>
+                                <FileUploadLabel>Upload File</FileUploadLabel>
+                                <FileInput
+                                    type="file"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                            handleInputChange({
+                                                target: {
+                                                    value: file,
+                                                    name: 'fileData'
+                                                }
+                                            } as any, 'file');
+                                        }
+                                    }}
+                                />
+                                <Input
+                                    type="text"
+                                    placeholder="Title"
+                                    value={qrData.file.title}
+                                    onChange={(e) => handleInputChange(e, 'file')}
+                                    name="title"
+                                    required
+                                />
+                                <TextArea
+                                    placeholder="Description"
+                                    value={qrData.file.description}
+                                    onChange={(e) => handleInputChange(e, 'file')}
+                                    name="description"
+                                />
+                            </FormGroup>
+                        );
+                    case 'multiplink':
+                        return (
+                            <>
+                                <Input
+                                    type="text"
+                                    name="title"
+                                    value={qrData.contentData.title || ''}
+                                    onChange={(e) => handleInputChange(e, 'contentData')}
+                                    placeholder="Multiplink Title"
+                                />
+                                {/* First Link - Required */}
+                                <LinkContainer>
+                                    <RequiredLabel>Required</RequiredLabel>
+                                    <Input
+                                        type="text"
+                                        name="linkLabel0"
+                                        value={qrData.contentData.links[0]?.label || ''}
+                                        onChange={(e) => handleInputChange(e, 'contentData', 0, 'label')}
+                                        placeholder="Link 1 Label"
+                                        required
+                                    />
+                                    <Input
+                                        type="url"
+                                        name="linkUrl0"
+                                        value={qrData.contentData.links[0]?.url || ''}
+                                        onChange={(e) => formatAndHandleUrl(e, 0, handleInputChange)}
+                                        placeholder="Link 1 URL"
+                                        required
+                                    />
+                                </LinkContainer>
+                                Second Link - Optional
+                                <LinkContainer>
+                                    <Input
+                                        type="text"
+                                        name="linkLabel1"
+                                        value={qrData.contentData.links[1]?.label || ''}
+                                        onChange={(e) => handleInputChange(e, 'contentData', 1, 'label')}
+                                        placeholder="Link 2 Label (Optional)"
+                                    />
+                                    <Input
+                                        type="url"
+                                        name="linkUrl1"
+                                        value={qrData.contentData.links[1]?.url || ''}
+                                        onChange={(e) => formatAndHandleUrl(e, 1, handleInputChange)}
+                                        placeholder="Link 2 URL (Optional)"
+                                    />
+                                </LinkContainer>
+                                {/* Third Link - Optional */}
+                                <LinkContainer>
+                                    <Input
+                                        type="text"
+                                        name="linkLabel2"
+                                        value={qrData.contentData.links[2]?.label || ''}
+                                        onChange={(e) => handleInputChange(e, 'contentData', 2, 'label')}
+                                        placeholder="Link 3 Label (Optional)"
+                                    />
+                                    <Input
+                                        type="url"
+                                        name="linkUrl2"
+                                        value={qrData.contentData.links[2]?.url || ''}
+                                        onChange={(e) => formatAndHandleUrl(e, 2, handleInputChange)}
+                                        placeholder="Link 3 URL (Optional)"
+                                    />
+                                </LinkContainer>
+                                {/* Additional Links */}
+                                {qrData.contentData.links.slice(3).map((link, index) => (
+                                    <LinkContainer key={index + 3}>
+                                        <Input
+                                            type="text"
+                                            name={`linkLabel${index + 3}`}
+                                            value={link.label}
+                                            onChange={(e) => handleInputChange(e, 'contentData', index + 3, 'label')}
+                                            placeholder={`Link ${index + 4} Label`}
+                                        />
+                                        <Input
+                                            type="url"
+                                            name={`linkUrl${index + 3}`}
+                                            value={link.url}
+                                            onChange={(e) => formatAndHandleUrl(e, index + 3, handleInputChange)}
+                                            placeholder={`Link ${index + 4} URL`}
+                                        />
+                                    </LinkContainer>
+                                ))}
+                                {qrData.contentData.links.length < 10 && (
+                                    <AddLinkButton onClick={handleAddLink}>
+                                        Add Another Link
+                                    </AddLinkButton>
+                                )}
+                            </>
+                        );
+                    case 'youtube':
+                        return (
+                            <FormContainer>
+                                <Input
+                                    type="text"
+                                    name="url"
+                                    value={qrData.youtube.url}
+                                    onChange={(e) => {
+                                        const videoId = extractYouTubeVideoId(e.target.value);
+                                        handleInputChange({
+                                            target: { name: 'url', value: videoId }
+                                        } as React.ChangeEvent<HTMLInputElement>, "youtube");
+                                    }}
+                                    placeholder="Enter full YouTube URL (e.g., https://www.youtube.com/watch?v=...)"
+                                />
+                            </FormContainer>
+                        );
+                    case 'ar':
+                        return (
+                            <Input
+                                type="text"
+                                name="arUrl"
+                                value={qrData.ar?.arUrl || ''}
+                                onChange={(e) => handleInputChange(e, 'ar')}
+                                placeholder="Enter AR content URL"
+                            />
+                        );
+                    case 'crypto':
+                        return (
+                            <>
+                                <Select
+                                    name="currency"
+                                    value={qrData.crypto?.currency || 'bitcoin'}
+                                    onChange={(e) => handleInputChange(e, 'crypto')}
+                                >
+                                    <option value="bitcoin">Bitcoin</option>
+                                    <option value="ethereum">Ethereum</option>
+                                    {/* Add more currencies as needed */}
+                                </Select>
+                                <Input
+                                    type="text"
+                                    name="address"
+                                    value={qrData.crypto?.address || ''}
+                                    onChange={(e) => handleInputChange(e, 'crypto')}
+                                    placeholder="Enter Wallet Address"
+                                />
+                                <Input
+                                    type="number"
+                                    name="amount"
+                                    value={qrData.crypto?.amount || ''}
+                                    onChange={(e) => handleInputChange(e, 'crypto')}
+                                    placeholder="Enter Amount (optional)"
+                                />
+                            </>
+                        );
+                    case 'dynamicVcard':
+                        return (
+                            <>
+                                <Input
+                                    type="text"
+                                    name="name"
+                                    value={qrData.dynamicVcard?.name || ''}
+                                    onChange={(e) => handleInputChange(e, 'dynamicVcard')}
+                                    placeholder="Full Name"
+                                />
+                                <Input
+                                    type="text"
+                                    name="phone"
+                                    value={qrData.dynamicVcard?.phone || ''}
+                                    onChange={(e) => handleInputChange(e, 'dynamicVcard')}
+                                    placeholder="Phone Number"
+                                />
+                                <Input
+                                    type="email"
+                                    name="email"
+                                    value={qrData.dynamicVcard?.email || ''}
+                                    onChange={(e) => handleInputChange(e, 'dynamicVcard')}
+                                    placeholder="Email"
+                                />
+                                {/* Add other fields as needed */}
+                            </>
+                        );
+                    case 'iotConfig':
+                        return (
+                            <>
+                                <Input
+                                    type="text"
+                                    name="deviceId"
+                                    value={qrData.iotConfig?.deviceId || ''}
+                                    onChange={(e) => handleInputChange(e, 'iotConfig')}
+                                    placeholder="Device ID"
+                                />
+                                <TextArea
+                                    name="configData"
+                                    value={qrData.iotConfig?.configData || ''}
+                                    onChange={(e) => handleInputChange(e, 'iotConfig')}
+                                    placeholder="Configuration JSON"
+                                />
+                            </>
+                        );
+                    default:
+                        return null;
+                }
+            })()}
         </FormContainer>
     );
 };
 
 // Styled Components
 const FormContainer = styled.div`
-    flex: 1;
-    min-height: 200px;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
-    align-items: stretch;
-    max-height: 600px;
+    gap: 20px;
 `;
 
-// Dropdown Styled Components
-const DropdownContainer = styled.div`
-    margin-bottom: 10px;
-`;
 
-const DropdownHeader = styled.div<{ disabled?: boolean }>`
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px;
-    font-size: 16px;
-    font-family: 'Aspekta 550', Arial, sans-serif;
-    background-color: ${props => props.disabled ? '#f0f0f0' : '#f9f9f9'};
-    border: 2px solid #ccc;
-    border-radius: 10px;
-    cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
-    opacity: ${props => props.disabled ? 0.5 : 1};
-
-    &:hover {
-        border-color: #ff6320;
-    }
-`;
-
-const DropdownContent = styled.div`
-    padding: 10px;
-    border: 2px solid #ccc;
-    border-top: none;
-    border-radius: 0 0 10px 10px;
-    background-color: #fff;
-`;
-
-// Existing Styled Components (Input, TextArea, Select, etc.)
-const Input = styled.input`
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 16px;
-    border: 1px solid #ced4da;
-    border-radius: 8px;
-    font-size: 1rem;
-    color: #1b294b;
-
-    &:focus {
-        outline: none;
-        border-color: #ff6320;
-    }
-`;
 
 const TextArea = styled.textarea`
     width: 100%;
-    flex: 1;
-    min-height: 120px;
     padding: 12px;
-    margin-top: 5px;
     font-size: 16px;
     font-family: 'Aspekta 550', Arial, sans-serif;
     border-radius: 10px;
     border: 2px solid #ccc;
     background-color: #f9f9f9;
-    transition: border-color 0.3s, box-shadow 0.3s;
     box-sizing: border-box;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    margin-bottom: 16px;
+    min-height: 120px;
     resize: none;
 
     &:focus {
         border-color: #ff6320;
         box-shadow: 0 0 10px rgba(255, 99, 32, 0.5);
         outline: none;
+    }
+
+    &:disabled {
+        background-color: #e9e9e9;
+        cursor: not-allowed;
     }
 `;
 
@@ -892,6 +715,7 @@ const Select = styled.select`
     background-image: url('data:image/svg+xml;charset=US-ASCII,<svg width="14" height="8" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L7 7L13 1" stroke="%23333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>');
     background-repeat: no-repeat;
     background-position: right 12px top 50%;
+    margin-bottom: 16px;
 
     &:focus {
         border-color: #ff6320;
@@ -921,8 +745,9 @@ const ArrowIcon = styled.span`
 const FormGroup = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 16px;
     width: 100%;
+    margin-bottom: 20px;
 `;
 
 const FileUploadLabel = styled.label`
@@ -933,22 +758,6 @@ const FileUploadLabel = styled.label`
 
 const FileInput = styled.input`
     margin-top: 5px;
-`;
-
-const ColorPickerLabel = styled.label`
-    display: flex;
-    align-items: center;
-    font-size: 0.8rem;
-    margin-top: 10px;
-`;
-
-const ColorPicker = styled.input`
-    margin-left: 0.5rem;
-    width: 36px;
-    height: 36px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
 `;
 
 const AddLinkButton = styled.button`

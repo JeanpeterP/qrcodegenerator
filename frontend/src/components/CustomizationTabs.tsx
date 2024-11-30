@@ -64,12 +64,48 @@ interface CustomizationTabsProps {
     setCustomLogo: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
-// Rename the styled component to avoid name conflict
+const SectionTitle = styled.h2`
+  font-size: 1.25rem;
+  color: #1b294b;
+  margin-bottom: 16px;
+`;
+
+
 const TabsContainer = styled.div`
+    width: 100%;
+`;
+
+const TabList = styled.div`
     display: flex;
-    flex-wrap: wrap;
-    margin-bottom: 1rem;
-    gap: 0.5rem;
+    margin-bottom: 20px;
+`;
+
+const TabButton = styled.button<{ active: boolean }>`
+    flex: 1;
+    padding: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    background-color: ${props => (props.active ? '#ff6320' : '#f9f9f9')};
+    color: ${props => (props.active ? '#fff' : '#333')};
+    border: 2px solid ${props => (props.active ? '#ff6320' : '#ccc')};
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+
+    &:hover {
+        background-color: ${props => (props.active ? '#e0551c' : '#e9e9e9')};
+    }
+
+    & + & {
+        margin-left: 10px;
+    }
+`;
+
+const TabContent = styled.div`
+    padding: 16px;
+    background-color: #fff;
+    border: 2px solid #ccc;
+    border-radius: 10px;
 `;
 
 export const CustomizationTabs: React.FC<CustomizationTabsProps> = ({
@@ -115,9 +151,9 @@ export const CustomizationTabs: React.FC<CustomizationTabsProps> = ({
     setCustomLogo,
 }) => {
     return (
-        <CustomizerSection>
-            <CustomizerTitle>Customize</CustomizerTitle>
-            <TabsContainer>
+        <TabsContainer>
+             <SectionTitle>QR Code Styling</SectionTitle>
+            <TabList>
                 <TabButton
                     active={activeTab === "frame"}
                     onClick={() => setActiveTab("frame")}
@@ -142,64 +178,65 @@ export const CustomizationTabs: React.FC<CustomizationTabsProps> = ({
                 >
                     Logo <ChevronDown size={16} />
                 </TabButton>
-            </TabsContainer>
-
-            {activeTab === "frame" && (
-                <FrameCustomization
-                    frame={frame}
-                    setFrame={setFrame}
-                    frameColor={frameColor}
-                    setFrameColor={setFrameColor}
-                    shape={shape}
-                    currentFramePage={currentFramePage}
-                    setCurrentFramePage={setCurrentFramePage}
-                />
-            )}
-            {activeTab === "shape" && (
-                <ShapeCustomization
-                    shape={shape}
-                    setShape={setShape}
-                    qrColor={qrColor}
-                    setQRColor={setQRColor}
-                    qrBackground={qrBackground}
-                    setQRBackground={setQRBackground}
-                    currentShapePage={currentShapePage}
-                    setCurrentShapePage={setCurrentShapePage}
-                />
-            )}
-            {activeTab === "markers" && (
-                <MarkerCustomization
-                    markerStyle={markerStyle}
-                    setMarkerStyle={setMarkerStyle}
-                    markerColor={markerColor}
-                    setMarkerColor={setMarkerColor}
-                />
-            )}
-            {activeTab === "logo" && (
-                <LogoCustomization
-                    logo={logo}
-                    setLogo={setLogo}
-                    logoSize={logoSize}
-                    setLogoSize={setLogoSize}
-                    gradient={gradient}
-                    setGradient={setGradient}
-                    gradientColor1={gradientColor1}
-                    setGradientColor1={setGradientColor1}
-                    gradientColor2={gradientColor2}
-                    setGradientColor2={setGradientColor2}
-                    gradientType={gradientType}
-                    setGradientType={setGradientType}
-                    gradientRotation={gradientRotation}
-                    setGradientRotation={setGradientRotation}
-                    cornerDots={cornerDots}
-                    setCornerDots={setCornerDots}
-                    cornerSquares={cornerSquares}
-                    setCornerSquares={setCornerSquares}
-                    customLogo={customLogo || ''}
-                    setCustomLogo={setCustomLogo}
-                />
-            )}
-        </CustomizerSection>
+            </TabList>
+            <TabContent>
+                {activeTab === "frame" && (
+                    <FrameCustomization
+                        frame={frame}
+                        setFrame={setFrame}
+                        frameColor={frameColor}
+                        setFrameColor={setFrameColor}
+                        shape={shape}
+                        currentFramePage={currentFramePage}
+                        setCurrentFramePage={setCurrentFramePage}
+                    />
+                )}
+                {activeTab === "shape" && (
+                    <ShapeCustomization
+                        shape={shape}
+                        setShape={setShape}
+                        qrColor={qrColor}
+                        setQRColor={setQRColor}
+                        qrBackground={qrBackground}
+                        setQRBackground={setQRBackground}
+                        currentShapePage={currentShapePage}
+                        setCurrentShapePage={setCurrentShapePage}
+                    />
+                )}
+                {activeTab === "markers" && (
+                    <MarkerCustomization
+                        markerStyle={markerStyle}
+                        setMarkerStyle={setMarkerStyle}
+                        markerColor={markerColor}
+                        setMarkerColor={setMarkerColor}
+                    />
+                )}
+                {activeTab === "logo" && (
+                    <LogoCustomization
+                        logo={logo}
+                        setLogo={setLogo}
+                        logoSize={logoSize}
+                        setLogoSize={setLogoSize}
+                        gradient={gradient}
+                        setGradient={setGradient}
+                        gradientColor1={gradientColor1}
+                        setGradientColor1={setGradientColor1}
+                        gradientColor2={gradientColor2}
+                        setGradientColor2={setGradientColor2}
+                        gradientType={gradientType}
+                        setGradientType={setGradientType}
+                        gradientRotation={gradientRotation}
+                        setGradientRotation={setGradientRotation}
+                        cornerDots={cornerDots}
+                        setCornerDots={setCornerDots}
+                        cornerSquares={cornerSquares}
+                        setCornerSquares={setCornerSquares}
+                        customLogo={customLogo || ''}
+                        setCustomLogo={setCustomLogo}
+                    />
+                )}
+            </TabContent>
+        </TabsContainer>
     );
 };
 
@@ -212,30 +249,6 @@ const CustomizerSection = styled.div`
 const CustomizerTitle = styled.h2`
     margin-bottom: 1rem;
     font-size: 1.5rem;
-`;
-
-const TabButton = styled.button<{ active: boolean }>`
-    background: ${(props) => (props.active ? "#ff6320" : "#f8f9fa")};
-    border: none;
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: ${(props) => (props.active ? "white" : "#616568")};
-    cursor: pointer;
-    transition: all 0.3s ease;
-    border-radius: 4px;
-    margin-right: 0.5rem;
-
-    &:hover {
-        background-color: #ff6320;
-        color: white;
-    }
-
-    svg {
-        margin-left: 0.5rem;
-        transform: ${(props) => (props.active ? "rotate(180deg)" : "rotate(0)")};
-        transition: transform 0.3s ease;
-    }
 `;
 
 // Include other styled components like TabsContainer, TabButton 
