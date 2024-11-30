@@ -670,6 +670,10 @@ const FormContainer = styled.div`
     display: flex;
     flex-direction: column;
     gap: 20px;
+
+    @media (max-width: 470px) {
+        width: 100%;
+    }
 `;
 
 

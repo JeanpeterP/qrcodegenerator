@@ -40,22 +40,19 @@ const GridContainer = styled.div`
   overflow-y: auto;
   padding-right: 8px;
 
-  /* Scrollbar styling */
-  &::-webkit-scrollbar {
-    width: 6px;
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(3, 1fr);
   }
-  &::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 10px;
+
+  @media (max-width: 470px) {
+    grid-template-columns: repeat(2, 1fr);
   }
 `;
 
 const Card = styled.button<{ selected?: boolean }>`
   width: 100%;
+  min-width: 120px;
+  height: 80px;
   background-color: #fff;
   border: 1px solid #e9ecef;
   border-radius: 8px;
@@ -66,6 +63,9 @@ const Card = styled.button<{ selected?: boolean }>`
   display: flex;
   align-items: center;
   gap: 12px;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
 
   &:hover {
     border-color: #ff6320;
@@ -81,12 +81,24 @@ const Card = styled.button<{ selected?: boolean }>`
 const IconWrapper = styled.div`
   font-size: 24px;
   color: #ff6320;
+  flex-shrink: 0;
 `;
 
 const CardTitle = styled.h3`
   font-size: 0.875rem;
   color: #1b294b;
   margin: 0;
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const SelectionTitle = styled.h2`
+    font-size: 1.25rem;
+    color: #1b294b;
+    margin: 0 0 16px 0;
+    font-weight: 600;
 `;
 
 export const QRCodeTypeSelector: React.FC<QRCodeTypeSelectorProps> = ({ onSelect, onHover, selectedType, userChoice }) => {
@@ -110,18 +122,21 @@ export const QRCodeTypeSelector: React.FC<QRCodeTypeSelectorProps> = ({ onSelect
   ];
 
   return (
-    <GridContainer>
-      {qrOptions.map((option) => {
-        const IconComponent = option.icon;
-        return (
-          <Card key={option.type} onClick={() => onSelect(option.type)} onMouseEnter={() => onHover(option.type)} selected={selectedType === option.type}>
-            <IconWrapper>
-              <IconComponent />
-            </IconWrapper>
-            <CardTitle>{option.label}</CardTitle>
-          </Card>
-        );
-      })}
-    </GridContainer>
+    <>
+      <SelectionTitle>Select QR Code Type</SelectionTitle>
+      <GridContainer>
+        {qrOptions.map((option) => {
+          const IconComponent = option.icon;
+          return (
+            <Card key={option.type} onClick={() => onSelect(option.type)} onMouseEnter={() => onHover(option.type)} selected={selectedType === option.type}>
+              <IconWrapper>
+                <IconComponent />
+              </IconWrapper>
+              <CardTitle>{option.label}</CardTitle>
+            </Card>
+          );
+        })}
+      </GridContainer>
+    </>
   );
 }; 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { DotType } from "qr-code-styling";
 import { ShapePreview } from './ShapePreview';
@@ -34,7 +34,27 @@ export const ShapeCustomization: React.FC<ShapeCustomizationProps> = ({
         { value: "extra-rounded", label: "Extra Rounded" },
     ];
 
-    const shapesPerPage = 4;
+    const [shapesPerPage, setShapesPerPage] = useState(4);
+
+    useEffect(() => {
+        const updateShapesPerPage = () => {
+            if (window.innerWidth <= 470) {
+                setShapesPerPage(2);
+            } else if (window.innerWidth <= 900) {
+                setShapesPerPage(3);
+            } else {
+                setShapesPerPage(4);
+            }
+        };
+
+        window.addEventListener('resize', updateShapesPerPage);
+        updateShapesPerPage(); // initial check
+
+        return () => {
+            window.removeEventListener('resize', updateShapesPerPage);
+        };
+    }, []);
+
     const totalPages = Math.ceil(shapeOptions.length / shapesPerPage);
     const startIndex = currentShapePage * shapesPerPage;
     const currentShapes = shapeOptions.slice(startIndex, startIndex + shapesPerPage);
@@ -132,21 +152,26 @@ const GridContainer = styled.div`
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
+    gap: 16px;
+    margin-bottom: 16px;
+
+    @media (max-width: 470px) {
+        flex-direction: column;
+    }
 `;
 
 const ShapeGrid = styled.div<{ itemCount: number }>`
     display: grid;
-    grid-template-columns: ${props => 
-        props.itemCount <= 4 
-            ? `repeat(${props.itemCount}, 1fr)` 
-            : 'repeat(4, 1fr)'
-    };
-    gap: 1rem;
-    width: ${props => props.itemCount < 4 ? 'auto' : '100%'};
-    max-width: 600px;
-    justify-content: center;
+    grid-template-columns: repeat(${(props) => props.itemCount}, 1fr);
+    gap: 16px;
+
+    @media (max-width: 900px) {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    @media (max-width: 470px) {
+        grid-template-columns: repeat(2, 1fr);
+    }
 `;
 
 const ShapeOption = styled.div<{ active: boolean }>`
@@ -182,11 +207,11 @@ const ShapeLabel = styled.div`
 `;
 
 const PaginationArrow = styled.button<{ disabled?: boolean }>`
-    background: ${props => props.disabled ? '#f0f0f0' : '#fff'};
-    border: 2px solid ${props => props.disabled ? '#e0e0e0' : '#ff6320'};
+    background: ${(props) => (props.disabled ? '#f0f0f0' : '#fff')};
+    border: 2px solid ${(props) => (props.disabled ? '#e0e0e0' : '#ff6320')};
     border-radius: 50%;
-    cursor: ${props => props.disabled ? 'default' : 'pointer'};
-    color: ${props => props.disabled ? '#ccc' : '#ff6320'};
+    cursor: ${(props) => (props.disabled ? 'default' : 'pointer')};
+    color: ${(props) => (props.disabled ? '#ccc' : '#ff6320')};
     padding: 0.5rem;
     display: flex;
     align-items: center;
@@ -194,6 +219,11 @@ const PaginationArrow = styled.button<{ disabled?: boolean }>`
     transition: all 0.3s ease;
     width: 40px;
     height: 40px;
+
+    @media (max-width: 470px) {
+        width: 100%;
+        border-radius: 8px;
+    }
 
     &:hover:not(:disabled) {
         background: #ff6320;

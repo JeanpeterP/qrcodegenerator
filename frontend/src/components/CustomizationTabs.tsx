@@ -78,6 +78,11 @@ const TabsContainer = styled.div`
 const TabList = styled.div`
     display: flex;
     margin-bottom: 20px;
+
+    @media (max-width: 470px) {
+        flex-direction: column;
+        gap: 10px;
+    }
 `;
 
 const TabButton = styled.button<{ active: boolean }>`
@@ -98,6 +103,10 @@ const TabButton = styled.button<{ active: boolean }>`
 
     & + & {
         margin-left: 10px;
+
+        @media (max-width: 470px) {
+            margin-left: 0;
+        }
     }
 `;
 

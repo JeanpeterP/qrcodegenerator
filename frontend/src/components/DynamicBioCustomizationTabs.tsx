@@ -119,6 +119,11 @@ const SectionTitle = styled.h2`
 const TabList = styled.div`
     display: flex;
     margin-bottom: 20px;
+
+    @media (max-width: 470px) {
+        flex-direction: column;
+        gap: 10px;
+    }
 `;
 
 const TabButton = styled.button<{ active: boolean }>`
@@ -126,19 +131,23 @@ const TabButton = styled.button<{ active: boolean }>`
     padding: 10px;
     font-size: 16px;
     font-weight: bold;
-    background-color: ${props => (props.active ? '#ff6320' : '#f9f9f9')};
-    color: ${props => (props.active ? '#fff' : '#333')};
-    border: 2px solid ${props => (props.active ? '#ff6320' : '#ccc')};
+    background-color: ${(props) => (props.active ? '#ff6320' : '#f9f9f9')};
+    color: ${(props) => (props.active ? '#fff' : '#333')};
+    border: 2px solid ${(props) => (props.active ? '#ff6320' : '#ccc')};
     border-radius: 10px;
     cursor: pointer;
     transition: background-color 0.3s;
 
     &:hover {
-        background-color: ${props => (props.active ? '#e0551c' : '#e9e9e9')};
+        background-color: ${(props) => (props.active ? '#e0551c' : '#e9e9e9')};
     }
 
     & + & {
         margin-left: 10px;
+
+        @media (max-width: 470px) {
+            margin-left: 0;
+        }
     }
 
     svg {

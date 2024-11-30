@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { DotType } from "qr-code-styling";
 import styled from 'styled-components';
 import { CaretLeft, CaretRight } from "@phosphor-icons/react";
@@ -24,7 +24,28 @@ export const FrameCustomization: React.FC<FrameCustomizationProps> = ({
         { id: "fancy", label: "Fancy" },
         { id: "chat", label: "Bubble" },
     ];
-    const framesPerPage = 4;
+
+    const [framesPerPage, setFramesPerPage] = useState(4);
+
+    useEffect(() => {
+        const updateFramesPerPage = () => {
+            if (window.innerWidth <= 470) {
+                setFramesPerPage(2);
+            } else if (window.innerWidth <= 900) {
+                setFramesPerPage(3);
+            } else {
+                setFramesPerPage(4);
+            }
+        };
+
+        window.addEventListener('resize', updateFramesPerPage);
+        updateFramesPerPage();
+
+        return () => {
+            window.removeEventListener('resize', updateFramesPerPage);
+        };
+    }, []);
+
     const totalPages = Math.ceil(frameOptions.length / framesPerPage);
     const startIndex = currentFramePage * framesPerPage;
     const currentFrames = frameOptions.slice(startIndex, startIndex + framesPerPage);
@@ -128,21 +149,29 @@ const GridContainer = styled.div`
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
+    gap: 16px;
+    margin-bottom: 16px;
+
+    @media (max-width: 470px) {
+        flex-direction: column;
+    }
 `;
 
 const FrameGrid = styled.div<{ itemCount: number }>`
     display: grid;
-    grid-template-columns: ${props => 
-        props.itemCount <= 4 
-            ? `repeat(${props.itemCount}, 1fr)` 
-            : 'repeat(4, 1fr)'
-    };
-    gap: 1rem;
-    width: ${props => props.itemCount < 4 ? 'auto' : '100%'};
+    grid-template-columns: repeat(${(props) => props.itemCount}, 1fr);
+    gap: 16px;
+    width: 100%;
     max-width: 600px;
     justify-content: center;
+
+    @media (max-width: 900px) {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    @media (max-width: 470px) {
+        grid-template-columns: repeat(2, 1fr);
+    }
 `;
 
 const FrameOption = styled.div<{ active: boolean }>`

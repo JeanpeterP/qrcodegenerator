@@ -92,21 +92,20 @@ const getPlaceholder = (type: keyof QRData): string => {
 // Add this styled component for the preview toggle section
 const PreviewToggleContainer = styled.div`
     display: flex;
-    flex-direction: column;
-    gap: 16px;
-    margin-bottom: 20px;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 16px;
+    width: 100%;
 `;
 
 const PreviewToggleButtons = styled.div`
     display: flex;
-    background: #f9f9f9;
-    border: 2px solid #ccc;
-    border-radius: 10px;
-    padding: 4px;
+    gap: 8px;
+    justify-content: center;
+    width: fit-content;
 `;
 
 const ToggleButton = styled.button<{ active: boolean }>`
-    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -120,6 +119,7 @@ const ToggleButton = styled.button<{ active: boolean }>`
     font-family: 'Aspekta 550', Arial, sans-serif;
     font-size: 14px;
     transition: all 0.3s ease;
+    white-space: nowrap;
 
     &:hover {
         background: ${props => props.active ? '#ff6320' : '#e9ecef'};
@@ -129,6 +129,16 @@ const ToggleButton = styled.button<{ active: boolean }>`
         width: 20px;
         height: 20px;
     }
+
+    @media (max-width: 470px) {
+        width: 100%;
+    }
+`;
+
+const PreviewContainer = styled.div`
+    width: 100%;
+    display: flex;
+    justify-content: center;
 `;
 
 export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
@@ -943,49 +953,48 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
             </LeftColumn>
 
             <RightColumn>
-                {/* Preview Toggle */}
+                {/* Moved PreviewToggleContainer inside RightColumn */}
                 <PreviewToggleContainer>
                     <PreviewToggleButtons>
-                        <ToggleButton 
-                            active={previewType === 'qr'} 
+                        <ToggleButton
+                            active={previewType === 'qr'}
                             onClick={() => setPreviewType('qr')}
                         >
-                            <QrCode weight="bold" />
-                            QR Code
+                            <QrCode /> QR Preview
                         </ToggleButton>
-                        <ToggleButton 
-                            active={previewType === 'phone'} 
+                        <ToggleButton
+                            active={previewType === 'phone'}
                             onClick={() => setPreviewType('phone')}
                         >
-                            <DeviceMobile weight="bold" />
-                            Phone Preview
+                            <DeviceMobile /> Phone Preview
                         </ToggleButton>
                     </PreviewToggleButtons>
-                    
-                    {/* Render Preview */}
-                    {previewType === 'qr' ? (
-                        <Preview 
-                            qrCodeInstance={qrCodeInstance}
-                            handleDownload={handleDownload}
-                            generateQRCodeData={generateQRCodeData}
-                            frame={frame}
-                            shape={shape}
-                            frameColor={frameColor}
-                            qrType={qrType}
-                            generatedUrl={generatedUrl}
-                            setGeneratedUrl={setGeneratedUrl}
-                            setGenerateQRCode={setGenerateQRCode}
-                            qrData={qrData}
-                        />
-                    ) : (
-                        <PhonePreview 
-                            show={true}
-                            qrType={qrType}
-                            qrData={qrData}
-                            backgroundType={backgroundType}
-                        />
-                    )}
                 </PreviewToggleContainer>
+
+                {/* Display previews based on selected type */}
+                {previewType === 'qr' && (
+                    <Preview
+                        qrCodeInstance={qrCodeInstance}
+                        handleDownload={handleDownload}
+                        generateQRCodeData={generateQRCodeData}
+                        frame={frame}
+                        shape={shape}
+                        frameColor={frameColor}
+                        qrType={qrType}
+                        generatedUrl={generatedUrl}
+                        setGeneratedUrl={setGeneratedUrl}
+                        setGenerateQRCode={setGenerateQRCode}
+                        qrData={qrData}
+                    />
+                )}
+                {previewType === 'phone' && (
+                    <PhonePreview
+                        show={true}
+                        qrType={qrType}
+                        qrData={qrData}
+                        backgroundType={backgroundType}
+                    />
+                )}
             </RightColumn>
         </Container>
     );
@@ -999,35 +1008,8 @@ const Container = styled.div`
     max-width: 1200px;
     margin: 0 auto;
 
-     
-    // Add subtle gradient shadows to indicate scrollability
-    &::before,
-    &::after {
-        content: '';
-        position: fixed;
-        left: 0;
-        right: 0;
-        height: 40px;
-        pointer-events: none;
-        z-index: 10;
-    }
-
-    // Top shadow (appears when scrolled down)
-    &::before {
-        top: 0;
-        background: linear-gradient(to bottom, 
-            rgba(255, 255, 255, 0.95) 0%, 
-            rgba(255, 255, 255, 0) 100%
-        );
-    }
-
-    // Bottom shadow (appears when can scroll further)
-    &::after {
-        bottom: 0;
-        background: linear-gradient(to top, 
-            rgba(255, 255, 255, 0.95) 0%, 
-            rgba(255, 255, 255, 0) 100%
-        );
+    @media (max-width: 900px) {
+        flex-direction: column;
     }
 `;
 
@@ -1036,6 +1018,10 @@ const LeftColumn = styled.div`
     display: flex;
     flex-direction: column;
     gap: 20px;
+
+    @media (max-width: 900px) {
+        width: 100%;
+    }
 `;
 
 const RightColumn = styled.div`
@@ -1043,6 +1029,15 @@ const RightColumn = styled.div`
     position: sticky;
     top: 20px;
     height: fit-content;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    @media (max-width: 900px) {
+        width: 100%;
+        position: static;
+        top: unset;
+    }
 `;
 
 const TypeGrid = styled.div`

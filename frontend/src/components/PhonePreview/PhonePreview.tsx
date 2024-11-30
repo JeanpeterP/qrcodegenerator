@@ -43,6 +43,7 @@ const PreviewColumn = styled.div`
 const PhonePreviewColumn = styled(PreviewColumn)<{ show: boolean }>`
   display: ${props => props.show ? 'flex' : 'none'};
   max-width: 375px;
+  width: 100%;
   background: transparent;
   align-items: center;
   padding: 20px;
@@ -50,24 +51,36 @@ const PhonePreviewColumn = styled(PreviewColumn)<{ show: boolean }>`
   position: relative;
   
   @media (max-width: 1200px) {
-    display: none;
+    max-width: 300px;
+    padding: 10px;
+  }
+
+  @media (max-width: 900px) {
+    max-width: 375px;
+    padding: 20px;
+  }
+
+  @media (max-width: 470px) {
+    max-width: 300px;
+    padding: 10px;
   }
 `;
 
 const PhoneFrame = styled.div<{ backgroundType: string }>`
   position: relative;
-  width: 375px;
-  height: 769px;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 375/769;
   z-index: 2;
   
   ${props => props.backgroundType === 'colorful' && `
     &::before {
       content: '';
       position: absolute;
-      top: 19px;
-      left: 20px;
-      width: 335px;
-      height: 733px;
+      top: 2.5%;
+      left: 5.3%;
+      width: 89.3%;
+      height: 95.3%;
       background-image: url(${colorfulBioMobile});
       background-size: cover;
       background-position: center;
@@ -92,10 +105,10 @@ const PhoneFrame = styled.div<{ backgroundType: string }>`
 
 const PhoneContent = styled.div<{ backgroundType: string }>`
   position: absolute;
-  top: 69px;
-  left: 20px;
-  width: 335px;
-  height: 639px;
+  top: 9%;
+  left: 5.3%;
+  width: 89.3%;
+  height: 83%;
   overflow-y: hidden;
   background-color: transparent;
   border-radius: 6px;
