@@ -38,47 +38,11 @@ export const FrameCustomization: React.FC<FrameCustomizationProps> = ({
     { id: "chat", label: "Bubble" },
   ];
 
-  const [framesPerPage, setFramesPerPage] = useState(4);
-
-  useEffect(() => {
-    const updateFramesPerPage = () => {
-      if (window.innerWidth <= 470) {
-        setFramesPerPage(2);
-      } else if (window.innerWidth <= 900) {
-        setFramesPerPage(3);
-      } else {
-        setFramesPerPage(4);
-      }
-    };
-
-    window.addEventListener("resize", updateFramesPerPage);
-    updateFramesPerPage();
-
-    return () => {
-      window.removeEventListener("resize", updateFramesPerPage);
-    };
-  }, []);
-
-  const totalPages = Math.ceil(frameOptions.length / framesPerPage);
-  const startIndex = currentFramePage * framesPerPage;
-  const currentFrames = frameOptions.slice(
-    startIndex,
-    startIndex + framesPerPage
-  );
-
   return (
     <>
       <GridContainer>
-        <PaginationArrow
-          onClick={() =>
-            currentFramePage > 0 && setCurrentFramePage(currentFramePage - 1)
-          }
-          disabled={currentFramePage === 0}
-        >
-          <CaretLeft size={24} weight="bold" />
-        </PaginationArrow>
-        <OptionGrid itemCount={currentFrames.length}>
-          {currentFrames.map((option) => (
+        <OptionGrid itemCount={frameOptions.length}>
+          {frameOptions.map((option) => (
             <OptionBox
               key={option.id}
               active={frame === option.id}
@@ -97,15 +61,6 @@ export const FrameCustomization: React.FC<FrameCustomizationProps> = ({
             </OptionBox>
           ))}
         </OptionGrid>
-        <PaginationArrow
-          onClick={() =>
-            currentFramePage < totalPages - 1 &&
-            setCurrentFramePage(currentFramePage + 1)
-          }
-          disabled={currentFramePage >= totalPages - 1}
-        >
-          <CaretRight size={24} weight="bold" />
-        </PaginationArrow>
       </GridContainer>
       <ColorPickerContainer>
         <ColorPickerLabel>
