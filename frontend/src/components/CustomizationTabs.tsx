@@ -209,8 +209,6 @@ export const CustomizationTabs: React.FC<CustomizationTabsProps> = ({
             setQRColor={setQRColor}
             qrBackground={qrBackground}
             setQRBackground={setQRBackground}
-            currentShapePage={currentShapePage}
-            setCurrentShapePage={setCurrentShapePage}
           />
         )}
         {activeTab === "markers" && (
