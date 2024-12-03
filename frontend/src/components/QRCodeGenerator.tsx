@@ -20,6 +20,7 @@ import { getBackendUrl } from '../utils/constants';
 import { QRType, QRData } from '../types/qr';
 import { Preview } from "./Preview";
 import { QRBuilderLayout } from './layouts/QRBuilderLayout';
+import { PreviewModal } from './PreviewModal';
 
 interface QRCodeGeneratorProps {
     userChoice?: 'qr' | 'dynamicBio' | null;
@@ -256,6 +257,11 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     const [buttonText, setButtonText] = useState<string>('Download');
     const [buttonColor, setButtonColor] = useState<string>('#ff6320');
     const [dynamicBioType, setDynamicBioType] = useState<string>('file'); // or whatever default you want
+
+    // State to determine screen width
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 460);
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         setIsMounted(true);
@@ -862,6 +868,23 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         };
     }, []);
 
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth <= 460);
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    useEffect(() => {
+        const body = document.body;
+        if (isModalOpen) {
+            body.classList.add('modal-open');
+        } else {
+            body.classList.remove('modal-open');
+        }
+    }, [isModalOpen]);
+
     return (
         <Container>
             <LeftColumn>
@@ -929,73 +952,129 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                     setCustomLogo={setCustomLogo}
                 />
 
-                {/* Updated DynamicBioCustomizationTabs with all required props */}
-                <DynamicBioCustomizationTabs
-                    qrType={qrType}
-                    qrData={qrData}
-                    handleInputChange={handleInputChange}
-                    
-                    // Content customization props
-                    title={title}
-                    setTitle={setTitle}
-                    description={description}
-                    setDescription={setDescription}
-                    buttonText={buttonText}
-                    setButtonText={setButtonText}
-                    buttonColor={buttonColor}
-                    setButtonColor={setButtonColor}
-                    
-                    // Type and background props
-                    dynamicBioType={dynamicBioType}
-                    backgroundType={backgroundType}
-                    setBackgroundType={setBackgroundType}
-                />
+                {['file', 'multiplink', 'pdf'].includes(qrType) && (
+                    <DynamicBioCustomizationTabs
+                        qrType={qrType}
+                        qrData={qrData}
+                        handleInputChange={handleInputChange}
+                        title={title}
+                        setTitle={setTitle}
+                        description={description}
+                        setDescription={setDescription}
+                        buttonText={buttonText}
+                        setButtonText={setButtonText}
+                        buttonColor={buttonColor}
+                        setButtonColor={setButtonColor}
+                        dynamicBioType={dynamicBioType}
+                        backgroundType={backgroundType}
+                        setBackgroundType={setBackgroundType}
+                    />
+                )}
             </LeftColumn>
 
-            <RightColumn>
-                {/* Moved PreviewToggleContainer inside RightColumn */}
-                <PreviewToggleContainer>
-                    <PreviewToggleButtons>
-                        <ToggleButton
-                            active={previewType === 'qr'}
-                            onClick={() => setPreviewType('qr')}
-                        >
-                            <QrCode /> QR Preview
-                        </ToggleButton>
-                        <ToggleButton
-                            active={previewType === 'phone'}
-                            onClick={() => setPreviewType('phone')}
-                        >
-                            <DeviceMobile /> Phone Preview
-                        </ToggleButton>
-                    </PreviewToggleButtons>
-                </PreviewToggleContainer>
+            {/* Conditionally render RightColumn or PreviewButton */}
+            {!isMobile ? (
+                <RightColumn>
+                    <PreviewToggleContainer>
+                        <PreviewToggleButtons>
+                            <ToggleButton
+                                active={previewType === 'qr'}
+                                onClick={() => setPreviewType('qr')}
+                            >
+                                <QrCode /> QR Preview
+                            </ToggleButton>
+                            {['file', 'multiplink', 'pdf'].includes(qrType) && (
+                                <ToggleButton
+                                    active={previewType === 'phone'}
+                                    onClick={() => setPreviewType('phone')}
+                                    disabled={!['file', 'multiplink', 'pdf'].includes(qrType)}
+                                >
+                                    <DeviceMobile /> Phone Preview
+                                </ToggleButton>
+                            )}
+                        </PreviewToggleButtons>
+                    </PreviewToggleContainer>
 
-                {/* Display previews based on selected type */}
-                {previewType === 'qr' && (
-                    <Preview
-                        qrCodeInstance={qrCodeInstance}
-                        handleDownload={handleDownload}
-                        generateQRCodeData={generateQRCodeData}
-                        frame={frame}
-                        shape={shape}
-                        frameColor={frameColor}
-                        qrType={qrType}
-                        generatedUrl={generatedUrl}
-                        setGeneratedUrl={setGeneratedUrl}
-                        setGenerateQRCode={setGenerateQRCode}
-                        qrData={qrData}
-                    />
-                )}
-                {previewType === 'phone' && (
-                    <PhonePreview
-                        show={true}
-                        qrType={qrType}
-                        qrData={qrData}
-                        backgroundType={backgroundType}
-                    />
-                )}
-            </RightColumn>
+                    {previewType === 'qr' && (
+                        <Preview
+                            qrCodeInstance={qrCodeInstance}
+                            handleDownload={handleDownload}
+                            generateQRCodeData={generateQRCodeData}
+                            frame={frame}
+                            shape={shape}
+                            frameColor={frameColor}
+                            qrType={qrType}
+                            generatedUrl={generatedUrl}
+                            setGeneratedUrl={setGeneratedUrl}
+                            setGenerateQRCode={setGenerateQRCode}
+                            qrData={qrData}
+                        />
+                    )}
+                    {previewType === 'phone' && (
+                        <PhonePreview
+                            show={true}
+                            qrType={qrType}
+                            qrData={qrData}
+                            backgroundType={backgroundType}
+                        />
+                    )}
+                </RightColumn>
+            ) : (
+                <>
+                    <PreviewButton onClick={() => setIsModalOpen(true)}>
+                        Preview
+                    </PreviewButton>
+                    {isModalOpen && (
+                        <PreviewModal
+                            previewType={previewType}
+                            setPreviewType={setPreviewType}
+                            onClose={() => setIsModalOpen(false)}
+                            qrCodeInstance={qrCodeInstance}
+                            handleDownload={handleDownload}
+                            generateQRCodeData={generateQRCodeData}
+                            frame={frame}
+                            shape={shape}
+                            frameColor={frameColor}
+                            qrType={qrType}
+                            generatedUrl={generatedUrl}
+                            setGeneratedUrl={setGeneratedUrl}
+                            setGenerateQRCode={setGenerateQRCode}
+                            qrData={qrData}
+                            backgroundType={backgroundType}
+                            gradient={gradient}
+                            setGradient={setGradient}
+                            gradientColor1={gradientColor1}
+                            setGradientColor1={setGradientColor1}
+                            gradientColor2={gradientColor2}
+                            setGradientColor2={setGradientColor2}
+                            gradientType={gradientType}
+                            setGradientType={setGradientType}
+                            gradientRotation={gradientRotation}
+                            setGradientRotation={setGradientRotation}
+                            cornerDots={cornerDots}
+                            setCornerDots={setCornerDots}
+                            cornerSquares={cornerSquares}
+                            setCornerSquares={setCornerSquares}
+                            currentFramePage={currentFramePage}
+                            setCurrentFramePage={setCurrentFramePage}
+                            currentShapePage={currentShapePage}
+                            setCurrentShapePage={setCurrentShapePage}
+                            customLogo={customLogo}
+                            setCustomLogo={setCustomLogo}
+                            title={title}
+                            setTitle={setTitle}
+                            description={description}
+                            setDescription={setDescription}
+                            buttonText={buttonText}
+                            setButtonText={setButtonText}
+                            buttonColor={buttonColor}
+                            setButtonColor={setButtonColor}
+                            dynamicBioType={dynamicBioType}
+                            setBackgroundType={setBackgroundType}
+                        />
+                    )}
+                </>
+            )}
         </Container>
     );
 }
@@ -1048,4 +1127,25 @@ const TypeGrid = styled.div`
     background: white;
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+`;
+
+// New styled component for the PreviewButton
+const PreviewButton = styled.button`
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #ff6320;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-family: 'Aspekta 550', Arial, sans-serif;
+    cursor: pointer;
+    z-index: 1000;
+
+    &:hover {
+        background-color: #e0551c;
+    }
 `;
