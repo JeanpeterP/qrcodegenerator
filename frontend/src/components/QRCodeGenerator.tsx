@@ -21,6 +21,7 @@ import { QRType, QRData } from '../types/qr';
 import { Preview } from "./Preview";
 import { QRBuilderLayout } from './layouts/QRBuilderLayout';
 import { PreviewModal } from './PreviewModal';
+import { File } from './pageContent/File';
 
 interface QRCodeGeneratorProps {
     userChoice?: 'qr' | 'dynamicBio' | null;
@@ -263,6 +264,9 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    // Add error state
+    const [error, setError] = useState<string | null>(null);
+
     useEffect(() => {
         setIsMounted(true);
         return () => setIsMounted(false);
@@ -287,49 +291,64 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     const generateQRCodeData = async () => {
         switch (qrType) {
             case "file":
-                if (qrData.file.fileData) {
-                    try {
-                        // Create FormData
-                        const formData = new FormData();
-                        formData.append("file", qrData.file.fileData);
-                        formData.append("title", qrData.file.title || 'Download File');
-                        formData.append("description", qrData.file.description || '');
-                        formData.append("buttonText", qrData.file.buttonText || 'Download');
-                        formData.append("buttonColor", qrData.file.buttonColor || '#ff6320');
-
-                        // Log the buttonColor before sending
-                        console.log('Button color sent:', qrData.file.buttonColor);
-
-                        // Add loading state if needed
-                        // setIsLoading(true);
-
-                        const response = await fetch(`${getBackendUrl()}/api/upload`, {
-                            method: "POST",
-                            body: formData,
-                        });
-
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-
-                        const result = await response.json();
-
-                        if (!result.success || !result.qrId) {
-                            throw new Error(result.message || 'Upload failed');
-                        }
-
-                        // Construct and return the QR code URL
-                        return `${getBackendUrl()}/qr/${result.qrId}`;
-
-                    } catch (error) {
-                        console.error("Error during upload:", error);
-                        throw error; // Re-throw to be handled by caller
-                    } finally {
-                        // Clear loading state if needed
-                        // setIsLoading(false);
+                try {
+                    console.log('Handling file upload...', qrData.file);
+                    
+                    if (!qrData.file?.fileData) {
+                        console.error('No file data available');
+                        throw new Error('No file selected');
                     }
+
+                    // Create FormData
+                    const formData = new FormData();
+                    
+                    // Add the file
+                    const file = qrData.file.fileData;
+                    console.log('Uploading file:', file);
+                    formData.append('file', file);
+
+                    // Add metadata
+                    formData.append('title', qrData.file.title || 'Download File');
+                    formData.append('description', qrData.file.description || '');
+                    formData.append('buttonText', qrData.file.buttonText || 'Download');
+                    formData.append('buttonColor', qrData.file.buttonColor || '#ff6320');
+
+                    // Log what's being sent
+                    console.log('Sending form data:', {
+                        title: qrData.file.title,
+                        description: qrData.file.description,
+                        buttonText: qrData.file.buttonText,
+                        buttonColor: qrData.file.buttonColor,
+                        file: {
+                            name: file.name,
+                            type: file.type,
+                            size: file.size
+                        }
+                    });
+
+                    const response = await fetch(`${getBackendUrl()}/api/upload`, {
+                        method: 'POST',
+                        body: formData,
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        console.error('Upload failed:', errorData);
+                        throw new Error(errorData.message || 'Failed to upload file');
+                    }
+
+                    const result = await response.json();
+                    console.log('Upload result:', result);
+
+                    if (!result.success || !result.qrId) {
+                        throw new Error(result.message || 'Failed to create file QR code');
+                    }
+
+                    return `${getBackendUrl()}/qr/${result.qrId}`;
+                } catch (error) {
+                    console.error('Error creating file QR code:', error);
+                    throw error;
                 }
-                return "";
             case "url":
                 return qrData.url;
             case "email":
@@ -419,72 +438,50 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         }
     };
 
-    // Update the handleInputChange function
-    const handleInputChange: HandleInputChangeFunction = (
-        e,
-        section = null,
-        index = null,
-        subKey = null
-    ) => {
+    // Update the handleInputChange function to properly handle file uploads
+    const handleInputChange: HandleInputChangeFunction = (e, section = null) => {
         const { name, value } = e.target;
-
-        setQRData((prevData: QRData) => {
-            if (section && Object.prototype.hasOwnProperty.call(prevData, section)) {
-                return {
-                    ...prevData,
-                    [section]: {
-                        ...(prevData[section as keyof QRData] as Record<string, any>),
-                        [name]: value
-                    }
-                };
-            }
-
-            // Handle file upload separately
-            if (name === 'fileData' && section === 'file') {
-                const file = (e.target as HTMLInputElement).files?.[0];
-                return {
-                    ...prevData,
-                    file: {
-                        ...prevData.file,
-                        fileData: file || null
-                    }
-                };
-            }
-
-            // Handle nested objects (like email, vcard, wifi, etc.)
-            if (section) {
-                // Handle multiplink links array
-                if (section === 'contentData' && index !== null && subKey) {
-                    const newLinks = [...(prevData.contentData?.links || [])];
-                    newLinks[index] = {
-                        ...newLinks[index],
-                        [subKey]: value
-                    };
-                    return {
-                        ...prevData,
-                        contentData: {
-                            ...prevData.contentData,
-                            links: newLinks
-                        }
-                    };
+        
+        // Handle file upload
+        if (name === 'fileData' && e.target instanceof HTMLInputElement && e.target.files) {
+            const file = e.target.files[0];
+            setQRData(prev => ({
+                ...prev,
+                file: {
+                    ...prev.file,
+                    fileData: file
                 }
+            }));
+            return;
+        }
 
-                // Handle regular nested objects
-                return {
-                    ...prevData,
-                    [section]: {
-                        ...(prevData[section as keyof QRData] as Record<string, any>),
-                        [name]: value
-                    }
-                };
-            }
+        // Handle other file-related inputs
+        if (section === 'file') {
+            setQRData(prev => ({
+                ...prev,
+                file: {
+                    ...prev.file,
+                    [name]: value
+                }
+            }));
+            return;
+        }
 
-            // Handle non-nested values (like text)
-            return {
-                ...prevData,
-                [name]: value
-            };
-        });
+        // Handle other inputs as before
+        if (section) {
+            setQRData(prev => ({
+                ...prev,
+                [section]: {
+                    ...(prev[section as keyof QRData] as object),
+                    [name]: value,
+                },
+            }));
+        } else {
+            setQRData(prev => ({
+                ...prev,
+                [name]: value,
+            }));
+        }
     };
 
     // Function to add a new link field in multiplink
@@ -688,21 +685,44 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     const handleGenerateClick = async () => {
         try {
             setGenerateQRCode(true);
-            const url = await generateQRCodeData(); // This makes the API call
-            if (url) {
-                setGeneratedUrl(url);
-                // Update QR code with the actual URL
-                if (qrCodeInstance) {
-                    qrCodeInstance.update({
-                        data: url,
-                        // ... other options remain the same
-                    });
+            
+            // Create FormData
+            const formData = new FormData();
+            
+            if (qrData.file.fileData) {
+                formData.append('file', qrData.file.fileData);
+                formData.append('title', qrData.file.title || 'Download File');
+                formData.append('description', qrData.file.description || '');
+                formData.append('buttonText', qrData.file.buttonText || 'Download');
+                formData.append('buttonColor', qrData.file.buttonColor || '#ff6320');
+
+                const response = await fetch(`${getBackendUrl()}/api/upload`, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Upload failed: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                if (result.success && result.qrId) {
+                    const url = `${window.location.origin}/qr/${result.qrId}`;
+                    setGeneratedUrl(url);
+                    
+                    // Update QR code with the new URL
+                    if (qrCodeInstance) {
+                        qrCodeInstance.update({
+                            data: url
+                        });
+                    }
+                } else {
+                    throw new Error(result.message || 'Upload failed');
                 }
             }
         } catch (error) {
-            console.error("Error generating QR code:", error);
-            alert("Error uploading file. Please try again.");
-        } finally {
+            console.error('Error during file upload:', error);
+            alert('Error uploading file. Please try again.');
             setGenerateQRCode(false);
         }
     };
@@ -884,6 +904,67 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
             body.classList.remove('modal-open');
         }
     }, [isModalOpen]);
+
+    const handleFileUpload = async (formData: FormData) => {
+        try {
+            setError(null);
+            console.log('Starting file upload...');
+            
+            // Make sure the file is being added with the correct field name
+            const fileData = qrData.file?.fileData;
+            if (!fileData) {
+                throw new Error('No file selected');
+            }
+
+            // Create new FormData and append all necessary fields
+            const uploadFormData = new FormData();
+            
+            // Important: Make sure the file field name matches the backend
+            uploadFormData.append('file', fileData);
+            
+            // Log file details for debugging
+            console.log('File being uploaded:', {
+                name: fileData.name,
+                type: fileData.type,
+                size: fileData.size
+            });
+
+            // Add other form fields
+            uploadFormData.append('title', qrData.file?.title || 'Download File');
+            uploadFormData.append('description', qrData.file?.description || '');
+            uploadFormData.append('buttonText', qrData.file?.buttonText || 'Download');
+            uploadFormData.append('buttonColor', qrData.file?.buttonColor || '#ff6320');
+
+            // Log all form data entries
+            Array.from(uploadFormData.entries()).forEach(([key, value]) => {
+                console.log('Form data entry:', key, value instanceof File ? 'File' : value);
+            });
+
+            const response = await fetch(`${getBackendUrl()}/api/upload`, {
+                method: 'POST',
+                body: uploadFormData,
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Upload failed');
+            }
+
+            const data = await response.json();
+            console.log('Upload successful:', data);
+
+            if (data.success && data.qrId) {
+                setGeneratedUrl(data.qrId);
+                setGenerateQRCode(true);
+            } else {
+                throw new Error('Invalid response from server');
+            }
+
+        } catch (error) {
+            console.error('Upload error:', error);
+            setError(error instanceof Error ? error.message : 'Upload failed');
+        }
+    };
 
     return (
         <Container>
@@ -1075,6 +1156,11 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                     )}
                 </>
             )}
+            {error && (
+                <ErrorMessage>
+                    {error}
+                </ErrorMessage>
+            )}
         </Container>
     );
 }
@@ -1148,4 +1234,11 @@ const PreviewButton = styled.button`
     &:hover {
         background-color: #e0551c;
     }
+`;
+
+// New styled component for the ErrorMessage
+const ErrorMessage = styled.div`
+    color: red;
+    font-size: 14px;
+    margin-top: 10px;
 `;

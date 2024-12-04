@@ -1,121 +1,94 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getBackendUrl } from '../utils/constants';
-import { ErrorPage } from '../components/ErrorPage';
-import { File } from '../components/pageContent/File';
-import { LoadingMessage } from '../components/common/LoadingMessage';
-import { ErrorMessage } from '../components/common/ErrorMessage';
-import { PageContainer } from '../components/common/PageContainer';
-import colorfulBioMobile from '../images/ColorFulBioMobile.png';
-import colorfulBioDesktop from '../images/ColorfulBioDesktop.png';
 import styled from 'styled-components';
-
-interface DownloadQRData {
-  title: string;
-  description?: string;
-  contentType: 'download';
-  buttonColor?: string;
-  buttonText?: string;
-  fileUrl?: string;
-  originalFileName?: string;
-  backgroundType?: string;
-}
+import { File } from '../components/pageContent/File';
+import { LoadingSpinner } from '../components/common/LoadingSpinner';
+import { getBackendUrl } from '../utils/constants';
 
 const DownloadQRPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const [qrData, setQrData] = React.useState<DownloadQRData | null>(null);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
+  const [fileData, setFileData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  React.useEffect(() => {
-    const fetchData = async () => {
+  useEffect(() => {
+    const fetchFileData = async () => {
       try {
         const response = await fetch(`${getBackendUrl()}/api/qr/${id}`);
         if (!response.ok) {
-          throw new Error('QR code not found');
+          throw new Error('Failed to fetch file data');
         }
         const data = await response.json();
-        
-        // Check if the QR code is of the correct type
-        if (data.contentType !== 'download') {
-          setError('invalid_type');
-          return;
-        }
-        
-        setQrData(data);
+        console.log('Fetched QR data:', data); // Debug log
+        setFileData(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
+        console.error('Error fetching file:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load file');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    fetchFileData();
   }, [id]);
 
-  if (loading) return <LoadingMessage>Loading...</LoadingMessage>;
-  
-  // Handle different error types
-  if (error) {
-    if (error === 'invalid_type') {
-      return <ErrorPage 
-        title="Incorrect QR Code Type"
-        message="This QR code is not a Download QR code. Please check the URL and try again."
-        suggestion="If you're looking for multiple links, try using the multi-link URL instead."
-      />;
-    }
-    return <ErrorPage 
-      title="QR Code Not Found"
-      message="We couldn't find the QR code you're looking for."
-      suggestion="Please check the URL and try again."
-    />;
+  if (loading) {
+    return (
+      <Container>
+        <LoadingSpinner />
+      </Container>
+    );
   }
-  
-  if (!qrData) return <ErrorMessage>No data found</ErrorMessage>;
+
+  if (error) {
+    return (
+      <Container>
+        <ErrorMessage>{error}</ErrorMessage>
+      </Container>
+    );
+  }
+
+  if (!fileData) {
+    return (
+      <Container>
+        <ErrorMessage>File not found</ErrorMessage>
+      </Container>
+    );
+  }
 
   return (
-    <PageContainer>
-      <BackgroundWrapper backgroundType={qrData.backgroundType}>
-        <File
-          fileData={{
-            title: qrData.title,
-            description: qrData.description,
-            buttonColor: qrData.buttonColor,
-            buttonText: qrData.buttonText,
-            fileUrl: qrData.fileUrl,
-            originalFileName: qrData.originalFileName,
-          }}
-        />
-      </BackgroundWrapper>
-    </PageContainer>
+    <Container>
+      <File
+        fileData={{
+          fileUrl: fileData.fileUrl,
+          originalFileName: fileData.originalFileName,
+          mimeType: fileData.mimeType,
+          title: fileData.title,
+          description: fileData.description,
+          buttonText: fileData.buttonText,
+          buttonColor: fileData.buttonColor,
+        }}
+      />
+    </Container>
   );
 };
 
-const BackgroundWrapper = styled.div<{ backgroundType?: string }>`
-  position: relative;
+const Container = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
   min-height: 100vh;
-  width: 100%;
-  
-  ${props => props.backgroundType === 'colorful' && `
-    &::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-image: url(${colorfulBioMobile});
-      background-size: cover;
-      background-position: center;
-      z-index: -1;
-    }
-    
-    @media (min-width: 768px) {
-      &::before {
-        background-image: url(${colorfulBioDesktop});
-      }
-    }
-  `}
+  padding: 20px;
+  background-color: #f8f9fa;
+`;
+
+const ErrorMessage = styled.div`
+  color: #dc3545;
+  text-align: center;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `;
 
 export default DownloadQRPage;

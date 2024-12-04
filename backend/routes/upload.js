@@ -4,201 +4,98 @@ const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 const AWS = require('aws-sdk');
 const QRCode = require('../models/QRCode');
-const { check, validationResult } = require('express-validator');
 
 // Configure AWS
-AWS.config.update({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION,
-});
-
 const s3 = new AWS.S3();
 
-// Multer setup with memory storage
+// Multer setup
 const storage = multer.memoryStorage();
-
-// File filter to validate file types
-const allowedMimeTypes = [
-  'application/pdf',
-  'image/jpeg',
-  'image/png',
-  'application/zip',
-  // Add more MIME types as needed
-];
-
-const upload = multer({
+const upload = multer({ 
   storage,
-  limits: { fileSize: 20 * 1024 * 1024 }, // 20 MB limit
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB limit
   fileFilter: (req, file, cb) => {
-    console.log('Received file:', file);
-    if (allowedMimeTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Invalid file type'));
-    }
-  },
+    console.log('Multer processing file:', file);
+    cb(null, true);
+  }
 }).single('file');
 
-// Validation rules
-const uploadValidation = [
-  check('title')
-    .optional()
-    .trim()
-    .notEmpty()
-    .withMessage('Title cannot be empty if provided'),
-  check('description')
-    .optional()
-    .trim(),
-  check('buttonText')
-    .optional()
-    .trim(),
-  check('buttonColor')
-    .optional()
-    .trim()
-    .matches(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)
-    .withMessage('Invalid color format. Use hex format (e.g., #ff6320)'),
-];
-
-// Route to handle file uploads
 router.post('/upload', (req, res, next) => {
-  upload(req, res, (err) => {
-    if (err) {
-      console.error('Upload error:', err);
-      return res.status(400).json({ 
-        success: false, 
-        message: err.message 
-      });
+  console.log('Starting file upload processing...');
+  
+  upload(req, res, async (err) => {
+    if (err instanceof multer.MulterError) {
+      console.error('Multer error:', err);
+      return res.status(400).json({ success: false, message: err.message });
+    } else if (err) {
+      console.error('Unknown error:', err);
+      return res.status(500).json({ success: false, message: 'Unknown error occurred' });
     }
-    
-    console.log('File uploaded successfully:', req.file);
-    next();
-  });
-}, uploadValidation, async (req, res) => {
-  try {
-    // Log the entire request
-    console.log('Processing request:', {
-      body: req.body,
-      file: req.file,
-      headers: req.headers
-    });
 
-    const { title, description, buttonText, buttonColor } = req.body;
+    console.log('Files in request:', req.files);
+    console.log('File in request:', req.file);
+    console.log('Body:', req.body);
 
-    // Log the received buttonColor
-    console.log('Button color received:', buttonColor);
-
-    // Check for validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      console.log('Validation errors:', errors.array());
+    if (!req.file) {
+      console.error('No file received in request');
       return res.status(400).json({ 
         success: false, 
-        message: 'Validation failed', 
-        errors: errors.array() 
+        message: 'No file uploaded',
+        debug: {
+          contentType: req.headers['content-type'],
+          bodyKeys: Object.keys(req.body)
+        }
       });
     }
 
-    const file = req.file;
-
-    if (!file) {
-      return res.status(400).json({ success: false, message: 'No file provided' });
-    }
-
-    // Generate a unique ID for the QR code
-    const qrId = uuidv4();
-
-    // Prepare S3 upload parameters
-    const s3Params = {
-      Bucket: process.env.AWS_BUCKET_NAME,
-      Key: `uploads/${qrId}/${file.originalname}`,
-      Body: file.buffer,
-      ContentType: file.mimetype
-    };
-
-    // Upload file to S3
-    const s3Result = await s3.upload(s3Params).promise();
-
-    // Create a new QRCode document
-    const qrCode = new QRCode({
-      _id: qrId,
-      contentType: 'download',
-      fileUrl: s3Result.Location,
-      originalFileName: file.originalname,
-      title: title || 'Download File',
-      description: description || '',
-      buttonText: buttonText || 'Download',
-      buttonColor: buttonColor || '#ff6320',
-    });
-
-    // Save QRCode to MongoDB
-    await qrCode.save();
-
-    // Add more detailed response
-    console.log('Successfully created QR code with ID:', qrId);
-    return res.status(200).json({ 
-      success: true, 
-      qrId,
-      message: 'File uploaded successfully'
-    });
-
-  } catch (error) {
-    console.error('Error in upload route:', error);
-    return res.status(500).json({ 
-      success: false, 
-      message: 'Server error', 
-      error: error.message 
-    });
-  }
-});
-
-// Route to handle multiplink QR code creation
-router.post('/multiplink', async (req, res) => {
-  const { title, links } = req.body;
-
-  try {
-    const qrId = uuidv4();
-
-    const qrCode = new QRCode({
-      _id: qrId,
-      title,
-      contentType: 'multiplink',
-      contentData: { links },
-    });
-
-    await qrCode.save();
-
-    res.json({ success: true, qrId });
-  } catch (error) {
-    console.error('Error creating multiplink QR Code:', error);
-    res.status(500).json({ success: false, message: 'Server Error' });
-  }
-});
-
-// Route to handle YouTube QR code creation
-router.post('/upload/youtube', async (req, res) => {
     try {
-        const { url } = req.body;
-        
-        // Create a new document in MongoDB
-        const qrDoc = await QRCode.create({
-            type: 'youtube',
-            content: {
-                url: url
-            }
-        });
+      const {
+        title = 'Download File',
+        description = '',
+        buttonText = 'Download',
+        buttonColor = '#ff6320'
+      } = req.body;
 
-        res.json({
-            success: true,
-            qrId: qrDoc._id
-        });
+      // Generate unique ID for the QR code
+      const qrId = uuidv4();
+
+      // Upload to S3
+      const s3Result = await s3.upload({
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: `uploads/${qrId}/${req.file.originalname}`,
+        Body: req.file.buffer,
+        ContentType: req.file.mimetype
+      }).promise();
+
+      // Create QR code record
+      const qrCode = new QRCode({
+        _id: qrId,
+        contentType: 'download',
+        fileUrl: s3Result.Location,
+        originalFileName: req.file.originalname,
+        mimeType: req.file.mimetype,
+        title,
+        description,
+        buttonText,
+        buttonColor
+      });
+
+      await qrCode.save();
+
+      res.status(200).json({ 
+        success: true, 
+        qrId,
+        message: 'File uploaded successfully'
+      });
+
     } catch (error) {
-        console.error('Error handling YouTube URL:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to process YouTube URL'
-        });
+      console.error('Upload processing error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Server error during upload',
+        error: error.message 
+      });
     }
+  });
 });
 
 module.exports = router; 

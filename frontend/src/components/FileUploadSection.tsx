@@ -15,22 +15,21 @@ export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
     handleInputChange,
 }) => {
     const onDrop = useCallback((acceptedFiles: File[]) => {
-        // Ensure we're working with an array
-        const currentFiles = Array.isArray(qrData.file.fileData) ? qrData.file.fileData : [];
-        const newFiles = [...currentFiles, ...acceptedFiles].slice(0, 3);
+        // Create a new array with the accepted files
+        const newFiles = acceptedFiles;
         
         handleInputChange({
             target: {
-                value: newFiles,
+                value: newFiles[0], // Take only the first file since we're handling single files
                 name: 'fileData',
             },
         } as any, 'file');
-    }, [handleInputChange, qrData.file.fileData]);
+    }, [handleInputChange]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
-        maxFiles: 3,
-        multiple: true,
+        maxFiles: 1, // Change to 1 since we're handling single files
+        multiple: false, // Change to false
         accept: {
             'application/pdf': ['.pdf'],
             'image/*': ['.png', '.jpg', '.jpeg'],
@@ -51,9 +50,9 @@ export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
         } as any, 'file');
     };
 
-    // Ensure we're working with an array
-    const files = Array.isArray(qrData.file.fileData) ? qrData.file.fileData : [];
-    const canAddMoreFiles = files.length < 3;
+    // Update the files display logic
+    const files = qrData.file.fileData ? [qrData.file.fileData] : [];
+    const canAddMoreFiles = files.length === 0;
 
     return (
         <SectionContainer>

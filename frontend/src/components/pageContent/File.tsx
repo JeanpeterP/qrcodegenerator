@@ -6,15 +6,20 @@ interface FileProps {
     description?: string;
     buttonColor?: string;
     buttonText?: string;
-    fileUrl?: string; // Include if necessary
-    originalFileName?: string; // Include if necessary
-    isPreview?: boolean; // Optional prop to adjust styling for preview
+    fileUrl?: string;
+    originalFileName?: string;
+    isPreview?: boolean;
+    mimeType?: string;  // Added this property
   };
 }
 
 export const File: React.FC<FileProps> = ({ fileData }) => {
   const isPreview = fileData.isPreview;
-  
+  const isPdf = fileData.originalFileName?.toLowerCase().endsWith('.pdf');
+
+  console.log('isPdf:', isPdf);
+  console.log('fileUrl:', fileData.fileUrl);
+
   const buttonStyles = {
     backgroundColor: fileData.buttonColor || '#ff6320',
     padding: isPreview ? '12px 24px' : '15px 30px',
@@ -64,12 +69,40 @@ export const File: React.FC<FileProps> = ({ fileData }) => {
         >
           {fileData.description || 'No description provided'}
         </p>
+        
+        {!isPreview && isPdf && fileData.fileUrl && (
+          <div style={{ 
+            marginBottom: '20px',
+            height: '600px',
+            width: '100%',
+            backgroundColor: '#f5f5f5',
+            borderRadius: '8px',
+            padding: '20px',
+            boxSizing: 'border-box'
+          }}>
+            <iframe
+              src={`${fileData.fileUrl}#toolbar=0`}
+              style={{
+                width: '100%',
+                height: '100%',
+                border: 'none',
+                borderRadius: '8px',
+              }}
+              title="PDF Preview"
+            />
+          </div>
+        )}
+
         {isPreview ? (
           <button style={buttonStyles}>
             {fileData.buttonText || 'Download'}
           </button>
         ) : fileData.fileUrl ? (
-          <a href={fileData.fileUrl} style={buttonStyles} download={fileData.originalFileName}>
+          <a 
+            href={fileData.fileUrl} 
+            style={buttonStyles} 
+            download={fileData.originalFileName}
+          >
             {fileData.buttonText || 'Download'}
           </a>
         ) : null}
