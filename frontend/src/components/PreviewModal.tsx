@@ -12,7 +12,7 @@ interface PreviewModalProps {
   onClose: () => void;
   // Preview props
   qrCodeInstance: QRCodeStyling | null;
-  handleDownload: (format: "png" | "svg") => void;
+  handleDownload: (format: "png" | "svg") => Promise<void>;
   generateQRCodeData: () => Promise<string>;
   frame: string;
   shape: any; // Replace with proper DotType when available
@@ -54,6 +54,9 @@ interface PreviewModalProps {
   setButtonColor: (color: string) => void;
   dynamicBioType: string;
   setBackgroundType: (type: string) => void;
+  // Add these new properties
+  cutterShape: string;
+  setCutterShape: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export const PreviewModal: React.FC<PreviewModalProps> = ({
@@ -101,7 +104,9 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
   buttonColor,
   setButtonColor,
   dynamicBioType,
-  setBackgroundType
+  setBackgroundType,
+  cutterShape,
+  setCutterShape,
 }) => {
   return (
     <ModalOverlay>
@@ -137,6 +142,7 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
               setGeneratedUrl={setGeneratedUrl}
               setGenerateQRCode={setGenerateQRCode}
               qrData={qrData}
+              cutterShape={cutterShape}
             />
           )}
           {previewType === 'phone' && (

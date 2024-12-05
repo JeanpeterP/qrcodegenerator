@@ -3,6 +3,7 @@ import styled from "styled-components";
 import QRCodeStyling, {
     DotType as QRDotType,
     CornerSquareType,
+    Options,
 } from "qr-code-styling";
 import html2canvas from 'html2canvas';
 import { CaretDown, QrCode, TextT, PaintBrush, DeviceMobile } from 'phosphor-react';
@@ -22,6 +23,7 @@ import { Preview } from "./Preview";
 import { QRBuilderLayout } from './layouts/QRBuilderLayout';
 import { PreviewModal } from './PreviewModal';
 import { File } from './pageContent/File';
+import SkullMask from './masks/SkullMask'; // Import your skull mask SVG or path
 
 interface QRCodeGeneratorProps {
     userChoice?: 'qr' | 'dynamicBio' | null;
@@ -267,6 +269,10 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     // Add error state
     const [error, setError] = useState<string | null>(null);
 
+    // New cutter shape state
+    const [cutter, setCutter] = useState<string>('none');
+    const [cutterShape, setCutterShape] = useState<string>('none');
+
     useEffect(() => {
         setIsMounted(true);
         return () => setIsMounted(false);
@@ -504,72 +510,137 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         }
     };
 
-    const handleDownload = async (format: "png" | "svg") => {
+    const handleDownload = async (format: "png" | "svg"): Promise<void> => {
         setGenerateQRCode(true);
         try {
-            // Generate the QR code data, including any API calls
             const url = await generateQRCodeData();
-            if (url) {
+            if (url && qrCodeInstance) {
                 setGeneratedUrl(url);
 
                 // Update QR code with the actual URL
-                if (qrCodeInstance) {
-                    qrCodeInstance.update({
-                        data: url,
-                        width: qrSize,
-                        height: qrSize,
-                        dotsOptions: {
-                            type: shape,
-                            color: qrColor,
-                        },
-                        backgroundOptions: {
-                            color: qrBackground,
-                        },
-                        cornersSquareOptions: {
-                            type: markerStyle,
-                            color: markerColor,
-                        },
-                        imageOptions: {
-                            imageSize: 0.4,
-                            margin: 0,
-                        },
-                    });
-                }
-            }
+                await qrCodeInstance.update({
+                    data: url,
+                    width: qrSize,
+                    height: qrSize,
+                    dotsOptions: {
+                        type: shape,
+                        color: qrColor,
+                    },
+                    backgroundOptions: {
+                        color: qrBackground,
+                    },
+                    cornersSquareOptions: {
+                        type: markerStyle,
+                        color: markerColor,
+                    },
+                    imageOptions: {
+                        imageSize: 0.4,
+                        margin: 0,
+                    },
+                });
 
-            // Proceed to download the QR code
-            const previewContainer = document.querySelector('.preview-container');
-            if (!previewContainer) return;
+                // Wait for QR code to render
+                await new Promise(resolve => setTimeout(resolve, 200));
 
-            const canvas = await html2canvas(previewContainer as HTMLElement, {
-                backgroundColor: '#f8f9fa',
-                scale: 4,
-                logging: false,
-                useCORS: true,
-                allowTaint: true,
-                onclone: (clonedDoc) => {
-                    const clonedPreview = clonedDoc.querySelector('.preview-container');
-                    if (clonedPreview) {
-                        (clonedPreview as HTMLElement).style.padding = '4px';
+                // Apply cutter shape if selected
+                if (cutterShape && cutterShape !== 'none') {
+                    const canvas = document.querySelector('.preview-container canvas') as HTMLCanvasElement;
+                    if (canvas) {
+                        const ctx = canvas.getContext('2d');
+                        if (ctx) {
+                            try {
+                                // Create a temporary canvas to handle the mask
+                                const tempCanvas = document.createElement('canvas');
+                                tempCanvas.width = canvas.width;
+                                tempCanvas.height = canvas.height;
+                                const tempCtx = tempCanvas.getContext('2d');
+                                
+                                if (tempCtx) {
+                                    // Draw original QR code to temp canvas
+                                    tempCtx.drawImage(canvas, 0, 0);
+
+                                    // Load and apply the mask
+                                    const img = new Image();
+                                    img.crossOrigin = "anonymousc";
+                                    
+                                    await new Promise<void>((resolve, reject) => {
+                                        img.onload = () => {
+                                            try {
+                                                // Clear original canvas
+                                                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                                                
+                                                // Draw mask to original canvas
+                                                ctx.fillStyle = 'black';
+                                                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                                                ctx.globalCompositeOperation = 'destination-in';
+                                                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                                                
+                                                // Draw QR code with mask
+                                                ctx.globalCompositeOperation = 'source-over';
+                                                ctx.drawImage(tempCanvas, 0, 0);
+                                                
+                                                resolve();
+                                            } catch (error) {
+                                                console.error('Error applying mask:', error);
+                                                reject(error);
+                                            }
+                                        };
+                                        img.onerror = (error) => {
+                                            console.error('Error loading cutter shape:', error);
+                                            reject(new Error('Failed to load cutter shape'));
+                                        };
+                                        img.src = `/assets/shapes/${cutterShape}.svg`;
+                                    });
+                                }
+                            } catch (error) {
+                                console.error('Error in mask application:', error);
+                            }
+                        }
                     }
-                },
-            });
-
-            canvas.toBlob((blob) => {
-                if (blob) {
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `qr-code.${format}`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
                 }
-            }, `image/${format}`);
+
+                // Wait for the shape to be applied
+                await new Promise(resolve => setTimeout(resolve, 200));
+
+                // Proceed with download
+                const previewContainer = document.querySelector('.preview-container');
+                if (!previewContainer) return;
+
+                const canvas = await html2canvas(previewContainer as HTMLElement, {
+                    backgroundColor: null,
+                    scale: 4,
+                    logging: false,
+                    useCORS: true,
+                    allowTaint: true,
+                    onclone: (clonedDoc) => {
+                        const clonedPreview = clonedDoc.querySelector('.preview-container');
+                        if (clonedPreview) {
+                            (clonedPreview as HTMLElement).style.transform = 'scale(1)';
+                        }
+                    },
+                });
+
+                return new Promise<void>((resolve, reject) => {
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `qr-code.${format}`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                            resolve();
+                        } else {
+                            reject(new Error('Failed to create blob'));
+                        }
+                    }, `image/${format}`);
+                });
+            }
         } catch (error) {
             console.error('Error generating or downloading QR code:', error);
-            alert('Error generating or downloading QR code. Please try again.');
+            throw error;
         } finally {
             setGenerateQRCode(false);
         }
@@ -627,26 +698,44 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                 const qrData = await generateQRCodeData();
                 
                 if (!isCancelled && qrCodeInstance) {
-                    qrCodeInstance.update({
+                    // Define QR code options
+                    const options: Partial<Options> = {
                         width: qrSize,
                         height: qrSize,
                         data: qrData || 'Preview',
                         dotsOptions: {
-                            type: shape,
-                            color: qrColor
+                            type: shape as QRDotType,
+                            color: qrColor,
                         },
                         backgroundOptions: {
-                            color: qrBackground
+                            color: 'transparent', // Set to transparent for masking
                         },
                         cornersSquareOptions: {
-                            type: markerStyle,
-                            color: markerColor
+                            type: markerStyle as CornerSquareType,
+                            color: markerColor,
+                        },
+                        qrOptions: {
+                            errorCorrectionLevel: 'H',
                         },
                         imageOptions: {
+                            hideBackgroundDots: false,
                             imageSize: 0.4,
-                            margin: 0
-                        }
-                    });
+                            margin: 0,
+                        },
+                    };
+
+                    await qrCodeInstance.update(options);
+
+                    // Apply the skull mask if selected
+                    if (cutterShape && cutterShape !== 'none') {
+                        // Wait for the QR code to render
+                        setTimeout(() => {
+                            const qrCodeCanvas = document.querySelector('.qr-container canvas') as HTMLCanvasElement;
+                            if (qrCodeCanvas) {
+                                applyMask(qrCodeCanvas, SkullMask);
+                            }
+                        }, 100); // Delay to ensure canvas is rendered
+                    }
                 }
             } catch (error) {
                 console.error('Error updating QR code:', error);
@@ -665,9 +754,57 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         qrBackground,
         markerStyle,
         markerColor,
-        qrData, // Add qrData to dependencies
-        qrType  // Add qrType to dependencies
+        qrData,
+        cutterShape,
     ]);
+
+    // Add this helper function
+    const applyMask = (canvas: HTMLCanvasElement, maskSvgString: string) => {
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        // Create an image from the mask SVG
+        const maskImage = new Image();
+        const svgBlob = new Blob([maskSvgString], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(svgBlob);
+
+        maskImage.onload = () => {
+            // Create a temporary canvas to hold the original QR code
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            if (!tempCtx) return;
+
+            // Copy the original QR code onto the temporary canvas
+            tempCtx.drawImage(canvas, 0, 0);
+
+            // Clear the original canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw the QR code first
+            ctx.drawImage(tempCanvas, 0, 0);
+
+            // Set composite operation to multiply (this will blend the layers)
+            ctx.globalCompositeOperation = 'multiply';
+
+            // Set opacity for the skull shape
+            ctx.globalAlpha = 0.3; // Adjust this value between 0 and 1 (0 = transparent, 1 = solid)
+
+            // Draw black skull shape
+            ctx.fillStyle = 'black';
+            ctx.drawImage(maskImage, 0, 0, canvas.width, canvas.height);
+
+            // Reset opacity
+            ctx.globalAlpha = 1;
+            // Reset composite operation
+            ctx.globalCompositeOperation = 'source-over';
+
+            URL.revokeObjectURL(url);
+        };
+
+        maskImage.src = url;
+    };
 
     const handleMarkerStyleChange = (
         e: React.ChangeEvent<HTMLSelectElement>
@@ -966,6 +1103,30 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         }
     };
 
+    useEffect(() => {
+        const updateQRCode = async () => {
+            const qrCanvas = document.querySelector("#qr-code canvas") as HTMLCanvasElement;
+            if (qrCanvas && cutterShape !== "none") {
+                const ctx = qrCanvas.getContext("2d");
+                if (!ctx) return; // Add null check for context
+
+                const response = await fetch(`/assets/shapes/${cutterShape}.svg`);
+                const svgText = await response.text();
+
+                const img = new Image();
+                img.src = `data:image/svg+xml;base64,${btoa(svgText)}`;
+
+                img.onload = () => {
+                    ctx.globalCompositeOperation = "destination-in";
+                    ctx.drawImage(img, 0, 0, qrCanvas.width, qrCanvas.height);
+                    ctx.globalCompositeOperation = "source-over";
+                };
+            }
+        };
+
+        updateQRCode();
+    }, [shape, qrColor, cutterShape]);
+
     return (
         <Container>
             <LeftColumn>
@@ -1031,6 +1192,10 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                     setCurrentShapePage={setCurrentShapePage}
                     customLogo={customLogo}
                     setCustomLogo={setCustomLogo}
+                    cutter={cutter}
+                    setCutter={setCutter}
+                    cutterShape={cutterShape}
+                    setCutterShape={setCutterShape}
                 />
 
                 {['file', 'multiplink', 'pdf'].includes(qrType) && (
@@ -1089,6 +1254,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             setGeneratedUrl={setGeneratedUrl}
                             setGenerateQRCode={setGenerateQRCode}
                             qrData={qrData}
+                            cutterShape={cutterShape}
                         />
                     )}
                     {previewType === 'phone' && (
@@ -1152,6 +1318,8 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             setButtonColor={setButtonColor}
                             dynamicBioType={dynamicBioType}
                             setBackgroundType={setBackgroundType}
+                            cutterShape={cutterShape}
+                            setCutterShape={setCutterShape}
                         />
                     )}
                 </>

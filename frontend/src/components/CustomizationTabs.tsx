@@ -6,6 +6,7 @@ import { MarkerCustomization } from "./MarkerCustomization";
 import { LogoCustomization } from "./LogoCustomization";
 import { ChevronDown } from "lucide-react";
 import { DotType, CornerSquareType } from "qr-code-styling";
+import { CutterCustomization } from './CutterCustomization';
 
 interface CustomizationTabsProps {
   activeTab: string;
@@ -64,6 +65,10 @@ interface CustomizationTabsProps {
   setCurrentShapePage: React.Dispatch<React.SetStateAction<number>>;
   customLogo: string | null;
   setCustomLogo: React.Dispatch<React.SetStateAction<string | null>>;
+  cutter: string;
+  setCutter: (cutter: string) => void;
+  cutterShape: string;
+  setCutterShape: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const SectionTitle = styled.h2`
@@ -159,6 +164,10 @@ export const CustomizationTabs: React.FC<CustomizationTabsProps> = ({
   setCurrentShapePage,
   customLogo,
   setCustomLogo,
+  cutter,
+  setCutter,
+  cutterShape,
+  setCutterShape,
 }) => {
   return (
     <TabsContainer>
@@ -187,6 +196,12 @@ export const CustomizationTabs: React.FC<CustomizationTabsProps> = ({
           onClick={() => setActiveTab("logo")}
         >
           Logo <ChevronDown size={16} />
+        </TabButton>
+        <TabButton
+          active={activeTab === "cutter"}
+          onClick={() => setActiveTab("cutter")}
+        >
+          Cutter <ChevronDown size={16} />
         </TabButton>
       </TabList>
       <TabContent>
@@ -241,6 +256,14 @@ export const CustomizationTabs: React.FC<CustomizationTabsProps> = ({
             setCornerSquares={setCornerSquares}
             customLogo={customLogo || ""}
             setCustomLogo={setCustomLogo}
+          />
+        )}
+        {activeTab === "cutter" && (
+          <CutterCustomization
+            cutter={cutter}
+            setCutter={setCutter}
+            cutterShape={cutterShape}
+            setCutterShape={setCutterShape}
           />
         )}
       </TabContent>
