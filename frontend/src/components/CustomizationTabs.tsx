@@ -69,6 +69,10 @@ interface CustomizationTabsProps {
   setCutter: (cutter: string) => void;
   cutterShape: string;
   setCutterShape: React.Dispatch<React.SetStateAction<string>>;
+  opacity: number;
+  setOpacity: (opacity: number) => void;
+  cutterColor: string;
+  setCutterColor: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const SectionTitle = styled.h2`
@@ -168,6 +172,10 @@ export const CustomizationTabs: React.FC<CustomizationTabsProps> = ({
   setCutter,
   cutterShape,
   setCutterShape,
+  opacity,
+  setOpacity,
+  cutterColor,
+  setCutterColor,
 }) => {
   return (
     <TabsContainer>
@@ -260,10 +268,14 @@ export const CustomizationTabs: React.FC<CustomizationTabsProps> = ({
         )}
         {activeTab === "cutter" && (
           <CutterCustomization
-            cutter={cutter}
-            setCutter={setCutter}
             cutterShape={cutterShape}
             setCutterShape={setCutterShape}
+            opacity={opacity}
+            setOpacity={setOpacity}
+            cutter={cutter}
+            setCutter={setCutter}
+            cutterColor={cutterColor}
+            setCutterColor={setCutterColor}
           />
         )}
       </TabContent>

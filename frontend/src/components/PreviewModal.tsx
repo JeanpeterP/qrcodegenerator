@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import styled from 'styled-components';
 import { QrCode, DeviceMobile, X } from 'phosphor-react';
 import { Preview } from "./Preview";
 import { PhonePreview } from './PhonePreview/PhonePreview';
 import { QRData, QRType } from '../types/qr';
 import QRCodeStyling from "qr-code-styling";
+import { getMaskForShape } from '../utils/getMaskForShape';
+import CutterMask from './CutterMask';
 
 interface PreviewModalProps {
   previewType: 'qr' | 'phone';
@@ -57,6 +59,10 @@ interface PreviewModalProps {
   // Add these new properties
   cutterShape: string;
   setCutterShape: React.Dispatch<React.SetStateAction<string>>;
+  opacity: number;
+  setOpacity: React.Dispatch<React.SetStateAction<number>>;
+  cutter: string;
+  cutterColor: string;
 }
 
 export const PreviewModal: React.FC<PreviewModalProps> = ({
@@ -107,7 +113,13 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
   setBackgroundType,
   cutterShape,
   setCutterShape,
+  opacity,
+  setOpacity,
+  cutter,
+  cutterColor,
 }) => {
+  const qrCodeContainerRef = useRef<HTMLDivElement>(null);
+
   return (
     <ModalOverlay>
       <ModalContent>
@@ -130,20 +142,16 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
         </ModalToggleContainer>
         <PreviewContainer>
           {previewType === 'qr' && (
-            <Preview
-              qrCodeInstance={qrCodeInstance}
-              handleDownload={handleDownload}
-              generateQRCodeData={generateQRCodeData}
-              frame={frame}
-              shape={shape}
-              frameColor={frameColor}
-              qrType={qrType}
-              generatedUrl={generatedUrl}
-              setGeneratedUrl={setGeneratedUrl}
-              setGenerateQRCode={setGenerateQRCode}
-              qrData={qrData}
-              cutterShape={cutterShape}
-            />
+            <div className="qr-preview" style={{ position: 'relative' }}>
+              <div ref={qrCodeContainerRef} />
+              {cutter !== 'none' && (
+                <CutterMask
+                  maskShape={cutter}
+                  color={cutterColor}
+                  opacity={opacity}
+                />
+              )}
+            </div>
           )}
           {previewType === 'phone' && (
             <PhonePreview
