@@ -25,6 +25,8 @@ export interface QRData {
     contentType: string;
     contentData: {
         title: string;
+        description?: string;
+        logoUrl?: string;
         links: Array<{
             label: string;
             url: string;

@@ -1194,6 +1194,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             setGenerateQRCode={setGenerateQRCode}
                             qrData={qrData}
                             cutterShape={cutterShape}
+                            previewType="qr"
                         />
                     )}
                     {previewType === 'phone' && (

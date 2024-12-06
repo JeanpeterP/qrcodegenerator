@@ -1,9 +1,16 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 import styled from 'styled-components';
-import QRCodeStyling, { DotType } from "qr-code-styling";
+import QRCodeStyling from "qr-code-styling";
 import { DownloadSimple } from "@phosphor-icons/react";
-import  generateQRCodeData  from "./QRCodeGenerator";
 import { QRData } from "../types/qr";
+import { PhonePreview } from './PhonePreview/PhonePreview';
+
+type PreviewType = 'qr' | 'phone';
+
+// Type guard function
+function isPreviewType(value: string): value is PreviewType {
+    return value === 'qr' || value === 'phone';
+}
 
 interface PreviewProps {
     qrCodeInstance: QRCodeStyling | null;
@@ -18,22 +25,26 @@ interface PreviewProps {
     setGenerateQRCode: (value: boolean) => void;
     qrData: QRData;
     cutterShape: string;
+    previewType: PreviewType;
 }
 
-export const Preview: React.FC<PreviewProps> = ({
-    qrCodeInstance,
-    handleDownload,
-    generateQRCodeData,
-    frame,
-    shape,
-    frameColor,
-    qrType,
-    generatedUrl,
-    setGeneratedUrl,
-    setGenerateQRCode,
-    qrData,
-    cutterShape
-}) => {
+export const Preview: React.FC<PreviewProps> = (props) => {
+    const {
+        qrCodeInstance,
+        handleDownload,
+        generateQRCodeData,
+        frame,
+        shape,
+        frameColor,
+        qrType,
+        generatedUrl,
+        setGeneratedUrl,
+        setGenerateQRCode,
+        qrData,
+        cutterShape,
+        previewType
+    } = props;
+
     const qrCodeRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
@@ -41,13 +52,12 @@ export const Preview: React.FC<PreviewProps> = ({
             qrCodeRef.current.innerHTML = '';
             qrCodeInstance.append(qrCodeRef.current);
         }
-    }, [qrCodeInstance]);
+    }, [qrCodeInstance, previewType]);
 
     const handleDownloadClick = async () => {
         if (!qrCodeInstance) return;
         
         try {
-            // If it's a file or multilink type and hasn't been generated yet, generate first
             if ((qrType === "file" || qrType === "multiplink") && !generatedUrl) {
                 setGenerateQRCode(true);
                 const url = await generateQRCodeData();
@@ -59,14 +69,10 @@ export const Preview: React.FC<PreviewProps> = ({
                 }
             }
             
-            // Get the canvas from the QR code instance
             const qrCodeCanvas = document.querySelector('.qr-container canvas') as HTMLCanvasElement;
 
             if (qrCodeCanvas) {
-                // Create a data URL from the canvas
                 const dataURL = qrCodeCanvas.toDataURL('image/png');
-
-                // Create a link and trigger the download
                 const link = document.createElement('a');
                 link.download = 'qr-code.png';
                 link.href = dataURL;
@@ -82,18 +88,26 @@ export const Preview: React.FC<PreviewProps> = ({
         }
     };
 
+    if (!isPreviewType(previewType)) {
+        return null;
+    }
+
     return (
-        <PreviewContainer 
-            className="qr-container"
-            frame={frame}
-            shape={shape}
-            frameColor={frameColor}
-        >
-            <div ref={qrCodeRef} />
-            <PreviewDownloadButton onClick={handleDownloadClick}>
-                <DownloadSimple size={20} weight="bold" />
-            </PreviewDownloadButton>
-        </PreviewContainer>
+        <>
+            <PhonePreview
+                show={true}
+                qrType={qrType}
+                qrData={qrData}
+                backgroundType="none"
+                isQRPreview={previewType === 'qr'}
+                qrCodeRef={qrCodeRef}
+            />
+            {previewType === 'qr' && (
+                <PreviewDownloadButton onClick={handleDownloadClick}>
+                    <DownloadSimple size={20} weight="bold" />
+                </PreviewDownloadButton>
+            )}
+        </>
     );
 };
 

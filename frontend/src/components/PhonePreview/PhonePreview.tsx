@@ -66,14 +66,14 @@ const PhonePreviewColumn = styled(PreviewColumn)<{ show: boolean }>`
   }
 `;
 
-const PhoneFrame = styled.div<{ backgroundType: string }>`
+const PhoneFrame = styled.div<{ backgroundType: string; isQRPreview?: boolean }>`
   position: relative;
   width: 100%;
   height: auto;
   aspect-ratio: 375/769;
   z-index: 2;
   
-  ${props => props.backgroundType === 'colorful' && `
+  ${props => !props.isQRPreview && props.backgroundType === 'colorful' && `
     &::before {
       content: '';
       position: absolute;
@@ -103,22 +103,31 @@ const PhoneFrame = styled.div<{ backgroundType: string }>`
   }
 `;
 
-const PhoneContent = styled.div<{ backgroundType: string }>`
+const PhoneContent = styled.div<{ backgroundType: string; isQRPreview?: boolean }>`
   position: absolute;
   top: 9%;
   left: 5.3%;
   width: 89.3%;
   height: 83%;
   overflow-y: hidden;
-  background-color: transparent;
+  background-color: ${props => props.isQRPreview ? '#ffffff' : 'transparent'};
   border-radius: 6px;
   z-index: 2;
+  display: ${props => props.isQRPreview ? 'flex' : 'block'};
+  justify-content: center;
+  align-items: center;
 
   & > * {
     position: relative;
     z-index: 2;
     background-color: transparent;
   }
+
+  ${props => props.isQRPreview && `
+    & > div {
+      transform: scale(0.8);
+    }
+  `}
 `;
 
 const Title = styled.h2`
@@ -149,9 +158,18 @@ interface PhonePreviewProps {
         };
     };
     backgroundType: string;
+    isQRPreview?: boolean;
+    qrCodeRef?: React.RefObject<HTMLDivElement>;
 }
 
-export const PhonePreview: React.FC<PhonePreviewProps> = ({ show, qrType, qrData, backgroundType }) => {
+export const PhonePreview: React.FC<PhonePreviewProps> = ({ 
+    show, 
+    qrType, 
+    qrData, 
+    backgroundType,
+    isQRPreview = false,
+    qrCodeRef
+}) => {
     const hasImplementedPreview = (type: string) => {
         return ['file', 'multiplink', 'youtube'].includes(type);
     };
@@ -171,41 +189,48 @@ export const PhonePreview: React.FC<PhonePreviewProps> = ({ show, qrType, qrData
 
     return (
         <PhonePreviewColumn show={show}>
-            <PhoneFrame backgroundType={backgroundType}>
-                <PhoneContent backgroundType={backgroundType}>
-                    {hasImplementedPreview(qrType) ? (
-                        <>
-                            {qrType === 'file' && qrData.file && (
-                                <File
-                                    fileData={{
-                                        title: qrData.file.title,
-                                        description: qrData.file.description,
-                                        buttonColor: qrData.file.buttonColor,
-                                        buttonText: qrData.file.buttonText,
-                                        isPreview: true,
-                                    }}
-                                />
-                            )}
-                            {qrType === 'multiplink' && qrData.contentData && (
-                                <MultiLink
-                                    contentData={{
-                                        title: qrData.contentData.title,
-                                        description: qrData.contentData.description,
-                                        logoUrl: qrData.contentData.logoUrl,
-                                        links: qrData.contentData.links,
-                                        isPreview: true,
-                                    }}
-                                />
-                            )}
-                            {qrType === 'youtube' && qrData.youtube && (
-                                <YouTube
-                                    youtubeData={qrData.youtube}
-                                    isPreview={true}
-                                />
-                            )}
-                        </>
+            <PhoneFrame backgroundType={backgroundType} isQRPreview={isQRPreview}>
+                <PhoneContent 
+                    backgroundType={backgroundType} 
+                    isQRPreview={isQRPreview}
+                >
+                    {isQRPreview ? (
+                        <div ref={qrCodeRef} />
                     ) : (
-                        renderPlaceholderContent()
+                        hasImplementedPreview(qrType) ? (
+                            <>
+                                {qrType === 'file' && qrData.file && (
+                                    <File
+                                        fileData={{
+                                            title: qrData.file.title,
+                                            description: qrData.file.description,
+                                            buttonColor: qrData.file.buttonColor,
+                                            buttonText: qrData.file.buttonText,
+                                            isPreview: true,
+                                        }}
+                                    />
+                                )}
+                                {qrType === 'multiplink' && qrData.contentData && (
+                                    <MultiLink
+                                        contentData={{
+                                            title: qrData.contentData.title,
+                                            description: qrData.contentData.description,
+                                            logoUrl: qrData.contentData.logoUrl,
+                                            links: qrData.contentData.links,
+                                            isPreview: true,
+                                        }}
+                                    />
+                                )}
+                                {qrType === 'youtube' && qrData.youtube && (
+                                    <YouTube
+                                        youtubeData={qrData.youtube}
+                                        isPreview={true}
+                                    />
+                                )}
+                            </>
+                        ) : (
+                            renderPlaceholderContent()
+                        )
                     )}
                 </PhoneContent>
             </PhoneFrame>
