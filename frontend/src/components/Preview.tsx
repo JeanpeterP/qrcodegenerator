@@ -69,15 +69,18 @@ export const Preview: React.FC<PreviewProps> = (props) => {
                 }
             }
             
-            const qrCodeCanvas = document.querySelector('.qr-container canvas') as HTMLCanvasElement;
-
+            const qrCodeCanvas = qrCodeRef.current?.querySelector('canvas');
+            
             if (qrCodeCanvas) {
                 const dataURL = qrCodeCanvas.toDataURL('image/png');
                 const link = document.createElement('a');
                 link.download = 'qr-code.png';
                 link.href = dataURL;
+                document.body.appendChild(link);
                 link.click();
+                document.body.removeChild(link);
             } else {
+                console.error('Canvas element not found in:', qrCodeRef.current);
                 throw new Error('QR code canvas not found');
             }
         } catch (error) {
