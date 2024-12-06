@@ -101,6 +101,8 @@ export const Preview: React.FC<PreviewProps> = (props) => {
                 backgroundType="none"
                 isQRPreview={previewType === 'qr'}
                 qrCodeRef={qrCodeRef}
+                frame={frame}
+                frameColor={frameColor}
             />
             {previewType === 'qr' && (
                 <PreviewDownloadButton onClick={handleDownloadClick}>

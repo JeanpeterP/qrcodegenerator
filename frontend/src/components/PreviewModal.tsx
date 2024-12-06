@@ -159,6 +159,8 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
               qrType={qrType}
               qrData={qrData}
               backgroundType={backgroundType}
+              frame={frame}
+              frameColor={frameColor}
             />
           )}
         </PreviewContainer>

@@ -3,7 +3,7 @@ import styled from "styled-components";
 import QRCodeStyling, {
     DotType as QRDotType,
     CornerSquareType,
-    Options,
+    Options as BaseOptions,
 } from "qr-code-styling";
 import html2canvas from 'html2canvas';
 import { CaretDown, QrCode, TextT, PaintBrush, DeviceMobile } from 'phosphor-react';
@@ -58,6 +58,8 @@ interface PhonePreviewProps {
     qrType: keyof QRData;
     qrData: QRData;
     backgroundType: string;
+    frame: string;
+    frameColor: string;
 }
 
 // Update the LogoType definition to match
@@ -76,6 +78,15 @@ export type HandleInputChangeFunction = (
     subKey?: string | null
 ) => void;
 
+// Define custom Options type that extends the base Options
+interface Options extends BaseOptions {
+    frameOptions?: {
+        style: string;
+        width: number;
+        color: string;
+        height: number;
+    };
+}
 
 const getPlaceholder = (type: keyof QRData): string => {
     switch (type) {
@@ -606,7 +617,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                 const qrData = await generateQRCodeData();
                 
                 if (!isCancelled && qrCodeInstance) {
-                    // Define QR code options
+                    // Define QR code options with the custom Options type
                     const options: Partial<Options> = {
                         width: qrSize,
                         height: qrSize,
@@ -616,7 +627,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             color: qrColor,
                         },
                         backgroundOptions: {
-                            color: 'transparent', // Set to transparent for masking
+                            color: 'transparent',
                         },
                         cornersSquareOptions: {
                             type: markerStyle as CornerSquareType,
@@ -630,6 +641,12 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             imageSize: 0.4,
                             margin: 0,
                         },
+                        frameOptions: frame !== 'none' ? {
+                            style: frame,
+                            width: 10,
+                            color: frameColor,
+                            height: 10
+                        } : undefined
                     };
 
                     await qrCodeInstance.update(options);
@@ -697,6 +714,8 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         qrData,
         cutterShape,
         opacity,
+        frame,
+        frameColor
     ]);
 
     // Add this helper function
@@ -1203,6 +1222,8 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             qrType={qrType}
                             qrData={qrData}
                             backgroundType={backgroundType}
+                            frame={frame}
+                            frameColor={frameColor}
                         />
                     )}
                 </RightColumn>
