@@ -262,7 +262,11 @@ export const PhonePreview: React.FC<PhonePreviewProps> = ({
                     isQRPreview={isQRPreview}
                 >
                     {isQRPreview ? (
-                        <FrameContainer frame={frame} frameColor={frameColor}>
+                        <FrameContainer 
+                            frame={frame} 
+                            frameColor={frameColor}
+                            className="frame-container"
+                        >
                             <div ref={qrCodeRef} />
                         </FrameContainer>
                     ) : (

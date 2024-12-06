@@ -4,6 +4,7 @@ import QRCodeStyling from "qr-code-styling";
 import { DownloadSimple } from "@phosphor-icons/react";
 import { QRData } from "../types/qr";
 import { PhonePreview } from './PhonePreview/PhonePreview';
+import html2canvas from 'html2canvas';
 
 type PreviewType = 'qr' | 'phone';
 
@@ -69,10 +70,17 @@ export const Preview: React.FC<PreviewProps> = (props) => {
                 }
             }
             
-            const qrCodeCanvas = qrCodeRef.current?.querySelector('canvas');
+            // Find the frame container which wraps the QR code
+            const frameContainer = qrCodeRef.current?.closest('.frame-container');
             
-            if (qrCodeCanvas) {
-                const dataURL = qrCodeCanvas.toDataURL('image/png');
+            if (frameContainer) {
+                // Use html2canvas to capture the entire container with frame
+                const canvas = await html2canvas(frameContainer as HTMLElement, {
+                    backgroundColor: null,
+                    scale: 2, // Increase quality
+                });
+                
+                const dataURL = canvas.toDataURL('image/png');
                 const link = document.createElement('a');
                 link.download = 'qr-code.png';
                 link.href = dataURL;
@@ -80,8 +88,8 @@ export const Preview: React.FC<PreviewProps> = (props) => {
                 link.click();
                 document.body.removeChild(link);
             } else {
-                console.error('Canvas element not found in:', qrCodeRef.current);
-                throw new Error('QR code canvas not found');
+                console.error('Frame container not found:', qrCodeRef.current);
+                throw new Error('QR code container not found');
             }
         } catch (error) {
             console.error("Error generating/downloading QR code:", error);
