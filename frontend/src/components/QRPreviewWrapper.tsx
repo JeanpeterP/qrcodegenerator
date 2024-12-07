@@ -21,75 +21,66 @@ const FrameContainer = styled.div<{ frame: string | Frame; frameColor: string }>
   justify-content: center;
   align-items: center;
 
-  ${(props) =>
-    props.frame === 'simple' &&
-    `
-    border: 4px solid ${props.frameColor};
-  `}
-
-  ${(props) =>
-    props.frame === 'rounded' &&
-    `
-    border: 4px solid ${props.frameColor};
-    border-radius: 16px;
-  `}
-
-  ${(props) =>
-    props.frame === 'fancy' &&
-    `
-    border: 4px solid ${props.frameColor};
-    border-radius: 16px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.5);
-  `}
-
-  ${(props) =>
-    props.frame === 'chat' &&
-    `
-    border: 4px solid ${props.frameColor};
-    border-radius: 16px;
-    
-    &::before {
-      content: 'Scan Me';
-      position: absolute;
-      top: -65px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: ${props.frameColor};
-      color: white;
-      padding: 12px 24px;
-      border-radius: 16px;
-      font-size: 18px;
-      white-space: nowrap;
-      font-weight: bold;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-
-    &::after {
-      content: '';
-      position: absolute;
-      top: -25px;
-      left: 50%;
-      transform: translateX(-50%);
-      border-left: 15px solid transparent;
-      border-right: 15px solid transparent;
-      border-top: 20px solid ${props.frameColor};
-    }
-  `}
-
   ${(props) => {
-    if (
-      typeof props.frame === 'object' &&
-      props.frame !== null &&
-      'type' in props.frame &&
-      props.frame.type === 'colorful'
-    ) {
-      return `
-        border: 4px solid;
-        border-image: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeead) 1;
-        border-radius: 16px;
-      `;
+    switch (typeof props.frame === 'object' ? props.frame.type : props.frame) {
+      case 'simple':
+        return `border: 4px solid ${props.frameColor};`;
+      case 'rounded':
+        return `
+          border: 4px solid ${props.frameColor};
+          border-radius: 16px;
+        `;
+      case 'fancy':
+        return `
+          border: 4px solid ${props.frameColor};
+          border-radius: 16px;
+          box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        `;
+      case 'colorful':
+        return `
+          position: relative;
+          border: 4px solid transparent;
+          border-radius: 16px;
+          background-image: linear-gradient(#fff, #fff), 
+                          linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeead);
+          background-origin: border-box;
+          background-clip: content-box, border-box;
+        `;
+      case 'chat':
+        return `
+          border: 4px solid ${props.frameColor};
+          border-radius: 16px;
+          
+          &::before {
+            content: 'Scan Me';
+            position: absolute;
+            top: -65px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: ${props.frameColor};
+            color: white;
+            padding: 12px 24px;
+            border-radius: 16px;
+            font-size: 18px;
+            white-space: nowrap;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          }
+
+          &::after {
+            content: '';
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 20px solid ${props.frameColor};
+          }
+        `;
+      default:
+        return '';
     }
-    return '';
   }}
 `;
 

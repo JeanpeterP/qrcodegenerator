@@ -14,7 +14,7 @@ import { Frame } from '../types';
 
 interface FrameCustomizationProps {
   frame: string | Frame;
-  setFrame: (frame: string)=> void;
+  setFrame: (frame: string | Frame)=> void;
   frameColor: string;
   setFrameColor: (color: string) => void;
   shape: DotType;
@@ -55,7 +55,11 @@ export const FrameCustomization: React.FC<FrameCustomizationProps> = ({
                  'type' in option.value && 
                  frame.type === option.value.type)
               }
-              onClick={() => setFrame(typeof option.value === 'object' ? option.value.type : option.value)}
+              onClick={() => setFrame(
+                typeof option.value === 'object' 
+                  ? { type: 'colorful' } 
+                  : option.value
+              )}
             >
               <PreviewContainer>
                 <MiniQRPreview

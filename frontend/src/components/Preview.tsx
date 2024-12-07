@@ -166,8 +166,14 @@ export const Preview: React.FC<PreviewProps> = ({
                         ctx.lineTo(padding + frameSize * 0.4, size - padding - tailSize);
                         break;
                     case 'colorful':
-                        // Create gradient
-                        const gradient = ctx.createLinearGradient(padding, padding, size - padding, size - padding);
+                        // Create gradient with 45-degree angle
+                        const gradient = ctx.createLinearGradient(
+                            padding, 
+                            padding, 
+                            size - padding, 
+                            size - padding
+                        );
+                        // Using the same colors as MiniQRPreview
                         gradient.addColorStop(0, '#ff6b6b');
                         gradient.addColorStop(0.25, '#4ecdc4');
                         gradient.addColorStop(0.5, '#45b7d1');
@@ -175,51 +181,19 @@ export const Preview: React.FC<PreviewProps> = ({
                         gradient.addColorStop(1, '#ffeead');
                         
                         ctx.strokeStyle = gradient;
+                        ctx.lineWidth = size * 0.02; // Match the 2px border from mini preview
                         
-                        // Draw main frame shape
+                        // Draw a simple rectangular frame with rounded corners (8px equivalent)
+                        const borderRadius = size * 0.008; // 8px equivalent for 1024px canvas
                         ctx.roundRect(
                             padding,
                             padding,
                             frameSize,
                             frameSize,
-                            size * 0.1
+                            borderRadius
                         );
                         
-                        // Top left flourish
-                        ctx.moveTo(padding, padding + cornerSize);
-                        ctx.quadraticCurveTo(
-                            padding + cornerSize/2,
-                            padding + cornerSize/2,
-                            padding + cornerSize,
-                            padding
-                        );
-                        
-                        // Top right flourish
-                        ctx.moveTo(size - padding - cornerSize, padding);
-                        ctx.quadraticCurveTo(
-                            size - padding - cornerSize/2,
-                            padding + cornerSize/2,
-                            size - padding,
-                            padding + cornerSize
-                        );
-                        
-                        // Bottom right flourish
-                        ctx.moveTo(size - padding, size - padding - cornerSize);
-                        ctx.quadraticCurveTo(
-                            size - padding - cornerSize/2,
-                            size - padding - cornerSize/2,
-                            size - padding - cornerSize,
-                            size - padding
-                        );
-                        
-                        // Bottom left flourish
-                        ctx.moveTo(padding + cornerSize, size - padding);
-                        ctx.quadraticCurveTo(
-                            padding + cornerSize/2,
-                            size - padding - cornerSize/2,
-                            padding,
-                            size - padding - cornerSize
-                        );
+                        // Remove all the flourishes since they're not in the mini preview
                         break;
                 }
                 

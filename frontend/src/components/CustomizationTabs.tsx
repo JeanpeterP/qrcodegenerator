@@ -8,13 +8,14 @@ import { ChevronDown } from "lucide-react";
 import { DotType, CornerSquareType } from "qr-code-styling";
 import { CutterCustomization } from './CutterCustomization';
 import { WatermarkCustomization } from './WatermarkCustomization';
+import { Frame } from '../types';
 
 interface CustomizationTabsProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   // Frame props
-  frame: string;
-  setFrame: (frame: string) => void;
+  frame: string | Frame;
+  setFrame: (frame: string | Frame) => void;
   frameColor: string;
   setFrameColor: (color: string) => void;
   // Shape props
