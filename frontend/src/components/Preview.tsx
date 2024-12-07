@@ -27,25 +27,35 @@ interface PreviewProps {
     qrData: QRData;
     cutterShape: string;
     previewType: PreviewType;
+    cutterColor: string;
+    opacity: number;
+    watermark: string;
+    watermarkColor: string;
+    watermarkOpacity: number;
+    cutter: string;
 }
 
-export const Preview: React.FC<PreviewProps> = (props) => {
-    const {
-        qrCodeInstance,
-        handleDownload,
-        generateQRCodeData,
-        frame,
-        shape,
-        frameColor,
-        qrType,
-        generatedUrl,
-        setGeneratedUrl,
-        setGenerateQRCode,
-        qrData,
-        cutterShape,
-        previewType
-    } = props;
-
+export const Preview: React.FC<PreviewProps> = ({
+    qrCodeInstance,
+    handleDownload,
+    generateQRCodeData,
+    frame,
+    shape,
+    frameColor,
+    qrType,
+    generatedUrl,
+    setGeneratedUrl,
+    setGenerateQRCode,
+    qrData,
+    cutterShape,
+    previewType,
+    cutterColor,
+    opacity,
+    watermark,
+    watermarkColor,
+    watermarkOpacity,
+    cutter
+}) => {
     const qrCodeRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
@@ -70,14 +80,12 @@ export const Preview: React.FC<PreviewProps> = (props) => {
                 }
             }
             
-            // Find the frame container which wraps the QR code
             const frameContainer = qrCodeRef.current?.closest('.frame-container');
             
             if (frameContainer) {
-                // Use html2canvas to capture the entire container with frame
                 const canvas = await html2canvas(frameContainer as HTMLElement, {
                     backgroundColor: null,
-                    scale: 2, // Increase quality
+                    scale: 2,
                 });
                 
                 const dataURL = canvas.toDataURL('image/png');
@@ -104,100 +112,36 @@ export const Preview: React.FC<PreviewProps> = (props) => {
     }
 
     return (
-        <>
+        <PreviewContainer>
             <PhonePreview
                 show={true}
                 qrType={qrType}
                 qrData={qrData}
                 backgroundType="none"
-                isQRPreview={previewType === 'qr'}
+                isQRPreview={true}
                 qrCodeRef={qrCodeRef}
                 frame={frame}
                 frameColor={frameColor}
+                cutter={cutterShape}
+                cutterColor={cutterColor}
+                opacity={opacity}
+                watermark={watermark}
+                watermarkColor={watermarkColor}
+                watermarkOpacity={watermarkOpacity}
             />
-            {previewType === 'qr' && (
-                <PreviewDownloadButton onClick={handleDownloadClick}>
-                    <DownloadSimple size={20} weight="bold" />
-                </PreviewDownloadButton>
-            )}
-        </>
+            <PreviewDownloadButton onClick={handleDownloadClick}>
+                <DownloadSimple size={20} weight="bold" />
+            </PreviewDownloadButton>
+        </PreviewContainer>
     );
 };
 
-// Styled Components (added missing ones)
-const PreviewContainer = styled.div<{ frame: string; shape: string; frameColor: string }>`
-    border: 1px solid #ced4da;
-    border-radius: 8px;
-    padding: 8px;
-    background-color: #f8f9fa;
-    width: fit-content;
-    margin: 8px auto;
-    transform: scale(1.2);
-    transform-origin: center;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+const PreviewContainer = styled.div`
     position: relative;
-    margin-top: ${(props) => props.frame === "chat" ? "80px" : "20px"};
-
-    ${(props) =>
-        props.frame === "simple" &&
-        `
-        border: 4px solid ${props.frameColor};
-    `}
-
-    ${(props) =>
-        props.frame === "rounded" &&
-        `
-        border: 4px solid ${props.frameColor};
-        border-radius: 16px;
-    `}
-
-    ${(props) =>
-        props.frame === "fancy" &&
-        `
-        border: 4px solid ${props.frameColor};
-        border-radius: 16px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    `}
-
-    ${(props) =>
-        props.frame === "chat" &&
-        `
-        border: 4px solid ${props.frameColor};
-        border-radius: 16px;
-        
-        &::before {
-            content: "Scan Me";
-            position: absolute;
-            top: -65px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: ${props.frameColor};
-            color: white;
-            padding: 12px 24px;
-            border-radius: 16px;
-            font-size: 18px;
-            white-space: nowrap;
-            font-weight: bold;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-
-        &::after {
-            content: "";
-            position: absolute;
-            top: -25px;
-            left: 50%;
-            transform: translateX(-50%);
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-top: 20px solid ${props.frameColor};
-        }
-    `}
-
-    & > div {
-        display: block;
-    }
+    width: 100%;
+    max-width: 375px;
+    margin: 0 auto;
+    padding: 20px;
 `;
 
 const PreviewDownloadButton = styled.button`
@@ -227,34 +171,3 @@ const PreviewDownloadButton = styled.button`
         transform: scale(0.95);
     }
 `;
-
-function getContentBounds(imageData: ImageData) {
-    const { width, height, data } = imageData;
-    let left = width;
-    let right = 0;
-    let top = height;
-    let bottom = 0;
-
-    // Scan through the image data to find content boundaries
-    for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-            const idx = (y * width + x) * 4;
-            // Check if pixel has any content (not fully transparent)
-            if (data[idx + 3] > 0) {
-                left = Math.min(left, x);
-                right = Math.max(right, x + 1);
-                top = Math.min(top, y);
-                bottom = Math.max(bottom, y + 1);
-            }
-        }
-    }
-
-    // Add a small padding
-    const padding = 10;
-    return {
-        left: Math.max(0, left - padding),
-        right: Math.min(width, right + padding),
-        top: Math.max(0, top - padding),
-        bottom: Math.min(height, bottom + padding)
-    };
-}

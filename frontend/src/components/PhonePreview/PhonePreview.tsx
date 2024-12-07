@@ -7,6 +7,12 @@ import { YouTube } from '../pageContent/YouTube';
 import colorfulBioMobile from '../../images/ColorFulBioMobile.png';
 import colorfulBioDesktop from '../../images/ColorfulBioDesktop.png';
 import { DownloadSimple } from '@phosphor-icons/react';
+import { QRPreviewWrapper } from '../QRPreviewWrapper';
+import CutterMask from '../CutterMask';
+
+interface StyledComponentProps {
+  watermark: string;
+}
 
 const PlaceholderContainer = styled.div`
   display: flex;
@@ -67,7 +73,7 @@ const PhonePreviewColumn = styled(PreviewColumn)<{ show: boolean }>`
   }
 `;
 
-const PhoneFrame = styled.div<{ backgroundType: string; isQRPreview?: boolean }>`
+const PhoneFrame = styled.div<{ backgroundType: string; isQRPreview?: boolean; watermark: string }>`
   position: relative;
   width: 100%;
   height: auto;
@@ -102,6 +108,14 @@ const PhoneFrame = styled.div<{ backgroundType: string; isQRPreview?: boolean }>
     z-index: 3;
     pointer-events: none;
   }
+
+  ${(props) =>
+    props.watermark !== 'none' &&
+    `
+      background-image: url(${props.watermark});
+      background-size: cover;
+      background-position: center;
+    `}
 `;
 
 const PhoneContent = styled.div<{ backgroundType: string; isQRPreview?: boolean }>`
@@ -110,7 +124,7 @@ const PhoneContent = styled.div<{ backgroundType: string; isQRPreview?: boolean 
   left: 5.3%;
   width: 89.3%;
   height: 83%;
-  overflow-y: hidden;
+  overflow: visible;
   background-color: ${props => props.isQRPreview ? '#ffffff' : 'transparent'};
   border-radius: 6px;
   z-index: 2;
@@ -203,28 +217,18 @@ const FrameContainer = styled.div<{ frame: string; frameColor: string }>`
 interface PhonePreviewProps {
     show: boolean;
     qrType: string;
-    qrData: {
-        file?: {
-            title?: string;
-            description?: string;
-            buttonColor?: string;
-            buttonText?: string;
-        };
-        contentData?: {
-            title?: string;
-            description?: string;
-            logoUrl?: string;
-            links?: Array<{ label: string; url: string; _id?: string }>;
-        };
-        youtube?: {
-            url: string;
-        };
-    };
+    qrData: any;
     backgroundType: string;
     isQRPreview?: boolean;
     qrCodeRef?: React.RefObject<HTMLDivElement>;
     frame: string;
     frameColor: string;
+    cutter: string;
+    cutterColor: string;
+    opacity: number;
+    watermark: string;
+    watermarkColor: string;
+    watermarkOpacity: number;
 }
 
 export const PhonePreview: React.FC<PhonePreviewProps> = ({ 
@@ -236,75 +240,33 @@ export const PhonePreview: React.FC<PhonePreviewProps> = ({
     qrCodeRef,
     frame,
     frameColor,
+    cutter,
+    cutterColor,
+    opacity,
+    watermark,
+    watermarkColor,
+    watermarkOpacity,
 }) => {
-    const hasImplementedPreview = (type: string) => {
-        return ['file', 'multiplink', 'youtube'].includes(type);
-    };
-
-    const renderPlaceholderContent = () => {
-        return (
-            <PlaceholderContainer>
-                <PlaceholderIcon />
-                <PlaceholderText>
-                    Preview not available yet.
-                    <br />
-                    Select this type to create your QR code.
-                </PlaceholderText>
-            </PlaceholderContainer>
-        );
-    };
-
     return (
         <PhonePreviewColumn show={show}>
-            <PhoneFrame backgroundType={backgroundType} isQRPreview={isQRPreview}>
-                <PhoneContent 
-                    backgroundType={backgroundType} 
-                    isQRPreview={isQRPreview}
-                >
-                    {isQRPreview ? (
-                        <FrameContainer 
-                            frame={frame} 
-                            frameColor={frameColor}
-                            className="frame-container"
-                        >
-                            <div ref={qrCodeRef} />
-                        </FrameContainer>
-                    ) : (
-                        hasImplementedPreview(qrType) ? (
-                            <>
-                                {qrType === 'file' && qrData.file && (
-                                    <File
-                                        fileData={{
-                                            title: qrData.file.title,
-                                            description: qrData.file.description,
-                                            buttonColor: qrData.file.buttonColor,
-                                            buttonText: qrData.file.buttonText,
-                                            isPreview: true,
-                                        }}
-                                    />
-                                )}
-                                {qrType === 'multiplink' && qrData.contentData && (
-                                    <MultiLink
-                                        contentData={{
-                                            title: qrData.contentData.title,
-                                            description: qrData.contentData.description,
-                                            logoUrl: qrData.contentData.logoUrl,
-                                            links: qrData.contentData.links,
-                                            isPreview: true,
-                                        }}
-                                    />
-                                )}
-                                {qrType === 'youtube' && qrData.youtube && (
-                                    <YouTube
-                                        youtubeData={qrData.youtube}
-                                        isPreview={true}
-                                    />
-                                )}
-                            </>
-                        ) : (
-                            renderPlaceholderContent()
-                        )
-                    )}
+            <PhoneFrame
+                backgroundType={backgroundType}
+                isQRPreview={isQRPreview}
+                watermark={watermark}
+            >
+                <PhoneContent backgroundType={backgroundType} isQRPreview={isQRPreview}>
+                    <QRPreviewWrapper
+                        cutter={cutter}
+                        cutterColor={cutterColor}
+                        opacity={opacity}
+                        frame={frame}
+                        frameColor={frameColor}
+                        watermark={watermark}
+                        watermarkColor={watermarkColor}
+                        watermarkOpacity={watermarkOpacity}
+                    >
+                        <div ref={qrCodeRef} />
+                    </QRPreviewWrapper>
                 </PhoneContent>
             </PhoneFrame>
         </PhonePreviewColumn>
@@ -339,24 +301,32 @@ interface PreviewProps {
   qrData: any;
   cutterShape: string;
   previewType: 'qr' | 'preview';
+  cutterColor: string;
+  opacity: number;
+  watermark: string;
+  watermarkColor: string;
+  watermarkOpacity: number;
 }
 
-export const Preview: React.FC<PreviewProps> = (props) => {
-  const {
-    qrCodeInstance,
-    handleDownload,
-    frame,
-    shape,
-    frameColor,
-    qrType,
-    generatedUrl,
-    setGeneratedUrl,
-    setGenerateQRCode,
-    qrData,
-    cutterShape,
-    previewType,
-  } = props;
-
+export const Preview: React.FC<PreviewProps> = ({
+  qrCodeInstance,
+  handleDownload,
+  frame,
+  shape,
+  frameColor,
+  qrType,
+  generatedUrl,
+  setGeneratedUrl,
+  setGenerateQRCode,
+  qrData,
+  cutterShape,
+  previewType,
+  cutterColor,
+  opacity,
+  watermark,
+  watermarkColor,
+  watermarkOpacity
+}) => {
   const qrCodeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -381,6 +351,12 @@ export const Preview: React.FC<PreviewProps> = (props) => {
         qrCodeRef={qrCodeRef}
         frame={frame}
         frameColor={frameColor}
+        cutter={cutterShape}
+        cutterColor={cutterColor}
+        opacity={opacity}
+        watermark={watermark}
+        watermarkColor={watermarkColor}
+        watermarkOpacity={watermarkOpacity}
       />
       {previewType === 'qr' && (
         <PreviewDownloadButton onClick={handleDownloadClick}>

@@ -56,13 +56,15 @@ interface PreviewModalProps {
   setButtonColor: (color: string) => void;
   dynamicBioType: string;
   setBackgroundType: (type: string) => void;
-  // Add these new properties
   cutterShape: string;
   setCutterShape: React.Dispatch<React.SetStateAction<string>>;
   opacity: number;
   setOpacity: React.Dispatch<React.SetStateAction<number>>;
   cutter: string;
   cutterColor: string;
+  watermark: string;
+  watermarkColor: string;
+  watermarkOpacity: number;
 }
 
 export const PreviewModal: React.FC<PreviewModalProps> = ({
@@ -117,6 +119,9 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
   setOpacity,
   cutter,
   cutterColor,
+  watermark,
+  watermarkColor,
+  watermarkOpacity,
 }) => {
   const qrCodeContainerRef = useRef<HTMLDivElement>(null);
 
@@ -144,11 +149,10 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
           {previewType === 'qr' && (
             <div className="qr-preview" style={{ position: 'relative' }}>
               <div ref={qrCodeContainerRef} />
-              {cutter !== 'none' && (
+              {cutterShape !== 'none' && (
                 <CutterMask
-                  maskShape={cutter}
+                  maskShape={cutterShape}
                   color={cutterColor}
-                  opacity={opacity}
                 />
               )}
             </div>
@@ -161,6 +165,12 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
               backgroundType={backgroundType}
               frame={frame}
               frameColor={frameColor}
+              cutter={cutterShape}
+              cutterColor={cutterColor}
+              opacity={opacity}
+              watermark={watermark}
+              watermarkColor={watermarkColor}
+              watermarkOpacity={watermarkOpacity}
             />
           )}
         </PreviewContainer>

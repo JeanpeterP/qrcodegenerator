@@ -9,26 +9,32 @@ import ChristmasTreeMask from './masks/ChristmasTreeMask';
 interface CutterMaskProps {
   maskShape: string;
   color: string;
-  opacity: number;
 }
 
-const CutterMask: React.FC<CutterMaskProps> = ({ maskShape, color, opacity }) => {
-  switch (maskShape) {
-    case 'skull':
-      return React.createElement(SkullMask, { fill: color });
-    case 'candycane':
-      return React.createElement(CandyCaneMask, { fill: color });
-    case 'snowflake':
-      return React.createElement(SnowflakeMask, { fill: color });
-    case 'santaclaus':
-      return React.createElement(SantaClausMask, { fill: color });
-    case 'reindeer':
-      return React.createElement(ReindeerMask, { fill: color });
-    case 'christmastree':
-      return React.createElement(ChristmasTreeMask, { fill: color });
-    default:
-      return null;
-  }
+const CutterMask: React.FC<CutterMaskProps> = ({ maskShape, color }) => {
+  const getMaskSVG = () => {
+    switch (maskShape) {
+      case 'skull':
+        return SkullMask.replace('fill="black"', `fill="${color}"`);
+      case 'candycane':
+        return CandyCaneMask.replace('fill="black"', `fill="${color}"`);
+      case 'snowflake':
+        return SnowflakeMask.replace('fill="black"', `fill="${color}"`);
+      case 'santaclaus':
+        return SantaClausMask.replace('fill="black"', `fill="${color}"`);
+      case 'reindeer':
+        return ReindeerMask.replace('fill="black"', `fill="${color}"`);
+      case 'christmastree':
+        return ChristmasTreeMask.replace('fill="black"', `fill="${color}"`);
+      default:
+        return '';
+    }
+  };
+
+  const maskSVG = getMaskSVG();
+  if (!maskSVG) return null;
+
+  return <div dangerouslySetInnerHTML={{ __html: maskSVG }} />;
 };
 
 export default CutterMask;

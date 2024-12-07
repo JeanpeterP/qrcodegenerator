@@ -51,6 +51,9 @@ interface PreviewProps {
     setGeneratedUrl: (url: string | null) => void;
     setGenerateQRCode: (value: boolean) => void;
     qrData: QRData;
+    watermark: string;
+    watermarkColor: string;
+    watermarkOpacity: number;
 }
 
 interface PhonePreviewProps {
@@ -60,6 +63,9 @@ interface PhonePreviewProps {
     backgroundType: string;
     frame: string;
     frameColor: string;
+    watermark: string;
+    watermarkColor: string;
+    watermarkOpacity: number;
 }
 
 // Update the LogoType definition to match
@@ -172,6 +178,12 @@ interface CustomizationTabsProps {
     setCutter: (cutter: string) => void;
     cutterColor: string;
     setCutterColor: React.Dispatch<React.SetStateAction<string>>;
+    watermark: string;
+    setWatermark: React.Dispatch<React.SetStateAction<string>>;
+    watermarkColor: string;
+    setWatermarkColor: React.Dispatch<React.SetStateAction<string>>;
+    watermarkOpacity: number;
+    setWatermarkOpacity: React.Dispatch<React.SetStateAction<number>>;
 }
 
 export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
@@ -303,6 +315,10 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     const [cutterShape, setCutterShape] = useState<string>('none');
     const [opacity, setOpacity] = useState<number>(0.3); // Default opacity
     const [cutterColor, setCutterColor] = useState<string>('#000000'); // Add this state
+
+    const [watermark, setWatermark] = useState<string>('none');
+    const [watermarkColor, setWatermarkColor] = useState<string>('#000000');
+    const [watermarkOpacity, setWatermarkOpacity] = useState<number>(0.3);
 
     useEffect(() => {
         setIsMounted(true);
@@ -1154,6 +1170,12 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                     setOpacity={setOpacity}
                     cutterColor={cutterColor}
                     setCutterColor={setCutterColor}
+                    watermark={watermark}
+                    setWatermark={setWatermark}
+                    watermarkColor={watermarkColor}
+                    setWatermarkColor={setWatermarkColor}
+                    watermarkOpacity={watermarkOpacity}
+                    setWatermarkOpacity={setWatermarkOpacity}
                 />
 
                 {['file', 'multiplink', 'pdf'].includes(qrType) && (
@@ -1213,7 +1235,13 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             setGenerateQRCode={setGenerateQRCode}
                             qrData={qrData}
                             cutterShape={cutterShape}
-                            previewType="qr"
+                            previewType={previewType}
+                            cutterColor={cutterColor}
+                            opacity={opacity}
+                            cutter={cutterShape}
+                            watermark={watermark}
+                            watermarkColor={watermarkColor}
+                            watermarkOpacity={watermarkOpacity}
                         />
                     )}
                     {previewType === 'phone' && (
@@ -1224,6 +1252,12 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             backgroundType={backgroundType}
                             frame={frame}
                             frameColor={frameColor}
+                            cutter={cutter}
+                            cutterColor={cutterColor}
+                            opacity={opacity}
+                            watermark={watermark}
+                            watermarkColor={watermarkColor}
+                            watermarkOpacity={watermarkOpacity}
                         />
                     )}
                 </RightColumn>
@@ -1285,6 +1319,9 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             setOpacity={setOpacity}
                             cutterColor={cutterColor}
                             cutter={cutter}
+                            watermark={watermark}
+                            watermarkColor={watermarkColor}
+                            watermarkOpacity={watermarkOpacity}
                         />
                     )}
                 </>

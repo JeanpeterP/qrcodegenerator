@@ -7,6 +7,7 @@ import { LogoCustomization } from "./LogoCustomization";
 import { ChevronDown } from "lucide-react";
 import { DotType, CornerSquareType } from "qr-code-styling";
 import { CutterCustomization } from './CutterCustomization';
+import { WatermarkCustomization } from './WatermarkCustomization';
 
 interface CustomizationTabsProps {
   activeTab: string;
@@ -73,6 +74,12 @@ interface CustomizationTabsProps {
   setOpacity: (opacity: number) => void;
   cutterColor: string;
   setCutterColor: React.Dispatch<React.SetStateAction<string>>;
+  watermark: string;
+  setWatermark: (watermark: string) => void;
+  watermarkColor: string;
+  setWatermarkColor: (color: string) => void;
+  watermarkOpacity: number;
+  setWatermarkOpacity: (opacity: number) => void;
 }
 
 const SectionTitle = styled.h2`
@@ -176,6 +183,12 @@ export const CustomizationTabs: React.FC<CustomizationTabsProps> = ({
   setOpacity,
   cutterColor,
   setCutterColor,
+  watermark,
+  setWatermark,
+  watermarkColor,
+  setWatermarkColor,
+  watermarkOpacity,
+  setWatermarkOpacity,
 }) => {
   return (
     <TabsContainer>
@@ -210,6 +223,12 @@ export const CustomizationTabs: React.FC<CustomizationTabsProps> = ({
           onClick={() => setActiveTab("cutter")}
         >
           Cutter <ChevronDown size={16} />
+        </TabButton>
+        <TabButton
+          active={activeTab === "watermark"}
+          onClick={() => setActiveTab("watermark")}
+        >
+          Watermark <ChevronDown size={16} />
         </TabButton>
       </TabList>
       <TabContent>
@@ -276,6 +295,16 @@ export const CustomizationTabs: React.FC<CustomizationTabsProps> = ({
             setCutter={setCutter}
             cutterColor={cutterColor}
             setCutterColor={setCutterColor}
+          />
+        )}
+        {activeTab === "watermark" && (
+          <WatermarkCustomization
+            watermark={watermark}
+            setWatermark={setWatermark}
+            watermarkColor={watermarkColor}
+            setWatermarkColor={setWatermarkColor}
+            watermarkOpacity={watermarkOpacity}
+            setWatermarkOpacity={setWatermarkOpacity}
           />
         )}
       </TabContent>

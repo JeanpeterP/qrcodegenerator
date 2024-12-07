@@ -65,6 +65,12 @@ export const CutterCustomization: React.FC<CutterCustomizationProps> = ({
   cutterColor,
   setCutterColor,
 }) => {
+  console.log('CutterCustomization props:', {
+    cutterShape,
+    opacity,
+    cutterColor
+  });
+
   return (
     <div>
       <CutterGrid>
@@ -73,7 +79,10 @@ export const CutterCustomization: React.FC<CutterCustomizationProps> = ({
             key={option.id}
             type={option.id}
             selected={cutterShape === option.id}
-            onClick={() => setCutterShape(option.id)}
+            onClick={() => {
+              console.log('Selecting cutter:', option.id);
+              setCutterShape(option.id);
+            }}
           />
         ))}
       </CutterGrid>
