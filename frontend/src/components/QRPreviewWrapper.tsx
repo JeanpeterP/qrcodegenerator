@@ -84,11 +84,10 @@ const ScaleContainer = styled.div`
   align-items: center;
 `;
 
-const QRPreviewContainer = styled.div<{ opacity: number }>`
+const QRPreviewContainer = styled.div`
   position: relative;
   width: 100%;
   height: 100%;
-  opacity: ${props => props.opacity};
 `;
 
 const WatermarkContainer = styled.div<{ svg: string; opacity: number }>`
@@ -120,7 +119,7 @@ export const QRPreviewWrapper: React.FC<QRPreviewWrapperProps> = ({
     <FrameContainer frame={frame} frameColor={frameColor}>
       <ScaleContainer>
         <div style={{ position: 'relative' }}>
-          <QRPreviewContainer className="qr-preview" opacity={opacity}>
+          <QRPreviewContainer className="qr-preview">
             {children}
           </QRPreviewContainer>
           {watermark !== 'none' && (
