@@ -9,6 +9,7 @@ import colorfulBioDesktop from '../../images/ColorfulBioDesktop.png';
 import { DownloadSimple } from '@phosphor-icons/react';
 import { QRPreviewWrapper } from '../QRPreviewWrapper';
 import CutterMask from '../CutterMask';
+import { Frame } from '../../types';
 
 interface StyledComponentProps {
   watermark: string;
@@ -221,7 +222,7 @@ interface PhonePreviewProps {
     backgroundType: string;
     isQRPreview?: boolean;
     qrCodeRef?: React.RefObject<HTMLDivElement>;
-    frame: string;
+    frame: string | Frame;
     frameColor: string;
     cutter: string;
     cutterColor: string;

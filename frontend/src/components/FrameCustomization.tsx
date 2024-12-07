@@ -10,10 +10,11 @@ import {
   PreviewContainer,
   OptionLabel,
 } from "../styles/OptionStyles";
+import { Frame } from '../types';
 
 interface FrameCustomizationProps {
-  frame: string;
-  setFrame: (frame: string) => void;
+  frame: string | Frame;
+  setFrame: (frame: string)=> void;
   frameColor: string;
   setFrameColor: (color: string) => void;
   shape: DotType;
@@ -31,11 +32,12 @@ export const FrameCustomization: React.FC<FrameCustomizationProps> = ({
   setCurrentFramePage,
 }) => {
   const frameOptions = [
-    { id: "none", label: "None" },
-    { id: "simple", label: "Simple" },
-    { id: "rounded", label: "Rounded" },
-    { id: "fancy", label: "Fancy" },
-    { id: "chat", label: "Bubble" },
+    { value: 'none', label: 'No Frame' },
+    { value: 'simple', label: 'Simple' },
+    { value: 'rounded', label: 'Rounded' },
+    { value: 'fancy', label: 'Fancy' },
+    { value: 'chat', label: 'Chat' },
+    { value: { type: 'colorful' }, label: 'Colorful' },
   ];
 
   return (
@@ -44,13 +46,20 @@ export const FrameCustomization: React.FC<FrameCustomizationProps> = ({
         <OptionGrid itemCount={frameOptions.length}>
           {frameOptions.map((option) => (
             <OptionBox
-              key={option.id}
-              active={frame === option.id}
-              onClick={() => setFrame(option.id)}
+              key={typeof option.value === 'string' ? option.value : option.value.type}
+              active={
+                frame === option.value ||
+                (typeof frame === 'object' && 
+                 'type' in frame && 
+                 typeof option.value === 'object' && 
+                 'type' in option.value && 
+                 frame.type === option.value.type)
+              }
+              onClick={() => setFrame(typeof option.value === 'object' ? option.value.type : option.value)}
             >
               <PreviewContainer>
                 <MiniQRPreview
-                  frame={option.id}
+                  frame={option.value}
                   shape={shape}
                   frameColor={frameColor}
                   markerStyle="dot"

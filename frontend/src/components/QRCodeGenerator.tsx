@@ -30,6 +30,7 @@ import SantaClausMask from './masks/SantaClausMask';
 import ReindeerMask from './masks/ReindeerMask';
 import ChristmasTreeMask from './masks/ChristmasTreeMask';
 import { getMaskForShape } from '../utils/getMaskForShape';
+import { Frame } from '../types';
 
 interface QRCodeGeneratorProps {
     userChoice?: 'qr' | 'dynamicBio' | null;
@@ -186,6 +187,65 @@ interface CustomizationTabsProps {
     setWatermarkOpacity: React.Dispatch<React.SetStateAction<number>>;
 }
 
+interface PreviewModalProps {
+    previewType: 'qr' | 'phone';
+    setPreviewType: (type: 'qr' | 'phone') => void;
+    onClose: () => void;
+    qrCodeInstance: QRCodeStyling | null;
+    handleDownload: (format: "png" | "svg") => Promise<void>;
+    generateQRCodeData: () => Promise<string>;
+    frame: string;
+    setFrame: (newFrame: string | Frame) => void;
+    shape: string;
+    setShape: React.Dispatch<React.SetStateAction<QRDotType>>;
+    frameColor: string;
+    qrType: string;
+    generatedUrl: string | null;
+    setGeneratedUrl: (url: string | null) => void;
+    setGenerateQRCode: (value: boolean) => void;
+    qrData: QRData;
+    backgroundType: string;
+    gradient: boolean;
+    setGradient: React.Dispatch<React.SetStateAction<boolean>>;
+    gradientColor1: string;
+    setGradientColor1: React.Dispatch<React.SetStateAction<string>>;
+    gradientColor2: string;
+    setGradientColor2: React.Dispatch<React.SetStateAction<string>>;
+    gradientType: string;
+    setGradientType: React.Dispatch<React.SetStateAction<string>>;
+    gradientRotation: number;
+    setGradientRotation: React.Dispatch<React.SetStateAction<number>>;
+    cornerDots: string;
+    setCornerDots: React.Dispatch<React.SetStateAction<string>>;
+    cornerSquares: string;
+    setCornerSquares: React.Dispatch<React.SetStateAction<string>>;
+    currentFramePage: number;
+    setCurrentFramePage: React.Dispatch<React.SetStateAction<number>>;
+    currentShapePage: number;
+    setCurrentShapePage: React.Dispatch<React.SetStateAction<number>>;
+    customLogo: string | null;
+    setCustomLogo: React.Dispatch<React.SetStateAction<string | null>>;
+    title: string;
+    setTitle: React.Dispatch<React.SetStateAction<string>>;
+    description: string;
+    setDescription: React.Dispatch<React.SetStateAction<string>>;
+    buttonText: string;
+    setButtonText: React.Dispatch<React.SetStateAction<string>>;
+    buttonColor: string;
+    setButtonColor: React.Dispatch<React.SetStateAction<string>>;
+    dynamicBioType: string;
+    setBackgroundType: React.Dispatch<React.SetStateAction<string>>;
+    cutterShape: string;
+    setCutterShape: React.Dispatch<React.SetStateAction<string>>;
+    opacity: number;
+    setOpacity: React.Dispatch<React.SetStateAction<number>>;
+    cutterColor: string;
+    cutter: string;
+    watermark: string;
+    watermarkColor: string;
+    watermarkOpacity: number;
+}
+
 export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     const [isMounted, setIsMounted] = useState(false);
     const [qrType, setQRType] = useState<QRType>('url');
@@ -232,7 +292,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     const [qrColor, setQRColor] = useState("#000000");
     const [qrBackground, setQRBackground] = useState("#ffffff");
     const [qrSize, setQRSize] = useState(200);
-    const [frame, setFrame] = useState("none");
+    const [frame, setFrame] = useState<string | Frame>('none');
     const [shape, setShape] = useState<QRDotType>("square");
     const [logo, setLogo] = useState<LogoType>(null);
     const [activeTab, setActiveTab] = useState("frame");
@@ -658,7 +718,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             margin: 0,
                         },
                         frameOptions: frame !== 'none' ? {
-                            style: frame,
+                            style: typeof frame === 'object' ? frame.type : frame,
                             width: 10,
                             color: frameColor,
                             height: 10
@@ -1097,6 +1157,10 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         updateQRCode();
     }, [shape, qrColor, cutterShape]);
 
+    const handleFrameChange = (newFrame: string | Frame) => {
+        setFrame(newFrame);
+    };
+
     return (
         <Container>
             <LeftColumn>
@@ -1124,8 +1188,8 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                 <CustomizationTabs
                     activeTab={activeTab}
                     setActiveTab={setActiveTab}
-                    frame={frame}
-                    setFrame={setFrame}
+                    frame={typeof frame === 'object' ? frame.type : frame}
+                    setFrame={handleFrameChange}
                     frameColor={frameColor}
                     setFrameColor={setFrameColor}
                     shape={shape}
@@ -1226,8 +1290,9 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             qrCodeInstance={qrCodeInstance}
                             handleDownload={handleDownload}
                             generateQRCodeData={generateQRCodeData}
-                            frame={frame}
+                            frame={typeof frame === 'object' ? frame.type : frame}
                             shape={shape}
+                            setFrame={handleFrameChange}
                             frameColor={frameColor}
                             qrType={qrType}
                             generatedUrl={generatedUrl}
@@ -1238,7 +1303,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             previewType={previewType}
                             cutterColor={cutterColor}
                             opacity={opacity}
-                            cutter={cutterShape}
+                            cutter={cutter}
                             watermark={watermark}
                             watermarkColor={watermarkColor}
                             watermarkOpacity={watermarkOpacity}
@@ -1275,7 +1340,9 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             handleDownload={handleDownload}
                             generateQRCodeData={generateQRCodeData}
                             frame={frame}
+                            setFrame={handleFrameChange}
                             shape={shape}
+                            setShape={setShape}
                             frameColor={frameColor}
                             qrType={qrType}
                             generatedUrl={generatedUrl}

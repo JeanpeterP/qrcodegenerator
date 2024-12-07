@@ -7,6 +7,8 @@ import { QRData, QRType } from '../types/qr';
 import QRCodeStyling from "qr-code-styling";
 import { getMaskForShape } from '../utils/getMaskForShape';
 import CutterMask from './CutterMask';
+import { DotType as QRDotType } from "qr-code-styling";
+import { Frame } from '../types';
 
 interface PreviewModalProps {
   previewType: 'qr' | 'phone';
@@ -16,7 +18,8 @@ interface PreviewModalProps {
   qrCodeInstance: QRCodeStyling | null;
   handleDownload: (format: "png" | "svg") => Promise<void>;
   generateQRCodeData: () => Promise<string>;
-  frame: string;
+  frame: string | Frame;
+  setFrame: (frame: string | Frame) => void;
   shape: any; // Replace with proper DotType when available
   frameColor: string;
   qrType: QRType;
@@ -65,6 +68,7 @@ interface PreviewModalProps {
   watermark: string;
   watermarkColor: string;
   watermarkOpacity: number;
+  setShape: React.Dispatch<React.SetStateAction<QRDotType>>;
 }
 
 export const PreviewModal: React.FC<PreviewModalProps> = ({
@@ -75,6 +79,7 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
   handleDownload,
   generateQRCodeData,
   frame,
+  setFrame,
   shape,
   frameColor,
   qrType,
@@ -122,6 +127,7 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
   watermark,
   watermarkColor,
   watermarkOpacity,
+  setShape,
 }) => {
   const qrCodeContainerRef = useRef<HTMLDivElement>(null);
 

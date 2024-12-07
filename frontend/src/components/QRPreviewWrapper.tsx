@@ -1,20 +1,21 @@
 import React from 'react';
 import styled from 'styled-components';
 import { getWatermarkSVG } from './watermarks/getWatermarkSVG';
+import { Frame } from '../types';
 
 interface QRPreviewWrapperProps {
   children: React.ReactNode;
   cutter: string;
   cutterColor: string;
   opacity: number;
-  frame: string;
+  frame: string | Frame;
   frameColor: string;
   watermark: string;
   watermarkColor: string;
   watermarkOpacity: number;
 }
 
-const FrameContainer = styled.div<{ frame: string; frameColor: string }>`
+const FrameContainer = styled.div<{ frame: string | Frame; frameColor: string }>`
   position: relative;
   display: flex;
   justify-content: center;
@@ -74,6 +75,22 @@ const FrameContainer = styled.div<{ frame: string; frameColor: string }>`
       border-top: 20px solid ${props.frameColor};
     }
   `}
+
+  ${(props) => {
+    if (
+      typeof props.frame === 'object' &&
+      props.frame !== null &&
+      'type' in props.frame &&
+      props.frame.type === 'colorful'
+    ) {
+      return `
+        border: 4px solid;
+        border-image: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeead) 1;
+        border-radius: 16px;
+      `;
+    }
+    return '';
+  }}
 `;
 
 const ScaleContainer = styled.div`
@@ -89,6 +106,7 @@ const Container = styled.div`
   display: inline-block;
   min-width: 300px;
   min-height: 300px;
+  aspect-ratio: 1;
 `;
 
 const QRPreviewContainer = styled.div`
@@ -98,18 +116,17 @@ const QRPreviewContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  padding-top: 20px;
   
   & > div {
     transform: scale(1.5);
-    transform-origin: center;
+    transform-origin: center center;
   }
 `;
 
 const WatermarkContainer = styled.div<{ svg: string; opacity: number }>`
   position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
+  margin: auto;
   width: 100%;
   height: 100%;
   opacity: ${props => props.opacity};

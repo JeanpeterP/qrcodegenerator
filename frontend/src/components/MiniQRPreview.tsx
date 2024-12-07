@@ -1,9 +1,10 @@
 import React, { useRef, useEffect } from 'react';
 import QRCodeStyling, { DotType, CornerSquareType } from "qr-code-styling";
 import styled from 'styled-components';
+import { Frame } from '../types';
 
 interface MiniQRPreviewProps {
-  frame: string;
+  frame: string | Frame;
   shape: DotType;
   frameColor: string;
   markerStyle: CornerSquareType;
@@ -54,7 +55,7 @@ export const MiniQRPreview: React.FC<MiniQRPreviewProps> = ({ frame, shape, fram
 };
 
 // Styled Components
-const MiniPreviewContainer = styled.div<{ frame: string; shape: string; frameColor: string }>`
+const MiniPreviewContainer = styled.div<{ frame: string | Frame; shape: string; frameColor: string }>`
   width: 60px;
   height: 60px;
   display: flex;
@@ -123,6 +124,22 @@ const MiniPreviewContainer = styled.div<{ frame: string; shape: string; frameCol
       z-index: 1;
     }
   `}
+
+  ${(props) => {
+    if (
+      typeof props.frame === 'object' &&
+      props.frame !== null &&
+      'type' in props.frame &&
+      props.frame.type === 'colorful'
+    ) {
+      return `
+        border: 2px solid;
+        border-image: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeead) 1;
+        border-radius: 8px;
+      `;
+    }
+    return '';
+  }}
 
   & > div {
     width: 50px !important;
