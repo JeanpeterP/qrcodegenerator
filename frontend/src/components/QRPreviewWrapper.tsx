@@ -84,10 +84,26 @@ const ScaleContainer = styled.div`
   align-items: center;
 `;
 
+const Container = styled.div`
+  position: relative;
+  display: inline-block;
+  min-width: 300px;
+  min-height: 300px;
+`;
+
 const QRPreviewContainer = styled.div`
   position: relative;
   width: 100%;
   height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 20px;
+  
+  & > div {
+    transform: scale(1.5);
+    transform-origin: center;
+  }
 `;
 
 const WatermarkContainer = styled.div<{ svg: string; opacity: number }>`
@@ -99,9 +115,11 @@ const WatermarkContainer = styled.div<{ svg: string; opacity: number }>`
   opacity: ${props => props.opacity};
   pointer-events: none;
   background-image: url('data:image/svg+xml;base64,${props => btoa(props.svg)}');
-  background-size: contain;
+  background-size: 80% 80%;
   background-position: center;
   background-repeat: no-repeat;
+  transform: scale(1.3);
+  transform-origin: center;
 `;
 
 export const QRPreviewWrapper: React.FC<QRPreviewWrapperProps> = ({
@@ -116,18 +134,20 @@ export const QRPreviewWrapper: React.FC<QRPreviewWrapperProps> = ({
   watermarkOpacity,
 }) => {
   return (
-    <FrameContainer frame={frame} frameColor={frameColor}>
+    <FrameContainer frame={frame} frameColor={frameColor} className="qr-frame">
       <ScaleContainer>
         <div style={{ position: 'relative' }}>
-          <QRPreviewContainer className="qr-preview">
-            {children}
-          </QRPreviewContainer>
-          {watermark !== 'none' && (
-            <WatermarkContainer
-              svg={getWatermarkSVG(watermark, watermarkColor)}
-              opacity={watermarkOpacity}
-            />
-          )}
+          <Container className="qr-preview">
+            <QRPreviewContainer>
+              {children}
+            </QRPreviewContainer>
+            {watermark !== 'none' && (
+              <WatermarkContainer
+                svg={getWatermarkSVG(watermark, watermarkColor)}
+                opacity={watermarkOpacity}
+              />
+            )}
+          </Container>
         </div>
       </ScaleContainer>
     </FrameContainer>

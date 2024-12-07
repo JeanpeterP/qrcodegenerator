@@ -5,6 +5,7 @@ import { DownloadSimple } from "@phosphor-icons/react";
 import { QRData } from "../types/qr";
 import { PhonePreview } from './PhonePreview/PhonePreview';
 import html2canvas from 'html2canvas';
+import { getWatermarkSVG } from '../components/watermarks/getWatermarkSVG';
 
 type PreviewType = 'qr' | 'phone';
 
@@ -77,28 +78,78 @@ export const Preview: React.FC<PreviewProps> = ({
                     qrCodeInstance.update({
                         data: url.toString(),
                     });
+                    await new Promise(resolve => setTimeout(resolve, 100));
                 }
             }
-            
-            const frameContainer = qrCodeRef.current?.closest('.frame-container');
-            
-            if (frameContainer) {
-                const canvas = await html2canvas(frameContainer as HTMLElement, {
-                    backgroundColor: null,
-                    scale: 2,
-                });
-                
-                const dataURL = canvas.toDataURL('image/png');
-                const link = document.createElement('a');
-                link.download = 'qr-code.png';
-                link.href = dataURL;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            } else {
-                console.error('Frame container not found:', qrCodeRef.current);
-                throw new Error('QR code container not found');
+
+            const qrCanvas = qrCodeRef.current?.querySelector('canvas');
+            if (!qrCanvas) {
+                throw new Error('QR code canvas not found');
             }
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+                throw new Error('Could not get canvas context');
+            }
+
+            const size = 1024;
+            canvas.width = size;
+            canvas.height = size;
+
+            ctx.clearRect(0, 0, size, size);
+
+            // Draw frame if needed
+            if (frame !== 'none') {
+                ctx.strokeStyle = frameColor;
+                ctx.lineWidth = size * 0.02;
+                const padding = size * 0.1;
+                ctx.strokeRect(padding, padding, size - (padding * 2), size - (padding * 2));
+            }
+
+            // Draw QR code
+            const qrSize = size * 0.8;
+            const qrX = (size - qrSize) / 2;
+            const qrY = (size - qrSize) / 2;
+            ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
+
+            // Draw watermark if needed
+            if (watermark !== 'none') {
+                const watermarkImg = new Image();
+                watermarkImg.src = `data:image/svg+xml;base64,${btoa(getWatermarkSVG(watermark, watermarkColor))}`;
+                
+                await new Promise((resolve, reject) => {
+                    watermarkImg.onload = resolve;
+                    watermarkImg.onerror = reject;
+                });
+
+                // Match the preview sizing by making watermark cover the full frame area
+                ctx.globalAlpha = watermarkOpacity;
+                const padding = size * 0.1; // Same padding as frame
+                const watermarkSize = size - (padding * 2); // Fill the entire frame area
+                const watermarkX = padding;
+                const watermarkY = padding;
+                
+                ctx.save();
+                
+                // Create a clipping path for the frame area
+                ctx.beginPath();
+                ctx.rect(padding, padding, watermarkSize, watermarkSize);
+                ctx.clip();
+                
+                // Draw watermark to fill the entire frame area
+                ctx.drawImage(watermarkImg, watermarkX, watermarkY, watermarkSize, watermarkSize);
+                
+                ctx.restore();
+                ctx.globalAlpha = 1.0;
+            }
+
+            const dataURL = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = `qr-code-${Date.now()}.png`;
+            link.href = dataURL;
+            link.click();
+
         } catch (error) {
             console.error("Error generating/downloading QR code:", error);
             alert("Error generating QR code. Please try again.");
