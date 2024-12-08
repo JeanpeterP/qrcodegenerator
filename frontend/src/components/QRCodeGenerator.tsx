@@ -67,6 +67,7 @@ interface PhonePreviewProps {
     watermark: string;
     watermarkColor: string;
     watermarkOpacity: number;
+    logo: LogoType | null;
 }
 
 // Update the LogoType definition to match
@@ -1305,6 +1306,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             watermark={watermark}
                             watermarkColor={watermarkColor}
                             watermarkOpacity={watermarkOpacity}
+                            logo={logo}
                         />
                     )}
                     {previewType === 'phone' && (
@@ -1321,6 +1323,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             watermark={watermark}
                             watermarkColor={watermarkColor}
                             watermarkOpacity={watermarkOpacity}
+                            logo={logo}
                         />
                     )}
                 </RightColumn>
@@ -1387,6 +1390,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             watermark={watermark}
                             watermarkColor={watermarkColor}
                             watermarkOpacity={watermarkOpacity}
+                            logo={logo}
                         />
                     )}
                 </>

@@ -1,34 +1,34 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import styled from 'styled-components';
 import { Plus } from 'lucide-react';
 import { LogoType } from './LogoCustomization';
 
-export const LogoPreview: React.FC<{ type: LogoType; onUpload?: (file: File) => void }> = ({ type, onUpload }) => {
+interface LogoPreviewProps {
+  type: LogoType;
+  src?: string | null;
+}
+
+export const LogoPreview: React.FC<LogoPreviewProps> = ({ type, src }) => {
+  if (type === 'custom' && src) {
     return (
-        <LogoPreviewContainer>
-            {type === 'custom' && (
-                <CustomUploadBox>
-                    <Plus size={24} />
-                </CustomUploadBox>
-            )}
-            {type === 'stacked' && (
-                <StackedText>
-                    <span>SCAN</span>
-                    <span>ME</span>
-                </StackedText>
-            )}
-            {type === 'open-box' && (
-                <OpenBoxContainer>
-                    <OpenBoxText>SCAN ME</OpenBoxText>
-                </OpenBoxContainer>
-            )}
-            {type === 'closed-box' && (
-                <ClosedBoxContainer>
-                    <ClosedBoxText>SCAN ME</ClosedBoxText>
-                </ClosedBoxContainer>
-            )}
-        </LogoPreviewContainer>
+      <LogoPreviewContainer>
+        <img src={src} alt="Custom logo" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+      </LogoPreviewContainer>
     );
+  }
+
+  return (
+    <LogoPreviewContainer>
+      {type === 'custom' && (
+        <CustomUploadBox>
+          <Plus size={24} />
+        </CustomUploadBox>
+      )}
+      {type !== 'custom' && src && (
+        <img src={src} alt={`${type} logo`} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+      )}
+    </LogoPreviewContainer>
+  );
 };
 
 // Styled Components

@@ -9,6 +9,7 @@ import { getMaskForShape } from '../utils/getMaskForShape';
 import CutterMask from './CutterMask';
 import { DotType as QRDotType } from "qr-code-styling";
 import { Frame } from '../types';
+import { LogoType } from './LogoCustomization';
 
 interface PreviewModalProps {
   previewType: 'qr' | 'phone';
@@ -69,6 +70,12 @@ interface PreviewModalProps {
   watermarkColor: string;
   watermarkOpacity: number;
   setShape: React.Dispatch<React.SetStateAction<QRDotType>>;
+  logo: {
+    type: LogoType;
+    src: string | null;
+    width?: number;
+    height?: number;
+  } | null;
 }
 
 export const PreviewModal: React.FC<PreviewModalProps> = ({
@@ -128,6 +135,7 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
   watermarkColor,
   watermarkOpacity,
   setShape,
+  logo,
 }) => {
   const qrCodeContainerRef = useRef<HTMLDivElement>(null);
 
@@ -177,6 +185,7 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
               watermark={watermark}
               watermarkColor={watermarkColor}
               watermarkOpacity={watermarkOpacity}
+              logo={logo}
             />
           )}
         </PreviewContainer>

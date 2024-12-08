@@ -1,13 +1,8 @@
 import React from "react";
-import styled from "styled-components";
+import { CustomizationContainer, CustomizationTitle, CustomizationContent } from "./CustomizationContainer";
 import { LogoPreview } from "./LogoPreview";
-import {
-  GridContainer,
-  OptionGrid,
-  OptionBox,
-  PreviewContainer,
-  OptionLabel,
-} from "../styles/OptionStyles";
+import { getLogoSource } from "../utils/logoUtils";
+import { OptionGrid, OptionBox, PreviewContainer, OptionLabel } from "../styles/OptionStyles";
 
 export type LogoType = "custom" | "stacked" | "open-box" | "closed-box";
 
@@ -53,20 +48,6 @@ export const LogoCustomization: React.FC<LogoCustomizationProps> = ({
   setCustomLogo,
   logoSize,
   setLogoSize,
-  gradient,
-  setGradient,
-  gradientColor1,
-  setGradientColor1,
-  gradientColor2,
-  setGradientColor2,
-  gradientType,
-  setGradientType,
-  gradientRotation,
-  setGradientRotation,
-  cornerDots,
-  setCornerDots,
-  cornerSquares,
-  setCornerSquares,
 }) => {
   const logoOptions: { type: LogoType; label: string }[] = [
     { type: "custom", label: "Custom Upload" },
@@ -77,51 +58,81 @@ export const LogoCustomization: React.FC<LogoCustomizationProps> = ({
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
+  const handleLogoSelect = (type: LogoType) => {
+    if (type === "custom") {
+      fileInputRef.current?.click();
+    } else {
+      setLogo({
+        type,
+        src: getLogoSource(type),
+        width: 50,
+        height: 30,
+      });
+    }
+  };
+
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setCustomLogo(e.target?.result as string);
-        setLogo({ type: "custom", src: e.target?.result as string });
+        const img = new Image();
+        img.onload = () => {
+          // Calculate dimensions while maintaining aspect ratio
+          const maxSize = 50; // Maximum size for the logo
+          const ratio = img.width / img.height;
+          let width = maxSize;
+          let height = maxSize;
+          
+          if (ratio > 1) {
+            height = width / ratio;
+          } else {
+            width = height * ratio;
+          }
+
+          setLogo({
+            type: "custom",
+            src: e.target?.result as string,
+            width,
+            height,
+          });
+          setCustomLogo(e.target?.result as string);
+        };
+        img.src = e.target?.result as string;
       };
       reader.readAsDataURL(file);
     }
   };
 
   return (
-    <GridContainer>
-      <input
-        type="file"
-        ref={fileInputRef}
-        style={{ display: 'none' }}
-        accept="image/*"
-        onChange={handleLogoUpload}
-      />
-      <OptionGrid >
-        {logoOptions.map((option) => (
-          <OptionBox
-            key={option.type}
-            active={logo?.type === option.type}
-            onClick={() => {
-              if (option.type === "custom") {
-                fileInputRef.current?.click();
-              } else {
-                setLogo({ type: option.type, src: option.type });
-              }
-            }}
-          >
-            <PreviewContainer>
-              {option.type === "custom" && customLogo ? (
-                <img src={customLogo} alt="Custom logo" />
-              ) : (
-                <LogoPreview type={option.type} />
-              )}
-            </PreviewContainer>
-            <OptionLabel>{option.label}</OptionLabel>
-          </OptionBox>
-        ))}
-      </OptionGrid>
-    </GridContainer>
+    <CustomizationContainer>
+      <CustomizationTitle>Logo Options</CustomizationTitle>
+      <CustomizationContent>
+        <input
+          type="file"
+          ref={fileInputRef}
+          style={{ display: 'none' }}
+          accept="image/*"
+          onChange={handleLogoUpload}
+        />
+        <OptionGrid>
+          {logoOptions.map((option) => (
+            <OptionBox
+              key={option.type}
+              active={logo?.type === option.type}
+              onClick={() => handleLogoSelect(option.type)}
+            >
+              <PreviewContainer>
+                <LogoPreview 
+                  type={option.type} 
+                  src={option.type === 'custom' ? customLogo : getLogoSource(option.type)}
+                />
+              </PreviewContainer>
+              <OptionLabel>{option.label}</OptionLabel>
+            </OptionBox>
+          ))}
+        </OptionGrid>
+      </CustomizationContent>
+    </CustomizationContainer>
   );
 };

@@ -10,6 +10,7 @@ import { DownloadSimple } from '@phosphor-icons/react';
 import { QRPreviewWrapper } from '../QRPreviewWrapper';
 import CutterMask from '../CutterMask';
 import { Frame } from '../../types';
+import { LogoType } from '../LogoCustomization';
 
 interface StyledComponentProps {
   watermark: string;
@@ -230,23 +231,30 @@ interface PhonePreviewProps {
     watermark: string;
     watermarkColor: string;
     watermarkOpacity: number;
+    logo?: {
+      type: "stacked" | "open-box" | "closed-box" | "custom";
+      src: string | null;
+      width?: number;
+      height?: number;
+    } | null;
 }
 
-export const PhonePreview: React.FC<PhonePreviewProps> = ({ 
-    show, 
-    qrType, 
-    qrData, 
-    backgroundType,
-    isQRPreview = false,
-    qrCodeRef,
-    frame,
-    frameColor,
-    cutter,
-    cutterColor,
-    opacity,
-    watermark,
-    watermarkColor,
-    watermarkOpacity,
+export const PhonePreview: React.FC<PhonePreviewProps> = ({
+  show,
+  qrType,
+  qrData,
+  backgroundType,
+  isQRPreview,
+  qrCodeRef,
+  frame,
+  frameColor,
+  cutter,
+  cutterColor,
+  opacity,
+  watermark,
+  watermarkColor,
+  watermarkOpacity,
+  logo
 }) => {
     return (
         <PhonePreviewColumn show={show}>
@@ -265,6 +273,7 @@ export const PhonePreview: React.FC<PhonePreviewProps> = ({
                         watermark={watermark}
                         watermarkColor={watermarkColor}
                         watermarkOpacity={watermarkOpacity}
+                        logo={logo || null}
                     >
                         <div ref={qrCodeRef} />
                     </QRPreviewWrapper>
@@ -356,12 +365,13 @@ export const Preview: React.FC<PreviewProps> = ({
         cutterColor={cutterColor}
         opacity={opacity}
         watermark={watermark}
-        watermarkColor={watermarkColor}
-        watermarkOpacity={watermarkOpacity}
-      />
-      {previewType === 'qr' && (
-        <PreviewDownloadButton onClick={handleDownloadClick}>
-          <DownloadSimple size={20} weight="bold" />
+            // Start of Selection
+            watermarkColor={watermarkColor}
+            watermarkOpacity={watermarkOpacity}
+          />
+          {previewType === 'qr' && (
+            <PreviewDownloadButton onClick={handleDownloadClick}>
+              <DownloadSimple size={20} weight="bold" />
         </PreviewDownloadButton>
       )}
     </>

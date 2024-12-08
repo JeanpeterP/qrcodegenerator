@@ -13,6 +13,12 @@ interface QRPreviewWrapperProps {
   watermark: string;
   watermarkColor: string;
   watermarkOpacity: number;
+  logo: {
+    type: "stacked" | "open-box" | "closed-box" | "custom";
+    src: string | null;
+    width?: number;
+    height?: number;
+  } | null;
 }
 
 const FrameContainer = styled.div<{ frame: string | Frame; frameColor: string }>`
@@ -140,6 +146,7 @@ export const QRPreviewWrapper: React.FC<QRPreviewWrapperProps> = ({
   watermark,
   watermarkColor,
   watermarkOpacity,
+  logo,
 }) => {
   return (
     <FrameContainer frame={frame} frameColor={frameColor} className="qr-frame">

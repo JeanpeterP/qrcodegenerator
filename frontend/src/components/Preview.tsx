@@ -7,6 +7,7 @@ import { PhonePreview } from './PhonePreview/PhonePreview';
 import html2canvas from 'html2canvas';
 import { getWatermarkSVG } from '../components/watermarks/getWatermarkSVG';
 import { Frame } from '../types';
+import { LogoType } from './LogoCustomization';
 
 type PreviewType = 'qr' | 'phone';
 
@@ -36,6 +37,12 @@ interface PreviewProps {
     watermarkOpacity: number;
     cutter: string;
     setFrame: (frame: string | Frame) => void;
+    logo: {
+        type: LogoType;
+        src: string | null;
+        width?: number;
+        height?: number;
+    } | null;
 }
 
 export const Preview: React.FC<PreviewProps> = ({
@@ -58,16 +65,26 @@ export const Preview: React.FC<PreviewProps> = ({
     watermarkColor,
     watermarkOpacity,
     cutter,
-    setFrame
+    setFrame,
+    logo,
 }) => {
     const qrCodeRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
         if (qrCodeInstance && qrCodeRef.current) {
+            qrCodeInstance.update({
+                image: logo?.src || '',
+                imageOptions: {
+                    hideBackgroundDots: true,
+                    imageSize: 0.4,
+                    margin: 5,
+                    crossOrigin: "anonymous",
+                },
+            });
             qrCodeRef.current.innerHTML = '';
             qrCodeInstance.append(qrCodeRef.current);
         }
-    }, [qrCodeInstance, previewType]);
+    }, [qrCodeInstance, logo, previewType]);
 
     const handleDownloadClick = async () => {
         if (!qrCodeInstance) return;
@@ -102,7 +119,7 @@ export const Preview: React.FC<PreviewProps> = ({
                 throw new Error('Could not get canvas context');
             }
 
-            const size = 1024;
+            const size = 2400;
             canvas.width = size;
             canvas.height = size;
 
@@ -281,15 +298,15 @@ export const Preview: React.FC<PreviewProps> = ({
     }
 
     return (
-<>
+        <>
             <PhonePreview
                 show={true}
                 qrType={qrType}
                 qrData={qrData}
                 backgroundType="none"
-                isQRPreview={true}
+                isQRPreview={previewType === 'qr'}
                 qrCodeRef={qrCodeRef}
-                frame={typeof frame === 'string' ? frame : frame.type}
+                frame={frame}
                 frameColor={frameColor}
                 cutter={cutterShape}
                 cutterColor={cutterColor}
@@ -297,12 +314,12 @@ export const Preview: React.FC<PreviewProps> = ({
                 watermark={watermark}
                 watermarkColor={watermarkColor}
                 watermarkOpacity={watermarkOpacity}
+                logo={logo}
             />
             <PreviewDownloadButton onClick={handleDownloadClick}>
                 <DownloadSimple size={20} weight="bold" />
             </PreviewDownloadButton>
-            </>
-
+        </>
     );
 };
 
