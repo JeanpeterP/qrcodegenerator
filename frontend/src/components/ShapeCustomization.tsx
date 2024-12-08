@@ -4,6 +4,7 @@ import { DotType } from "qr-code-styling";
 import { ShapePreview } from "./ShapePreview";
 import {
   GridContainer,
+  OptionGrid,
   OptionBox,
   PreviewContainer,
   OptionLabel,
@@ -111,17 +112,4 @@ const ColorPicker = styled.input`
     width: 32px;
     height: 32px;
   }
-`;
-
-// OptionStyles.tsx
-
-export const OptionGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(
-    auto-fit,
-    minmax(100px, 1fr)
-  ); // Adjust the minmax values as needed
-  gap: 16px;
-  width: 100%;
-  justify-content: center;
 `;

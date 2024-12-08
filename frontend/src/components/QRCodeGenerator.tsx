@@ -1186,9 +1186,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
 
                 {/* Customization Tabs */}
                 <CustomizationTabs
-                    activeTab={activeTab}
-                    setActiveTab={setActiveTab}
-                    frame={typeof frame === 'object' ? frame.type : frame}
+                    frame={frame}
                     setFrame={handleFrameChange}
                     frameColor={frameColor}
                     setFrameColor={setFrameColor}

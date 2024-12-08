@@ -75,6 +75,8 @@ export const LogoCustomization: React.FC<LogoCustomizationProps> = ({
     { type: "closed-box", label: "Closed Box" },
   ];
 
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -89,15 +91,25 @@ export const LogoCustomization: React.FC<LogoCustomizationProps> = ({
 
   return (
     <GridContainer>
-      <OptionGrid itemCount={logoOptions.length}>
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: 'none' }}
+        accept="image/*"
+        onChange={handleLogoUpload}
+      />
+      <OptionGrid >
         {logoOptions.map((option) => (
           <OptionBox
             key={option.type}
             active={logo?.type === option.type}
-            onClick={() =>
-              option.type !== "custom" &&
-              setLogo({ type: option.type, src: option.type })
-            }
+            onClick={() => {
+              if (option.type === "custom") {
+                fileInputRef.current?.click();
+              } else {
+                setLogo({ type: option.type, src: option.type });
+              }
+            }}
           >
             <PreviewContainer>
               {option.type === "custom" && customLogo ? (
@@ -107,27 +119,9 @@ export const LogoCustomization: React.FC<LogoCustomizationProps> = ({
               )}
             </PreviewContainer>
             <OptionLabel>{option.label}</OptionLabel>
-            {option.type === "custom" && (
-              <LogoUploadInput
-                type="file"
-                accept="image/*"
-                onChange={handleLogoUpload}
-                onClick={(e) => e.stopPropagation()}
-              />
-            )}
           </OptionBox>
         ))}
       </OptionGrid>
     </GridContainer>
   );
 };
-
-const LogoUploadInput = styled.input`
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-`;

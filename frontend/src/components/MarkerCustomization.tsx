@@ -41,7 +41,7 @@ export const MarkerCustomization: React.FC<MarkerCustomizationProps> = ({
   return (
     <>
       <GridContainer>
-        <OptionGrid itemCount={markerStyles.length}>
+        <OptionGrid>
           {markerStyles.map((style) => (
             <OptionBox
               key={style}

@@ -4,15 +4,12 @@ import { FrameCustomization } from "./FrameCustomization";
 import { ShapeCustomization } from "./ShapeCustomization";
 import { MarkerCustomization } from "./MarkerCustomization";
 import { LogoCustomization } from "./LogoCustomization";
-import { ChevronDown } from "lucide-react";
+import { CutterCustomization } from "./CutterCustomization";
+import { WatermarkCustomization } from "./WatermarkCustomization";
 import { DotType, CornerSquareType } from "qr-code-styling";
-import { CutterCustomization } from './CutterCustomization';
-import { WatermarkCustomization } from './WatermarkCustomization';
-import { Frame } from '../types';
+import { Frame } from "../types";
 
 interface CustomizationTabsProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
   // Frame props
   frame: string | Frame;
   setFrame: (frame: string | Frame) => void;
@@ -89,55 +86,27 @@ const SectionTitle = styled.h2`
   margin-bottom: 16px;
 `;
 
-const TabsContainer = styled.div`
+const CustomizationContainer = styled.div`
   width: 100%;
-`;
-
-const TabList = styled.div`
   display: flex;
-  margin-bottom: 20px;
-
-  @media (max-width: 470px) {
-    flex-direction: column;
-    gap: 10px;
-  }
+  flex-direction: column;
+  gap: 24px;
 `;
 
-const TabButton = styled.button<{ active: boolean }>`
-  flex: 1;
-  padding: 10px;
-  font-size: 16px;
-  font-weight: bold;
-  background-color: ${(props) => (props.active ? "#ff6320" : "#f9f9f9")};
-  color: ${(props) => (props.active ? "#fff" : "#333")};
-  border: 2px solid ${(props) => (props.active ? "#ff6320" : "#ccc")};
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-
-  &:hover {
-    background-color: ${(props) => (props.active ? "#e0551c" : "#e9e9e9")};
-  }
-
-  & + & {
-    margin-left: 10px;
-
-    @media (max-width: 470px) {
-      margin-left: 0;
-    }
-  }
+const Divider = styled.hr`
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  margin: 24px 0;
 `;
 
-const TabContent = styled.div`
-  padding: 16px;
-  background-color: #fff;
-  border: 2px solid #ccc;
-  border-radius: 10px;
+// New styled component for section subtitles
+const SubSectionTitle = styled.h3`
+  font-size: 1rem;
+  color: #333;
+  margin-bottom: 12px;
 `;
 
 export const CustomizationTabs: React.FC<CustomizationTabsProps> = ({
-  activeTab,
-  setActiveTab,
   frame,
   setFrame,
   frameColor,
@@ -192,136 +161,99 @@ export const CustomizationTabs: React.FC<CustomizationTabsProps> = ({
   setWatermarkOpacity,
 }) => {
   return (
-    <TabsContainer>
+    <CustomizationContainer>
       <SectionTitle>QR Code Styling</SectionTitle>
-      <TabList>
-        <TabButton
-          active={activeTab === "frame"}
-          onClick={() => setActiveTab("frame")}
-        >
-          Frame <ChevronDown size={16} />
-        </TabButton>
-        <TabButton
-          active={activeTab === "shape"}
-          onClick={() => setActiveTab("shape")}
-        >
-          Shape & Color <ChevronDown size={16} />
-        </TabButton>
-        <TabButton
-          active={activeTab === "markers"}
-          onClick={() => setActiveTab("markers")}
-        >
-          Markers <ChevronDown size={16} />
-        </TabButton>
-        <TabButton
-          active={activeTab === "logo"}
-          onClick={() => setActiveTab("logo")}
-        >
-          Logo <ChevronDown size={16} />
-        </TabButton>
-        <TabButton
-          active={activeTab === "cutter"}
-          onClick={() => setActiveTab("cutter")}
-        >
-          Cutter <ChevronDown size={16} />
-        </TabButton>
-        <TabButton
-          active={activeTab === "watermark"}
-          onClick={() => setActiveTab("watermark")}
-        >
-          Watermark <ChevronDown size={16} />
-        </TabButton>
-      </TabList>
-      <TabContent>
-        {activeTab === "frame" && (
-          <FrameCustomization
-            frame={frame}
-            setFrame={setFrame}
-            frameColor={frameColor}
-            setFrameColor={setFrameColor}
-            shape={shape}
-            currentFramePage={currentFramePage}
-            setCurrentFramePage={setCurrentFramePage}
-          />
-        )}
-        {activeTab === "shape" && (
-          <ShapeCustomization
-            shape={shape}
-            setShape={setShape}
-            qrColor={qrColor}
-            setQRColor={setQRColor}
-            qrBackground={qrBackground}
-            setQRBackground={setQRBackground}
-          />
-        )}
-        {activeTab === "markers" && (
-          <MarkerCustomization
-            markerStyle={markerStyle}
-            setMarkerStyle={setMarkerStyle}
-            markerColor={markerColor}
-            setMarkerColor={setMarkerColor}
-          />
-        )}
-        {activeTab === "logo" && (
-          <LogoCustomization
-            logo={logo}
-            setLogo={setLogo}
-            logoSize={logoSize}
-            setLogoSize={setLogoSize}
-            gradient={gradient}
-            setGradient={setGradient}
-            gradientColor1={gradientColor1}
-            setGradientColor1={setGradientColor1}
-            gradientColor2={gradientColor2}
-            setGradientColor2={setGradientColor2}
-            gradientType={gradientType}
-            setGradientType={setGradientType}
-            gradientRotation={gradientRotation}
-            setGradientRotation={setGradientRotation}
-            cornerDots={cornerDots}
-            setCornerDots={setCornerDots}
-            cornerSquares={cornerSquares}
-            setCornerSquares={setCornerSquares}
-            customLogo={customLogo || ""}
-            setCustomLogo={setCustomLogo}
-          />
-        )}
-        {activeTab === "cutter" && (
-          <CutterCustomization
-            cutterShape={cutterShape}
-            setCutterShape={setCutterShape}
-            opacity={opacity}
-            setOpacity={setOpacity}
-            cutter={cutter}
-            setCutter={setCutter}
-            cutterColor={cutterColor}
-            setCutterColor={setCutterColor}
-          />
-        )}
-        {activeTab === "watermark" && (
-          <WatermarkCustomization
-            watermark={watermark}
-            setWatermark={setWatermark}
-            watermarkColor={watermarkColor}
-            setWatermarkColor={setWatermarkColor}
-            watermarkOpacity={watermarkOpacity}
-            setWatermarkOpacity={setWatermarkOpacity}
-          />
-        )}
-      </TabContent>
-    </TabsContainer>
+
+      {/* Frame Customization */}
+      <SubSectionTitle>Frame Options</SubSectionTitle>
+      <FrameCustomization
+        frame={frame}
+        setFrame={setFrame}
+        frameColor={frameColor}
+        setFrameColor={setFrameColor}
+        shape={shape}
+        currentFramePage={currentFramePage}
+        setCurrentFramePage={setCurrentFramePage}
+      />
+
+      <Divider />
+
+      {/* Shape Customization */}
+      <SubSectionTitle>Shape Options</SubSectionTitle>
+      <ShapeCustomization
+        shape={shape}
+        setShape={setShape}
+        qrColor={qrColor}
+        setQRColor={setQRColor}
+        qrBackground={qrBackground}
+        setQRBackground={setQRBackground}
+      />
+
+      <Divider />
+
+      {/* Marker Customization */}
+      <SubSectionTitle>Marker Options</SubSectionTitle>
+      <MarkerCustomization
+        markerStyle={markerStyle}
+        setMarkerStyle={setMarkerStyle}
+        markerColor={markerColor}
+        setMarkerColor={setMarkerColor}
+      />
+
+      <Divider />
+
+      {/* Logo Customization */}
+      <SubSectionTitle>Logo Options</SubSectionTitle>
+      <LogoCustomization
+        logo={logo}
+        setLogo={setLogo}
+        logoSize={logoSize}
+        setLogoSize={setLogoSize}
+        gradient={gradient}
+        setGradient={setGradient}
+        gradientColor1={gradientColor1}
+        setGradientColor1={setGradientColor1}
+        gradientColor2={gradientColor2}
+        setGradientColor2={setGradientColor2}
+        gradientType={gradientType}
+        setGradientType={setGradientType}
+        gradientRotation={gradientRotation}
+        setGradientRotation={setGradientRotation}
+        cornerDots={cornerDots}
+        setCornerDots={setCornerDots}
+        cornerSquares={cornerSquares}
+        setCornerSquares={setCornerSquares}
+        customLogo={customLogo || ""}
+        setCustomLogo={setCustomLogo}
+      />
+
+      <Divider />
+
+      {/* Cutter Customization */}
+      {/* <SubSectionTitle>Cutter Options</SubSectionTitle>
+      <CutterCustomization
+        cutterShape={cutterShape}
+        setCutterShape={setCutterShape}
+        opacity={opacity}
+        setOpacity={setOpacity}
+        cutter={cutter}
+        setCutter={setCutter}
+        cutterColor={cutterColor}
+        setCutterColor={setCutterColor}
+      />
+
+      <Divider /> */}
+
+      {/* Watermark Customization */}
+      <SubSectionTitle>Watermark Options</SubSectionTitle>
+      <WatermarkCustomization
+        watermark={watermark}
+        setWatermark={setWatermark}
+        watermarkColor={watermarkColor}
+        setWatermarkColor={setWatermarkColor}
+        watermarkOpacity={watermarkOpacity}
+        setWatermarkOpacity={setWatermarkOpacity}
+      />
+    </CustomizationContainer>
   );
 };
-
-// Styled Components
-const CustomizerSection = styled.div`
-  margin-top: 1rem;
-  max-width: 529px;
-`;
-
-const CustomizerTitle = styled.h2`
-  margin-bottom: 1rem;
-  font-size: 1.5rem;
-`;
-
-// Include other styled components like TabsContainer, TabButton

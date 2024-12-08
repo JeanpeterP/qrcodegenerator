@@ -1,11 +1,6 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import styled from 'styled-components';
-import SkullMask from '../masks/SkullMask';
-import CandyCaneMask from '../masks/CandyCaneMask';
-import SnowflakeMask from '../masks/SnowflakeMask';
-import SantaClausMask from './SantaClausWatermark';
-import ReindeerMask from '../masks/ReindeerMask';
-import ChristmasTreeMask from '../masks/ChristmasTreeMask';
+import { getWatermarkSVG } from './getWatermarkSVG';
 
 interface WatermarkOverlayProps {
   children: React.ReactNode;
@@ -38,10 +33,15 @@ const WatermarkContainer = styled.div<{ opacity: number }>`
   opacity: ${props => props.opacity};
   pointer-events: none;
   mix-blend-mode: multiply;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   svg {
-    width: 100%;
-    height: 100%;
+    width: 80%;
+    height: 80%;
+    fill: currentColor;
+    color: ${props => props.color};
   }
 `;
 
@@ -51,41 +51,22 @@ export const WatermarkOverlay: React.FC<WatermarkOverlayProps> = ({
   watermarkColor,
   opacity,
 }) => {
-  const qrContainerRef = useRef<HTMLDivElement>(null);
-
-  const getWatermarkSVG = () => {
-    switch (watermark) {
-      case 'skull':
-        return SkullMask.replace('fill="black"', `fill="${watermarkColor}"`);
-      case 'candycane':
-        return CandyCaneMask.replace('fill="black"', `fill="${watermarkColor}"`);
-      case 'snowflake':
-        return SnowflakeMask.replace('fill="black"', `fill="${watermarkColor}"`);
-      case 'santaclaus':
-        return SantaClausMask.replace('fill="black"', `fill="${watermarkColor}"`);
-      case 'reindeer':
-        return ReindeerMask.replace('fill="black"', `fill="${watermarkColor}"`);
-      case 'christmastree':
-        return ChristmasTreeMask.replace('fill="black"', `fill="${watermarkColor}"`);
-      default:
-        return null;
-    }
-  };
-
-  const watermarkSVG = getWatermarkSVG();
-  if (!watermarkSVG) {
+  if (watermark === 'none') {
     return <>{children}</>;
   }
 
+  const watermarkSVG = getWatermarkSVG(watermark, watermarkColor);
+
   return (
     <Container>
-      <QRCodeContainer ref={qrContainerRef}>
-        {children}
-      </QRCodeContainer>
       <WatermarkContainer 
-        opacity={opacity} 
+        opacity={opacity}
+        color={watermarkColor}
         dangerouslySetInnerHTML={{ __html: watermarkSVG }}
       />
+      <QRCodeContainer>
+        {children}
+      </QRCodeContainer>
     </Container>
   );
 }; 

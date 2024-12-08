@@ -1,4 +1,7 @@
 // OptionStyles.tsx
+// frontend/src/styles/OptionStyles.tsx
+// Ensured consistent styling for OptionGrid
+
 import styled from "styled-components";
 
 export const GridContainer = styled.div`
@@ -7,25 +10,25 @@ export const GridContainer = styled.div`
   flex-direction: column;
 `;
 
-export const OptionGrid = styled.div<{ itemCount: number }>`
+export const OptionGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 8%;
+  width: 100%;
   justify-items: center;
 `;
 
 export const OptionBox = styled.div<{ active: boolean }>`
-  width: 100px;
-  height: 100px;
-  border: 2px solid ${(props) => (props.active ? '#ff6320' : '#ced4da')};
+  width: 100%;
+  max-width: 100px;
+  border: 2px solid ${(props) => (props.active ? "#ff6320" : "#ced4da")};
   border-radius: 8px;
   padding: 0.75rem;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  background-color: ${(props) => (props.active ? '#fff5f0' : 'white')};
+  background-color: ${(props) => (props.active ? "#fff5f0" : "white")};
   transition: all 0.3s ease;
 
   &:hover {

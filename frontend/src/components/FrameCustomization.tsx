@@ -11,6 +11,11 @@ import {
   OptionLabel,
 } from "../styles/OptionStyles";
 import { Frame } from '../types';
+import {
+  ColorPickerContainer,
+  ColorPickerLabel,
+  ColorPicker,
+} from "../styles/ColorPickerStyles";
 
 interface FrameCustomizationProps {
   frame: string | Frame;
@@ -43,23 +48,29 @@ export const FrameCustomization: React.FC<FrameCustomizationProps> = ({
   return (
     <>
       <GridContainer>
-        <OptionGrid itemCount={frameOptions.length}>
+        <OptionGrid>
           {frameOptions.map((option) => (
             <OptionBox
-              key={typeof option.value === 'string' ? option.value : option.value.type}
+              key={
+                typeof option.value === "string"
+                  ? option.value
+                  : option.value.type
+              }
               active={
                 frame === option.value ||
-                (typeof frame === 'object' && 
-                 'type' in frame && 
-                 typeof option.value === 'object' && 
-                 'type' in option.value && 
-                 frame.type === option.value.type)
+                (typeof frame === "object" &&
+                  "type" in frame &&
+                  typeof option.value === "object" &&
+                  "type" in option.value &&
+                  frame.type === option.value.type)
               }
-              onClick={() => setFrame(
-                typeof option.value === 'object' 
-                  ? { type: 'colorful' } 
-                  : option.value
-              )}
+              onClick={() =>
+                setFrame(
+                  typeof option.value === "object"
+                    ? { type: "colorful" }
+                    : option.value
+                )
+              }
             >
               <PreviewContainer>
                 <MiniQRPreview
@@ -88,53 +99,6 @@ export const FrameCustomization: React.FC<FrameCustomizationProps> = ({
     </>
   );
 };
-
-// Styled Components (added missing ones)
-const ColorPickerContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 1rem;
-
-  @media (min-width: 768px) {
-    flex-direction: row;
-    justify-content: space-between;
-  }
-`;
-
-const ColorPickerLabel = styled.label`
-  display: flex;
-  align-items: center;
-  font-size: 0.8rem;
-
-  @media (min-width: 768px) {
-    font-size: 0.9rem;
-  }
-`;
-
-const ColorPicker = styled.input`
-  -webkit-appearance: none;
-  width: 24px;
-  height: 24px;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  margin-left: 0.5rem;
-
-  &::-webkit-color-swatch-wrapper {
-    padding: 0;
-  }
-
-  &::-webkit-color-swatch {
-    border: none;
-    border-radius: 50%;
-  }
-
-  @media (min-width: 768px) {
-    width: 32px;
-    height: 32px;
-  }
-`;
 
 const PaginationArrow = styled.button<{ disabled?: boolean }>`
   background: ${(props) => (props.disabled ? "#f0f0f0" : "#fff")};
