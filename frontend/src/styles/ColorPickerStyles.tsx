@@ -5,45 +5,104 @@ import styled from "styled-components";
 export const ColorPickerContainer = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 1rem;
-
-  @media (min-width: 768px) {
-    flex-direction: row;
-    justify-content: space-between;
-  }
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 `;
 
 export const ColorPickerLabel = styled.label`
   display: flex;
-  align-items: center;
-  font-size: 0.8rem;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #666;
 
-  @media (min-width: 768px) {
-    font-size: 0.9rem;
+  span {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    svg {
+      width: 24px;
+      height: 24px;
+    }
+  }
+`;
+
+export const PresetColors = styled.div`
+  display: flex;
+  gap: 1rem;
+  margin: 0.5rem 0;
+`;
+
+export const ColorButton = styled.button<{ bgColor: string; isSelected: boolean }>`
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  background-color: ${props => props.bgColor};
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s;
+  position: relative;
+
+  ${props => props.isSelected && `
+    transform: scale(1.1);
+    &::after {
+      content: '';
+      position: absolute;
+      top: -4px;
+      left: -4px;
+      right: -4px;
+      bottom: -4px;
+      border: 2px solid #ff6320;
+      border-radius: 9999px;
+    }
+  `}
+
+  &:hover {
+    transform: ${props => props.isSelected ? 'scale(1.1)' : 'scale(1.05)'};
+  }
+`;
+
+export const CustomColorButton = styled.button<{ bgColor: string; isSelected: boolean }>`
+  position: relative;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background-color: #ffffff;
+  border: ${props => props.isSelected ? '2px solid #ff6320' : '1px solid #ccc'};
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+  padding: 0;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+
+  svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    stroke: ${props => props.bgColor};
+    color: ${props => props.bgColor};
   }
 `;
 
 export const ColorPicker = styled.input`
-  -webkit-appearance: none;
-  width: 24px;
-  height: 24px;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  margin-left: 0.5rem;
-
-  &::-webkit-color-swatch-wrapper {
-    padding: 0;
-  }
-
-  &::-webkit-color-swatch {
-    border: none;
-    border-radius: 50%;
-  }
-
-  @media (min-width: 768px) {
-    width: 32px;
-    height: 32px;
-  }
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
 `;
+
+export const presetColors = [
+  '#000000', // Black
+  '#FF5722', // Orange
+  '#2196F3', // Blue
+  '#4CAF50', // Green
+  '#9C27B0', // Purple
+];

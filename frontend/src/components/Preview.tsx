@@ -333,13 +333,13 @@ const PreviewContainer = styled.div`
 
 const PreviewDownloadButton = styled.button`
     position: absolute;
-    bottom: -16px;
-    right: -16px;
+    bottom: 260px;
+    right: 55px;
     background: rgba(255, 99, 32, 0.9);
     border: none;
     border-radius: 50%;
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
