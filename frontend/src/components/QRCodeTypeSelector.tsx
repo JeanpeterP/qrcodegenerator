@@ -99,6 +99,9 @@ const SelectionTitle = styled.h2`
     color: #1b294b;
     margin: 0 0 16px 0;
     font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 `;
 
 export const QRCodeTypeSelector: React.FC<QRCodeTypeSelectorProps> = ({ onSelect, onHover, selectedType, userChoice }) => {
@@ -123,7 +126,16 @@ export const QRCodeTypeSelector: React.FC<QRCodeTypeSelectorProps> = ({ onSelect
 
   return (
     <>
-      <SelectionTitle>Select QR Code Type</SelectionTitle>
+      <SelectionTitle>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 256 256">
+          <rect width="256" height="256" fill="none"/>
+          <rect x="48" y="48" width="64" height="64" rx="8" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"/>
+          <rect x="144" y="48" width="64" height="64" rx="8" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"/>
+          <rect x="48" y="144" width="64" height="64" rx="8" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"/>
+          <rect x="144" y="144" width="64" height="64" rx="8" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"/>
+        </svg>
+        Select QR Code Type
+      </SelectionTitle>
       <GridContainer>
         {qrOptions.map((option) => {
           const IconComponent = option.icon;
