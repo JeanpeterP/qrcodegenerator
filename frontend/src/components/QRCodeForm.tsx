@@ -197,6 +197,14 @@ const SectionTitle = styled.h2`
   font-size: 1.25rem;
   color: #1b294b;
   margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  svg {
+    width: 24px;
+    height: 24px;
+  }
 `;
 
 export const QRCodeForm: React.FC<QRCodeFormProps> = ({
@@ -211,7 +219,16 @@ export const QRCodeForm: React.FC<QRCodeFormProps> = ({
 
   return (
     <FormContainer>
-      <SectionTitle>Configure QR Data</SectionTitle>
+            <SectionTitle>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><rect x="16" y="104" width="48" height="48" rx="8" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"/><rect x="152" y="40" width="64" height="64" rx="8" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"/><rect x="152" y="152" width="64" height="64" rx="8" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"/><line x1="64" y1="128" x2="112" y2="128" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"/><path d="M152,184H128a16,16,0,0,1-16-16V88a16,16,0,0,1,16-16h24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"/></svg>
+        Configure QR Data
+      </SectionTitle>
+      <TypeSelector>
+        <TypeIcon>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><rect x="48" y="48" width="64" height="64" rx="8" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"/><rect x="144" y="48" width="64" height="64" rx="8" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"/><rect x="48" y="144" width="64" height="64" rx="8" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"/><rect x="144" y="144" width="64" height="64" rx="8" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"/></svg>
+        </TypeIcon>
+        <TypeLabel>QR Type: {qrType}</TypeLabel>
+      </TypeSelector>
       {/* <FieldContainer>
                 <Label>
                     Include Uppercase Letters
@@ -884,4 +901,25 @@ const Tab = styled.button<{ active: boolean }>`
   &:hover {
     background-color: ${(props) => (props.active ? "#e0551c" : "#e9ecef")};
   }
+`;
+
+const TypeSelector = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+`;
+
+const TypeIcon = styled.div`
+  svg {
+    width: 20px;
+    height: 20px;
+    color: #333;
+  }
+`;
+
+const TypeLabel = styled.span`
+  font-size: 1rem;
+  color: #333;
+  font-weight: 500;
 `;

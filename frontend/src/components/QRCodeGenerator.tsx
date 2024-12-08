@@ -1404,7 +1404,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
 const Container = styled.div`
     padding: 20px;
     display: flex;
-    gap: 20px;
+    gap: 40px;
     max-width: 1200px;
     margin: 0 auto;
 

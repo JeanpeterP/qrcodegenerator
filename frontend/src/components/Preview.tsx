@@ -281,7 +281,7 @@ export const Preview: React.FC<PreviewProps> = ({
     }
 
     return (
-        <PreviewContainer>
+<>
             <PhonePreview
                 show={true}
                 qrType={qrType}
@@ -301,7 +301,8 @@ export const Preview: React.FC<PreviewProps> = ({
             <PreviewDownloadButton onClick={handleDownloadClick}>
                 <DownloadSimple size={20} weight="bold" />
             </PreviewDownloadButton>
-        </PreviewContainer>
+            </>
+
     );
 };
 
