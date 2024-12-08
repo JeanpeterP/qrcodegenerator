@@ -31,6 +31,7 @@ import ReindeerMask from './masks/ReindeerMask';
 import ChristmasTreeMask from './masks/ChristmasTreeMask';
 import { getMaskForShape } from '../utils/getMaskForShape';
 import { Frame } from '../types';
+import { getLogoSource } from '../utils/logoUtils';
 
 interface QRCodeGeneratorProps {
     userChoice?: 'qr' | 'dynamicBio' | null;
@@ -290,12 +291,20 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
             amount: ""
         }
     });
-    const [qrColor, setQRColor] = useState("#000000");
+    const [qrColor, setQRColor] = useState("#7C0909");
     const [qrBackground, setQRBackground] = useState("#ffffff");
     const [qrSize, setQRSize] = useState(200);
-    const [frame, setFrame] = useState<string | Frame>('none');
-    const [shape, setShape] = useState<QRDotType>("square");
-    const [logo, setLogo] = useState<LogoType>(null);
+    const [frame, setFrame] = useState<string | Frame>({ 
+        type: 'fancy',
+        svg: `<g xmlns="http://www.w3.org/2000/svg">...</g>` // Add your SVG content here
+    });
+    const [shape, setShape] = useState<QRDotType>("rounded");
+    const [logo, setLogo] = useState<LogoType>({
+        type: 'open-box',
+        src: getLogoSource('open-box'),
+        width: 2400,
+        height: 2400,
+    });
     const [activeTab, setActiveTab] = useState("frame");
     const qrContainerRef = useRef<HTMLDivElement>(null);
 
@@ -311,13 +320,13 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     );
     const qrCodeRef = useRef<HTMLDivElement | null>(null);
 
-    const [markerStyle, setMarkerStyle] = useState<CornerSquareType>("square");
-    const [markerColor, setMarkerColor] = useState("#000000");
+    const [markerStyle, setMarkerStyle] = useState<CornerSquareType>("dot");
+    const [markerColor, setMarkerColor] = useState("#7C0909");
 
     const [currentShapePage, setCurrentShapePage] = useState(0);
     const shapesPerPage = 4;
 
-    const [frameColor, setFrameColor] = useState("#000000");
+    const [frameColor, setFrameColor] = useState("#7C0909");
     const [currentFramePage, setCurrentFramePage] = useState(0);
     const framesPerPage = 4;
 
@@ -373,13 +382,16 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
 
     // New cutter shape state
     const [cutter, setCutter] = useState<string>('none');
-    const [cutterShape, setCutterShape] = useState<string>('none');
+    const [cutterShape, setCutterShape] = useState<string>('candycane');
     const [opacity, setOpacity] = useState<number>(0.3); // Default opacity
-    const [cutterColor, setCutterColor] = useState<string>('#000000'); // Add this state
+    const [cutterColor, setCutterColor] = useState<string>('#7C0909'); // Add this state
 
-    const [watermark, setWatermark] = useState<string>('none');
-    const [watermarkColor, setWatermarkColor] = useState<string>('#000000');
+    const [watermark, setWatermark] = useState<string>('candycane');
+    const [watermarkColor, setWatermarkColor] = useState<string>('#7C0909');
     const [watermarkOpacity, setWatermarkOpacity] = useState<number>(0.3);
+
+    // Add a new state to track initial load
+    const [isInitialized, setIsInitialized] = useState(false);
 
     useEffect(() => {
         setIsMounted(true);
@@ -991,10 +1003,11 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         }
     };
 
+    // Initial QR code creation
     useEffect(() => {
         const qrCode = new QRCodeStyling({
-            width: 200,
-            height: 200,
+            width: 180,
+            height: 180,
             data: "https://example.com",
             dotsOptions: {
                 type: shape,
@@ -1009,7 +1022,37 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
             },
         });
         setQrCodeInstance(qrCode);
-    }, []); // Initialize once when component mounts
+    }, []);
+
+    // Add new useEffect to trigger re-render after initialization
+    useEffect(() => {
+        if (qrCodeInstance && !isInitialized) {
+            // Force update with all default values
+            qrCodeInstance.update({
+                width: 180,
+                height: 180,
+                data: "https://example.com",
+                dotsOptions: {
+                    type: shape,
+                    color: qrColor,
+                },
+                backgroundOptions: {
+                    color: qrBackground,
+                },
+                cornersSquareOptions: {
+                    type: markerStyle,
+                    color: markerColor,
+                },
+                imageOptions: {
+                    hideBackgroundDots: true,
+                    imageSize: 0.4,
+                    margin: 5,
+                    crossOrigin: "anonymous",
+                },
+            });
+            setIsInitialized(true);
+        }
+    }, [qrCodeInstance, shape, qrColor, qrBackground, markerStyle, markerColor]);
 
     // const handleNext = () => {
     //     setCurrentStep(prevStep => prevStep + 1);
