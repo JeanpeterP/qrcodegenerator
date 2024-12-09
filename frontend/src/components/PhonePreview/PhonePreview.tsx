@@ -51,7 +51,7 @@ const PreviewColumn = styled.div`
 
 const PhonePreviewColumn = styled(PreviewColumn)<{ show: boolean }>`
   display: ${props => props.show ? 'flex' : 'none'};
-  max-width: 375px;
+  max-width: 290px;
   width: 100%;
   background: transparent;
   align-items: center;

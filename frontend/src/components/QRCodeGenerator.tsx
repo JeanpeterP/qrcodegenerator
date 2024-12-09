@@ -187,6 +187,8 @@ interface CustomizationTabsProps {
     setWatermarkColor: React.Dispatch<React.SetStateAction<string>>;
     watermarkOpacity: number;
     setWatermarkOpacity: React.Dispatch<React.SetStateAction<number>>;
+    logoColor: string;
+    setLogoColor: React.Dispatch<React.SetStateAction<string>>;
 }
 
 interface PreviewModalProps {
@@ -246,6 +248,8 @@ interface PreviewModalProps {
     watermark: string;
     watermarkColor: string;
     watermarkOpacity: number;
+    logoColor: string;
+    setLogoColor: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
@@ -300,8 +304,8 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     });
     const [shape, setShape] = useState<QRDotType>("rounded");
     const [logo, setLogo] = useState<LogoType>({
-        type: 'open-box',
-        src: getLogoSource('open-box'),
+        type: 'stacked',
+        src: getLogoSource('stacked'),
         width: 2400,
         height: 2400,
     });
@@ -392,6 +396,9 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
 
     // Add a new state to track initial load
     const [isInitialized, setIsInitialized] = useState(false);
+
+    // Add these state declarations
+    const [logoColor, setLogoColor] = useState<string>('#000000');
 
     useEffect(() => {
         setIsMounted(true);
@@ -706,6 +713,14 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                 const qrData = await generateQRCodeData();
                 
                 if (!isCancelled && qrCodeInstance) {
+                    // Get the current logo content
+                    const logoImage = logo ? {
+                        image: getLogoContent(logo),
+                        width: logo.width || 0.4,
+                        height: logo.height || 0.4,
+                        margin: 0
+                    } : undefined;
+
                     // Define QR code options with the custom Options type
                     const options: Partial<Options> = {
                         width: qrSize,
@@ -725,10 +740,12 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                         qrOptions: {
                             errorCorrectionLevel: 'H',
                         },
+                        image: logoImage?.image,
                         imageOptions: {
-                            hideBackgroundDots: false,
+                            hideBackgroundDots: true,
                             imageSize: 0.4,
                             margin: 0,
+                            crossOrigin: "anonymous",
                         },
                         frameOptions: frame !== 'none' ? {
                             style: typeof frame === 'object' ? frame.type : frame,
@@ -740,42 +757,14 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
 
                     await qrCodeInstance.update(options);
 
+                    // Apply cutter shape after QR code update
                     if (cutterShape !== 'none') {
                         setTimeout(() => {
                             const qrCodeCanvas = document.querySelector(
                                 '.qr-container canvas'
                             ) as HTMLCanvasElement;
                             if (qrCodeCanvas) {
-                                let maskSvg = '';
-                                switch (cutterShape) {
-                                    case 'skull':
-                                        maskSvg = SkullMask;
-                                        break;
-                                    case 'candycane':
-                                        maskSvg = CandyCaneMask;
-                                        break;
-                                    case 'snowflake':
-                                        maskSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
-                                            <path d="M 95.8 72.8 L 84.5 61.5 L 83.6 75.9 L 95.8 88.1 V 72.8 Z
-                                                   M 112.1 94.5 H 126.5 L 137.8 83.2 L 124.3 82.3 L 112.1 94.5 Z
-                                                   M 85.2 121.5 V 136.8 L 95.8 127.5 V 110.8 L 85.2 121.5 Z
-                                                   M 104.6 89.4 L 115.6 78.4 V 61.3 L 104.6 71 V 89.4 Z" fill="${cutterColor}"/>
-                                        </svg>`;
-                                        break;
-                                    case 'santaclaus':
-                                        maskSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
-                                            <path d="M 106.4 124.3 C 106.2 124.4 90.9 132.1 76.4 124.3 C 73.1 122.7 69 124.1 67.5 127.3 C 65.9 130.6 67.2 134.6 70.5 136.2 C 77.5 139.7 84.5 141 90.7 141 C 102.7 141 112.2 136.6 112.8 136.3 C 116 134.7 117.4 130.7 115.8 127.4 C 114.2 124.1 109.7 122.7 106.4 124.3 Z" fill="${cutterColor}"/>
-                                        </svg>`;
-                                        break;
-                                    case 'reindeer':
-                                        maskSvg = ReindeerMask;
-                                        break;
-                                    case 'christmastree':
-                                        maskSvg = ChristmasTreeMask;
-                                        break;
-                                    default:
-                                        maskSvg = '';
-                                }
+                                let maskSvg = getMaskForShape(cutterShape);
                                 if (maskSvg) {
                                     applyMask(qrCodeCanvas, maskSvg, opacity);
                                 }
@@ -804,7 +793,9 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         cutterShape,
         opacity,
         frame,
-        frameColor
+        frameColor,
+        logo, // Add logo to dependencies
+        getLogoContent // Add getLogoContent to dependencies
     ]);
 
     // Add this helper function
@@ -1024,35 +1015,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         setQrCodeInstance(qrCode);
     }, []);
 
-    // Add new useEffect to trigger re-render after initialization
-    useEffect(() => {
-        if (qrCodeInstance && !isInitialized) {
-            // Force update with all default values
-            qrCodeInstance.update({
-                width: 180,
-                height: 180,
-                data: "https://example.com",
-                dotsOptions: {
-                    type: shape,
-                    color: qrColor,
-                },
-                backgroundOptions: {
-                    color: qrBackground,
-                },
-                cornersSquareOptions: {
-                    type: markerStyle,
-                    color: markerColor,
-                },
-                imageOptions: {
-                    hideBackgroundDots: true,
-                    imageSize: 0.4,
-                    margin: 5,
-                    crossOrigin: "anonymous",
-                },
-            });
-            setIsInitialized(true);
-        }
-    }, [qrCodeInstance, shape, qrColor, qrBackground, markerStyle, markerColor]);
+
 
     // const handleNext = () => {
     //     setCurrentStep(prevStep => prevStep + 1);
@@ -1282,6 +1245,8 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                     setWatermarkColor={setWatermarkColor}
                     watermarkOpacity={watermarkOpacity}
                     setWatermarkOpacity={setWatermarkOpacity}
+                    logoColor={logoColor}
+                    setLogoColor={setLogoColor}
                 />
 
                 {['file', 'multiplink', 'pdf'].includes(qrType) && (
@@ -1434,6 +1399,8 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             watermarkColor={watermarkColor}
                             watermarkOpacity={watermarkOpacity}
                             logo={logo}
+                            logoColor={logoColor}
+                            setLogoColor={setLogoColor}
                         />
                     )}
                 </>

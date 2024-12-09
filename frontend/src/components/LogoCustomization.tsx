@@ -3,6 +3,7 @@ import { CustomizationContainer, CustomizationTitle, CustomizationContent } from
 import { LogoPreview } from "./LogoPreview";
 import { getLogoSource } from "../utils/logoUtils";
 import { OptionGrid, OptionBox, PreviewContainer, OptionLabel } from "../styles/OptionStyles";
+import { ColorPickerWithPresets } from './common/ColorPickerWithPresets';
 
 export type LogoType = "custom" | "stacked" | "open-box" | "closed-box";
 
@@ -39,6 +40,8 @@ interface LogoCustomizationProps {
   setCornerDots: React.Dispatch<React.SetStateAction<string>>;
   cornerSquares: string;
   setCornerSquares: React.Dispatch<React.SetStateAction<string>>;
+  logoColor: string;
+  setLogoColor: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export const LogoCustomization: React.FC<LogoCustomizationProps> = ({
@@ -48,6 +51,8 @@ export const LogoCustomization: React.FC<LogoCustomizationProps> = ({
   setCustomLogo,
   logoSize,
   setLogoSize,
+  logoColor,
+  setLogoColor,
 }) => {
   const logoOptions: { type: LogoType; label: string }[] = [
     { type: "custom", label: "Custom Upload" },
@@ -106,7 +111,6 @@ export const LogoCustomization: React.FC<LogoCustomizationProps> = ({
 
   return (
     <CustomizationContainer>
-      <CustomizationTitle>Logo Options</CustomizationTitle>
       <CustomizationContent>
         <input
           type="file"
@@ -132,6 +136,11 @@ export const LogoCustomization: React.FC<LogoCustomizationProps> = ({
             </OptionBox>
           ))}
         </OptionGrid>
+        <ColorPickerWithPresets
+          label="Logo Color"
+          color={logoColor}
+          onChange={setLogoColor}
+        />
       </CustomizationContent>
     </CustomizationContainer>
   );

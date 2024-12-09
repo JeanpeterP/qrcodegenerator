@@ -38,9 +38,9 @@ export const PresetColors = styled.div`
 `;
 
 export const ColorButton = styled.button<{ bgColor: string; isSelected: boolean }>`
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 9999px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   background-color: ${props => props.bgColor};
   border: none;
   cursor: pointer;
@@ -57,7 +57,7 @@ export const ColorButton = styled.button<{ bgColor: string; isSelected: boolean 
       right: -4px;
       bottom: -4px;
       border: 2px solid #ff6320;
-      border-radius: 9999px;
+      border-radius: 8px;
     }
   `}
 
@@ -68,9 +68,9 @@ export const ColorButton = styled.button<{ bgColor: string; isSelected: boolean 
 
 export const CustomColorButton = styled.button<{ bgColor: string; isSelected: boolean }>`
   position: relative;
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   background-color: #ffffff;
   border: ${props => props.isSelected ? '2px solid #ff6320' : '1px solid #ccc'};
   cursor: pointer;

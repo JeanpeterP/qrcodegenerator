@@ -79,6 +79,8 @@ interface CustomizationTabsProps {
   setOpacity: React.Dispatch<React.SetStateAction<number>>;
   cutterColor: string;
   setCutterColor: React.Dispatch<React.SetStateAction<string>>;
+  logoColor: string;
+  setLogoColor: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const SectionTitle = styled.h2`
@@ -169,6 +171,16 @@ export const CustomizationTabs: React.FC<CustomizationTabsProps> = ({
   setWatermarkColor,
   watermarkOpacity,
   setWatermarkOpacity,
+  cutter,
+  setCutter,
+  cutterShape,
+  setCutterShape,
+  opacity,
+  setOpacity,
+  cutterColor,
+  setCutterColor,
+  logoColor,
+  setLogoColor,
 }) => {
   return (
     <CustomizationContainer>
@@ -250,6 +262,8 @@ export const CustomizationTabs: React.FC<CustomizationTabsProps> = ({
         setCornerSquares={setCornerSquares}
         customLogo={customLogo || ""}
         setCustomLogo={setCustomLogo}
+        logoColor={logoColor}
+        setLogoColor={setLogoColor}
       />
 
       <Divider />

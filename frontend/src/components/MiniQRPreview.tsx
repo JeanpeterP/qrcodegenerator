@@ -16,8 +16,8 @@ export const MiniQRPreview: React.FC<MiniQRPreviewProps> = ({ frame, shape, fram
 
   useEffect(() => {
     const qrCode = new QRCodeStyling({
-      width: 58,
-      height: 58,
+      width: frame === "chat" ? 32 : 58,
+      height: frame === "chat" ? 32 : 58,
       data: "https://example.com",
       dotsOptions: {
         type: shape,
@@ -49,15 +49,18 @@ export const MiniQRPreview: React.FC<MiniQRPreviewProps> = ({ frame, shape, fram
 
   return (
     <MiniPreviewContainer frame={frame} shape={shape} frameColor={frameColor}>
-      <div ref={qrCodeRef} />
+      <div ref={qrCodeRef} style={{ 
+        width: frame === "chat" ? "28px" : "50px",
+        height: frame === "chat" ? "28px" : "50px"
+      }} />
     </MiniPreviewContainer>
   );
 };
 
 // Styled Components
 const MiniPreviewContainer = styled.div<{ frame: string | Frame; shape: string; frameColor: string }>`
-  width: 60px;
-  height: 60px;
+  width: ${props => props.frame === "chat" ? "32px" : "60px"};
+  height: ${props => props.frame === "chat" ? "32px" : "55px"};
   display: flex;
   justify-content: center;
   align-items: center;
@@ -142,20 +145,17 @@ const MiniPreviewContainer = styled.div<{ frame: string | Frame; shape: string; 
   }}
 
   & > div {
-    width: 50px !important;
-    height: 50px !important;
-    position: relative !important;
-    left: 0 !important;
-    top: 0 !important;
-    transform: none !important;
+    width: ${props => props.frame === "chat" ? "24px" : "50px"} !important;
+    height: ${props => props.frame === "chat" ? "24px" : "50px"} !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
   canvas {
-    width: 100% !important;
-    height: 100% !important;
+    width: ${props => props.frame === "chat" ? "32px" : "50px"} !important;
+    height: ${props => props.frame === "chat" ? "32px" : "50px"} !important;
     position: relative !important;
-    left: 0 !important;
-    top: 0 !important;
   }
 `; 
 

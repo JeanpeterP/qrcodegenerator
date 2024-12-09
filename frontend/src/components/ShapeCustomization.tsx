@@ -9,6 +9,7 @@ import {
   PreviewContainer,
   OptionLabel,
 } from "../styles/OptionStyles";
+import { ColorPickerWithPresets } from './common/ColorPickerWithPresets';
 
 interface ShapeCustomizationProps {
   shape: DotType;
@@ -54,16 +55,11 @@ export const ShapeCustomization: React.FC<ShapeCustomizationProps> = ({
           ))}
         </OptionGrid>
       </GridContainer>
-      <ColorPickerContainer>
-        <ColorPickerLabel>
-          QR Color:
-          <ColorPicker
-            type="color"
-            value={qrColor}
-            onChange={(e) => setQRColor(e.target.value)}
-          />
-        </ColorPickerLabel>
-      </ColorPickerContainer>
+      <ColorPickerWithPresets
+        label="QR Color"
+        color={qrColor}
+        onChange={setQRColor}
+      />
     </>
   );
 };

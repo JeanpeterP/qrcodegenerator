@@ -8,6 +8,7 @@ import {
   PreviewContainer,
   OptionLabel,
 } from "../styles/OptionStyles";
+import { ColorPickerWithPresets } from './common/ColorPickerWithPresets';
 
 interface MarkerCustomizationProps {
   markerStyle: CornerSquareType;
@@ -56,16 +57,11 @@ export const MarkerCustomization: React.FC<MarkerCustomizationProps> = ({
           ))}
         </OptionGrid>
       </GridContainer>
-      <ColorPickerContainer>
-        <ColorPickerLabel>
-          Marker Color:
-          <ColorPicker
-            type="color"
-            value={markerColor}
-            onChange={(e) => setMarkerColor(e.target.value)}
-          />
-        </ColorPickerLabel>
-      </ColorPickerContainer>
+      <ColorPickerWithPresets
+        label="Marker Color"
+        color={markerColor}
+        onChange={setMarkerColor}
+      />
     </>
   );
 };

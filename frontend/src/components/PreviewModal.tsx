@@ -76,6 +76,8 @@ interface PreviewModalProps {
     width?: number;
     height?: number;
   } | null;
+  logoColor: string;
+  setLogoColor: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export const PreviewModal: React.FC<PreviewModalProps> = ({
@@ -136,6 +138,8 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
   watermarkOpacity,
   setShape,
   logo,
+  logoColor,
+  setLogoColor,
 }) => {
   const qrCodeContainerRef = useRef<HTMLDivElement>(null);
 
