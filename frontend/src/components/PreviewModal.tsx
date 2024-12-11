@@ -1,6 +1,6 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import styled from 'styled-components';
-import { QrCode, DeviceMobile, X } from 'phosphor-react';
+import { QrCode, DeviceMobile, X, DownloadSimple } from 'phosphor-react';
 import { Preview } from "./Preview";
 import { PhonePreview } from './PhonePreview/PhonePreview';
 import { QRData, QRType } from '../types/qr';
@@ -10,6 +10,7 @@ import CutterMask from './CutterMask';
 import { DotType as QRDotType } from "qr-code-styling";
 import { Frame } from '../types';
 import { LogoType } from './LogoCustomization';
+import { QRPreviewWrapper } from './QRPreviewWrapper';
 
 interface PreviewModalProps {
   previewType: 'qr' | 'phone';
@@ -141,7 +142,17 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
   logoColor,
   setLogoColor,
 }) => {
-  const qrCodeContainerRef = useRef<HTMLDivElement>(null);
+  const qrCodeRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (qrCodeInstance && qrCodeRef.current) {
+      const qrCodeDiv = qrCodeRef.current.querySelector('#qr-code') as HTMLElement;
+      if (qrCodeDiv) {
+        qrCodeDiv.innerHTML = '';
+        qrCodeInstance.append(qrCodeDiv);
+      }
+    }
+  }, [qrCodeInstance, previewType]);
 
   return (
     <ModalOverlay>
@@ -156,24 +167,39 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
           >
             <QrCode /> QR Preview
           </ToggleButton>
-          <ToggleButton
+          {/* <ToggleButton
             active={previewType === 'phone'}
             onClick={() => setPreviewType('phone')}
           >
             <DeviceMobile /> Phone Preview
-          </ToggleButton>
+          </ToggleButton> */}
         </ModalToggleContainer>
         <PreviewContainer>
           {previewType === 'qr' && (
-            <div className="qr-preview" style={{ position: 'relative' }}>
-              <div ref={qrCodeContainerRef} />
-              {cutterShape !== 'none' && (
-                <CutterMask
-                  maskShape={cutterShape}
-                  color={cutterColor}
-                />
-              )}
-            </div>
+            <>
+              <div ref={qrCodeRef}>
+                <QRPreviewWrapper
+                  cutter={cutter}
+                  cutterColor={cutterColor}
+                  opacity={opacity}
+                  frame={frame}
+                  frameColor={frameColor}
+                  watermark={watermark}
+                  watermarkColor={watermarkColor}
+                  watermarkOpacity={watermarkOpacity}
+                  logo={logo}
+                >
+                  <div id="qr-code">
+                    {qrCodeInstance && (
+                      <div style={{ width: '100%', height: '100%' }} />
+                    )}
+                  </div>
+                </QRPreviewWrapper>
+              </div>
+              <ModalDownloadButton onClick={() => handleDownload('png')}>
+                <DownloadSimple size={20} weight="bold" />
+              </ModalDownloadButton>
+            </>
           )}
           {previewType === 'phone' && (
             <PhonePreview
@@ -215,12 +241,15 @@ const ModalOverlay = styled.div`
 const ModalContent = styled.div`
   background-color: white;
   border-radius: 16px;
-  padding: 16px;
+  padding: 24px;
   max-width: 90%;
   width: 400px;
   position: relative;
   max-height: 90vh;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 
   /* Scrollbar styling */
   &::-webkit-scrollbar {
@@ -301,4 +330,52 @@ const PreviewContainer = styled.div`
   justify-content: center;
   align-items: center;
   padding: 16px 0;
+  width: 100%;
+  overflow: hidden;
+  #qr-code {
+    width: 300px;
+    height: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    & > div {
+      width: 100%;
+      height: 100%;
+    }
+  }
+  
+  .qr-preview {
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+  }
+`;
+
+const ModalDownloadButton = styled.button`
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(255, 99, 32, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: white;
+  padding: 0;
+  z-index: 10;
+
+  &:hover {
+    background: #ff6320;
+    transform: scale(1.1);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
 `;

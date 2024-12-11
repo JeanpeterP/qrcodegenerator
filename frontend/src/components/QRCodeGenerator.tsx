@@ -1064,9 +1064,10 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
 
     useEffect(() => {
         const handleResize = () => {
-            setIsMobile(window.innerWidth <= 460);
+            setIsMobile(window.innerWidth <= 900);
         };
         window.addEventListener('resize', handleResize);
+        handleResize(); // Initial check
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
@@ -1479,9 +1480,14 @@ const PreviewButton = styled.button`
     font-family: 'Aspekta 550', Arial, sans-serif;
     cursor: pointer;
     z-index: 1000;
+    display: none; // Hide by default
 
     &:hover {
         background-color: #e0551c;
+    }
+
+    @media (max-width: 900px) {
+        display: block; // Show only on mobile
     }
 `;
 

@@ -357,4 +357,8 @@ const PreviewDownloadButton = styled.button`
     &:active {
         transform: scale(0.95);
     }
+
+    @media (max-width: 900px) {
+        display: none; // Hide download button on mobile
+    }
 `;
