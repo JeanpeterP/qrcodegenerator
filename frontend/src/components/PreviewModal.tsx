@@ -4,26 +4,30 @@ import { QrCode, DeviceMobile, X, DownloadSimple } from 'phosphor-react';
 import { Preview } from "./Preview";
 import { PhonePreview } from './PhonePreview/PhonePreview';
 import { QRData, QRType } from '../types/qr';
-import QRCodeStyling from "qr-code-styling";
+import { AdvancedQRCode } from './AdvancedQRCode';
 import { getMaskForShape } from '../utils/getMaskForShape';
 import CutterMask from './CutterMask';
 import { DotType as QRDotType } from "qr-code-styling";
 import { Frame } from '../types';
 import { LogoType } from './LogoCustomization';
 import { QRPreviewWrapper } from './QRPreviewWrapper';
+import ReactDOM from 'react-dom';
 
 interface PreviewModalProps {
   previewType: 'qr' | 'phone';
   setPreviewType: (type: 'qr' | 'phone') => void;
   onClose: () => void;
   // Preview props
-  qrCodeInstance: QRCodeStyling | null;
+  qrCodeInstance: typeof AdvancedQRCode | null;
   handleDownload: (format: "png" | "svg") => Promise<void>;
   generateQRCodeData: () => Promise<string>;
   frame: string | Frame;
   setFrame: (frame: string | Frame) => void;
-  shape: any; // Replace with proper DotType when available
+  shape: string;
   frameColor: string;
+  setFrameColor: React.Dispatch<React.SetStateAction<string>>;
+  frameThickness: number;
+  setFrameThickness: React.Dispatch<React.SetStateAction<number>>;
   qrType: QRType;
   generatedUrl: string | null;
   setGeneratedUrl: (url: string | null) => void;
@@ -70,7 +74,7 @@ interface PreviewModalProps {
   watermark: string;
   watermarkColor: string;
   watermarkOpacity: number;
-  setShape: React.Dispatch<React.SetStateAction<QRDotType>>;
+  setShape: React.Dispatch<React.SetStateAction<string>>;
   logo: {
     type: LogoType;
     src: string | null;
@@ -79,8 +83,28 @@ interface PreviewModalProps {
   } | null;
   logoColor: string;
   setLogoColor: React.Dispatch<React.SetStateAction<string>>;
-  frameThickness: number;
-  setFrameThickness: (thickness: number) => void;
+  data: string;
+  size: number;
+  markerShape: string;
+  markerColor: string;
+  markerStyle: string;
+  qrColor: string;
+  setQRColor: React.Dispatch<React.SetStateAction<string>>;
+  qrBackground: string;
+  setQRBackground: React.Dispatch<React.SetStateAction<string>>;
+  setLogo: React.Dispatch<React.SetStateAction<{
+    type: LogoType;
+    src: string | null;
+    width?: number;
+    height?: number;
+  } | null>>;
+  logoSize: number;
+  setLogoSize: React.Dispatch<React.SetStateAction<number>>;
+  setCutter: React.Dispatch<React.SetStateAction<string>>;
+  setCutterColor: React.Dispatch<React.SetStateAction<string>>;
+  setWatermark: React.Dispatch<React.SetStateAction<string>>;
+  setWatermarkColor: React.Dispatch<React.SetStateAction<string>>;
+  setWatermarkOpacity: React.Dispatch<React.SetStateAction<number>>;
 }
 
 export const PreviewModal: React.FC<PreviewModalProps> = ({
@@ -94,6 +118,9 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
   setFrame,
   shape,
   frameColor,
+  setFrameColor,
+  frameThickness,
+  setFrameThickness,
   qrType,
   generatedUrl,
   setGeneratedUrl,
@@ -143,8 +170,23 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
   logo,
   logoColor,
   setLogoColor,
-  frameThickness,
-  setFrameThickness,
+  data,
+  size,
+  markerShape,
+  markerColor,
+  markerStyle,
+  qrColor,
+  setQRColor,
+  qrBackground,
+  setQRBackground,
+  setLogo,
+  logoSize,
+  setLogoSize,
+  setCutter,
+  setCutterColor,
+  setWatermark,
+  setWatermarkColor,
+  setWatermarkOpacity,
 }) => {
   const qrCodeRef = useRef<HTMLDivElement>(null);
 
@@ -153,7 +195,16 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
       const qrCodeDiv = qrCodeRef.current.querySelector('#qr-code') as HTMLElement;
       if (qrCodeDiv) {
         qrCodeDiv.innerHTML = '';
-        qrCodeInstance.append(qrCodeDiv);
+        ReactDOM.render(
+          <AdvancedQRCode 
+            data={data}
+            size={size}
+            markerShape={markerShape}
+            markerStyle={markerStyle}
+            markerColor={markerColor}
+          />,
+          qrCodeDiv
+        );
       }
     }
   }, [qrCodeInstance, previewType]);

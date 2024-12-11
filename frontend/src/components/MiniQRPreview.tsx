@@ -1,7 +1,14 @@
 import React, { useRef, useEffect } from 'react';
-import QRCodeStyling, { DotType, CornerSquareType } from "qr-code-styling";
 import styled from 'styled-components';
 import { Frame } from '../types';
+import ReactDOM from 'react-dom';
+import { AdvancedQRCode } from './AdvancedQRCode';
+
+// Remove DotType, CornerSquareType imports from qr-code-styling
+// Use string types instead
+type DotType = string;
+type CornerSquareType = string;
+type CornerDotType = string;
 
 interface MiniQRPreviewProps {
   frame: string | Frame;
@@ -10,43 +17,27 @@ interface MiniQRPreviewProps {
   frameThickness: number;
   markerStyle: CornerSquareType;
   markerColor: string;
+  cornerDotStyle: CornerDotType;
+  cornerDotColor: string;
 }
 
-export const MiniQRPreview: React.FC<MiniQRPreviewProps> = ({ frame, shape, frameColor, frameThickness, markerStyle, markerColor }) => {
+export const MiniQRPreview: React.FC<MiniQRPreviewProps> = ({ frame, shape, frameColor, frameThickness, markerStyle, markerColor, cornerDotStyle, cornerDotColor }) => {
   const qrCodeRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    const qrCode = new QRCodeStyling({
-      width: frame === "chat" ? 32 : 58,
-      height: frame === "chat" ? 32 : 58,
-      data: "https://example.com",
-      dotsOptions: {
-        type: shape,
-        color: "#000000",
-      },
-      cornersSquareOptions: {
-        color: markerColor,
-        type: markerStyle,
-      },
-      backgroundOptions: {
-        color: "transparent",
-      },
-      qrOptions: {
-        errorCorrectionLevel: 'H'
-      }
-    });
-
     if (qrCodeRef.current) {
-      qrCodeRef.current.innerHTML = "";
-      qrCode.append(qrCodeRef.current);
+      ReactDOM.render(
+        <AdvancedQRCode
+          data="preview"
+          size={frame === "chat" ? 32 : 58}
+          markerShape={shape}
+          markerStyle={markerStyle}
+          markerColor={markerColor}
+        />,
+        qrCodeRef.current
+      );
     }
-
-    return () => {
-      if (qrCodeRef.current) {
-        qrCodeRef.current.innerHTML = "";
-      }
-    };
-  }, [frame, shape, frameColor, frameThickness, markerStyle, markerColor]);
+  }, [frame, shape, markerStyle, markerColor]);
 
   return (
     <MiniPreviewContainer frame={frame} shape={shape} frameColor={frameColor}>
@@ -69,13 +60,14 @@ const MiniPreviewContainer = styled.div<{ frame: string | Frame; shape: string; 
   border-radius: 4px;
   margin-top: ${(props) => (props.frame === "chat" ? "20px" : "0")};
   position: relative;
-  padding: 2px;
+  padding: ${props => props.frame === "none" ? "0" : "4px"};
 
   ${(props) =>
     props.frame === "simple" &&
     `
     border: 2px solid ${props.frameColor};
     border-radius: 0;
+    padding: 6px;
   `}
 
   ${(props) =>
@@ -83,6 +75,7 @@ const MiniPreviewContainer = styled.div<{ frame: string | Frame; shape: string; 
     `
     border: 2px solid ${props.frameColor};
     border-radius: 8px;
+    padding: 6px;
   `}
 
   ${(props) =>
@@ -91,6 +84,7 @@ const MiniPreviewContainer = styled.div<{ frame: string | Frame; shape: string; 
     border: 2px solid ${props.frameColor};
     border-radius: 8px;
     box-shadow: 0 0 5px rgba(0,0,0,0.3);
+    padding: 6px;
   `}
 
   ${(props) =>
@@ -146,8 +140,8 @@ const MiniPreviewContainer = styled.div<{ frame: string | Frame; shape: string; 
   }}
 
   & > div {
-    width: ${props => props.frame === "chat" ? "24px" : "50px"} !important;
-    height: ${props => props.frame === "chat" ? "24px" : "50px"} !important;
+    width: 100% !important;
+    height: 100% !important;
     display: flex;
     justify-content: center;
     align-items: center;

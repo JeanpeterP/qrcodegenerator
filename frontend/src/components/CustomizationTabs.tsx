@@ -5,7 +5,7 @@ import { ShapeCustomization } from "./ShapeCustomization";
 import { MarkerCustomization } from "./MarkerCustomization";
 import { LogoCustomization } from "./LogoCustomization";
 import { WatermarkCustomization } from "./WatermarkCustomization";
-import { DotType, CornerSquareType } from "qr-code-styling";
+import { CornerSquareType } from "qr-code-styling";
 import { Frame } from "../types";
 
 interface CustomizationTabsProps {
@@ -15,17 +15,19 @@ interface CustomizationTabsProps {
   frameColor: string;
   setFrameColor: (color: string) => void;
   // Shape props
-  shape: DotType;
-  setShape: (shape: DotType) => void;
+  shape: string;
+  setShape: (shape: string) => void;
   qrColor: string;
   setQRColor: (color: string) => void;
   qrBackground: string;
   setQRBackground: (color: string) => void;
   // Marker props
-  markerStyle: CornerSquareType;
-  setMarkerStyle: (style: CornerSquareType) => void;
+  markerStyle: string;
+  setMarkerStyle: (style: string) => void;
   markerColor: string;
   setMarkerColor: (color: string) => void;
+  markerShape: string;
+  setMarkerShape: (shape: string) => void;
   // Logo props
   logo: {
     type: "stacked" | "open-box" | "closed-box" | "custom";
@@ -143,6 +145,8 @@ export const CustomizationTabs: React.FC<CustomizationTabsProps> = ({
   setMarkerStyle,
   markerColor,
   setMarkerColor,
+  markerShape,
+  setMarkerShape,
   logo,
   setLogo,
   logoSize,
@@ -208,6 +212,10 @@ export const CustomizationTabs: React.FC<CustomizationTabsProps> = ({
         shape={shape}
         currentFramePage={currentFramePage}
         setCurrentFramePage={setCurrentFramePage}
+        markerStyle={markerStyle}
+        markerColor={markerColor}
+        cornerDots={cornerDots}
+        cornerSquares={cornerSquares}
       />
 
       <Divider />
@@ -234,8 +242,8 @@ export const CustomizationTabs: React.FC<CustomizationTabsProps> = ({
         Marker Options
       </SubSectionTitle>
       <MarkerCustomization
-        markerStyle={markerStyle}
-        setMarkerStyle={setMarkerStyle}
+        markerShape={markerShape}
+        setMarkerShape={setMarkerShape}
         markerColor={markerColor}
         setMarkerColor={setMarkerColor}
       />

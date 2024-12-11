@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { DotType } from "qr-code-styling";
 import { MiniQRPreview } from "./MiniQRPreview";
 import {
   GridContainer,
@@ -21,9 +20,13 @@ interface FrameCustomizationProps {
   setFrameColor: (color: string) => void;
   frameThickness: number;
   setFrameThickness: (thickness: number) => void;
-  shape: DotType;
+  shape: string;
   currentFramePage: number;
-  setCurrentFramePage: React.Dispatch<React.SetStateAction<number>>;
+  setCurrentFramePage: (page: number) => void;
+  markerStyle: string;
+  markerColor: string;
+  cornerDots: string;
+  cornerSquares: string;
 }
 
 export const FrameCustomization: React.FC<FrameCustomizationProps> = ({
@@ -34,6 +37,10 @@ export const FrameCustomization: React.FC<FrameCustomizationProps> = ({
   frameThickness,
   setFrameThickness,
   shape,
+  markerStyle,
+  markerColor,
+  cornerDots,
+  cornerSquares,
 }) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -72,11 +79,13 @@ export const FrameCustomization: React.FC<FrameCustomizationProps> = ({
               <PreviewContainer>
                 <MiniQRPreview
                   frame={option.value}
-                  shape={shape}
+                  shape={shape as string}
                   frameColor={frameColor}
                   frameThickness={frameThickness}
-                  markerStyle="dot"
-                  markerColor="#000000"
+                  markerStyle={markerStyle as string}
+                  markerColor={markerColor}
+                  cornerDotStyle={cornerDots}
+                  cornerDotColor={cornerSquares}
                 />
               </PreviewContainer>
               <OptionLabel>{option.label}</OptionLabel>

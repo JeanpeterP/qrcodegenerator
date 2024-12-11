@@ -27,6 +27,9 @@ const FrameContainer = styled.div<{ frame: string | Frame; frameColor: string; f
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 300px;
+  height: 300px;
+  padding: 2px;
 
   ${(props) => {
     const thickness = `${props.frameThickness}px`;
@@ -45,48 +48,6 @@ const FrameContainer = styled.div<{ frame: string | Frame; frameColor: string; f
           border-radius: 16px;
           box-shadow: 0 0 10px rgba(0,0,0,0.5);
         `;
-      case 'colorful':
-        return `
-          position: relative;
-          border: 4px solid transparent;
-          border-radius: 16px;
-          background-image: linear-gradient(#fff, #fff), 
-                          linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeead);
-          background-origin: border-box;
-          background-clip: content-box, border-box;
-        `;
-      case 'chat':
-        return `
-          border: ${thickness} solid ${props.frameColor};
-          border-radius: 16px;
-          
-          &::before {
-            content: 'Scan Me';
-            position: absolute;
-            top: -65px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: ${props.frameColor};
-            color: white;
-            padding: 12px 24px;
-            border-radius: 16px;
-            font-size: 18px;
-            white-space: nowrap;
-            font-weight: bold;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-          }
-
-          &::after {
-            content: '';
-            position: absolute;
-            top: -25px;
-            left: 50%;
-            transform: translateX(-50%);
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-top: 20px solid ${props.frameColor};
-          }
-        `;
       default:
         return '';
     }
@@ -104,22 +65,33 @@ const ScaleContainer = styled.div`
 const Container = styled.div`
   position: relative;
   display: inline-block;
-  min-width: 300px;
-  min-height: 300px;
+  width: 300px;
+  height: 300px;
   aspect-ratio: 1;
 `;
 
-const QRPreviewContainer = styled.div`
+const QRPreviewContainer = styled.div<QRPreviewWrapperProps>`
   position: relative;
   width: 100%;
   height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  
-  & > div {
-    transform: scale(1.5);
-    transform-origin: center center;
+  background: transparent;
+
+  #qr-code {
+    width: 90%;
+    height: 90%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    & > div {
+      width: 100%;
+      height: 100%;
+      transform: scale(1.2);
+      transform-origin: center;
+    }
   }
 `;
 
@@ -161,9 +133,19 @@ export const QRPreviewWrapper: React.FC<QRPreviewWrapperProps> = ({
       <ScaleContainer>
         <div style={{ position: 'relative' }}>
           <Container className="qr-preview">
-            <QRPreviewContainer>
-              {children}
-            </QRPreviewContainer>
+            <QRPreviewContainer
+              children={children}
+              frame={frame}
+              frameColor={frameColor}
+              frameThickness={frameThickness}
+              cutter={cutter}
+              cutterColor={cutterColor}
+              opacity={opacity}
+              watermark={watermark}
+              watermarkColor={watermarkColor}
+              watermarkOpacity={watermarkOpacity}
+              logo={logo}
+            />
             {watermark !== 'none' && (
               <WatermarkContainer
                 svg={getWatermarkSVG(watermark, watermarkColor)}

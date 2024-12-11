@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import styled from 'styled-components';
 import QRCodeStyling from "qr-code-styling";
 import { DownloadSimple } from "@phosphor-icons/react";
@@ -8,6 +9,7 @@ import html2canvas from 'html2canvas';
 import { getWatermarkSVG } from '../components/watermarks/getWatermarkSVG';
 import { Frame } from '../types';
 import { LogoType } from './LogoCustomization';
+import { AdvancedQRCode } from './AdvancedQRCode';
 
 type PreviewType = 'qr' | 'phone';
 
@@ -17,8 +19,8 @@ function isPreviewType(value: string): value is PreviewType {
 }
 
 interface PreviewProps {
-    qrCodeInstance: QRCodeStyling | null;
-    handleDownload: (format: "png" | "svg") => Promise<void>;
+    qrCodeInstance: (props: any) => JSX.Element;
+    handleDownload: () => Promise<void>;
     generateQRCodeData: () => Promise<string>;
     frame: string | Frame;
     shape: string;
@@ -44,6 +46,17 @@ interface PreviewProps {
         height?: number;
     } | null;
     frameThickness: number;
+    markerShape: string;
+    markerStyle: string;
+    markerColor: string;
+    size: number;
+    error?: string | null;
+    setError?: (error: string | null) => void;
+    handleFileUpload?: (formData: FormData) => Promise<void>;
+    isInitialized?: boolean;
+    setIsInitialized?: (value: boolean) => void;
+    generateQRCode?: boolean;
+    data: string;
 }
 
 export const Preview: React.FC<PreviewProps> = ({
@@ -69,24 +82,71 @@ export const Preview: React.FC<PreviewProps> = ({
     setFrame,
     logo,
     frameThickness,
+    markerShape,
+    markerStyle,
+    markerColor,
+    size,
+    data,
 }) => {
-    const qrCodeRef = useRef<HTMLDivElement | null>(null);
-
+    const qrCodeRef = useRef<HTMLDivElement>(null);
+    
     useEffect(() => {
-        if (qrCodeInstance && qrCodeRef.current) {
-            qrCodeInstance.update({
-                image: logo?.src || '',
-                imageOptions: {
-                    hideBackgroundDots: true,
-                    imageSize: 0.4,
-                    margin: 5,
-                    crossOrigin: "anonymous",
-                },
-            });
-            qrCodeRef.current.innerHTML = '';
-            qrCodeInstance.append(qrCodeRef.current);
-        }
-    }, [qrCodeInstance, logo, previewType]);
+        const renderQRCode = async () => {
+            if (qrCodeRef.current) {
+                try {
+                    // Safely cleanup previous render
+                    const existingContent = qrCodeRef.current.firstChild;
+                    if (existingContent) {
+                        ReactDOM.unmountComponentAtNode(qrCodeRef.current);
+                    }
+                    
+                    // Add small delay to ensure DOM is ready
+                    await new Promise(resolve => setTimeout(resolve, 0));
+                    
+                    // Only render if we have data and element exists
+                    if (data && qrCodeRef.current) {
+                        ReactDOM.render(
+                            <AdvancedQRCode
+                                data={data}
+                                size={256}
+                                markerShape={markerShape}
+                                markerStyle={markerStyle}
+                                markerColor={markerColor}
+                            />,
+                            qrCodeRef.current
+                        );
+                    }
+                } catch (error) {
+                    console.error('Error rendering QR code:', error);
+                }
+            }
+        };
+
+        renderQRCode();
+
+        // Cleanup function
+        return () => {
+            if (qrCodeRef.current) {
+                try {
+                    ReactDOM.unmountComponentAtNode(qrCodeRef.current);
+                } catch (error) {
+                    console.error('Error cleaning up QR code:', error);
+                }
+            }
+        };
+    }, [
+        qrCodeInstance, 
+        data, 
+        markerShape, 
+        markerStyle, 
+        markerColor, 
+        size, 
+        frame, 
+        frameColor, 
+        frameThickness,
+        logo,
+        previewType
+    ]);
 
     const handleDownloadClick = async () => {
         if (!qrCodeInstance) return;
@@ -109,9 +169,12 @@ export const Preview: React.FC<PreviewProps> = ({
                     throw new Error('Failed to generate QR code data');
                 }
                 setGeneratedUrl(url.toString());
-                qrCodeInstance.update({
-                    data: url.toString(),
-                });
+                if (qrCodeRef.current) {
+                    ReactDOM.render(
+                        qrCodeInstance({ data: url.toString() }),
+                        qrCodeRef.current
+                    );
+                }
                 await new Promise(resolve => setTimeout(resolve, 100));
             }
 
@@ -333,6 +396,18 @@ const PreviewContainer = styled.div`
     max-width: 375px;
     margin: 0 auto;
     padding: 20px;
+
+    #qr-code {
+        width: 100%;
+        height: 100%;
+        
+        & > div {
+            width: 100% !important;
+            height: 100% !important;
+            transform: scale(1.4);
+            transform-origin: center;
+        }
+    }
 `;
 
 const PreviewDownloadButton = styled.button`

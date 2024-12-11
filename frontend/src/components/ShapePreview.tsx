@@ -1,9 +1,8 @@
 import React from 'react';
 import styled from 'styled-components';
-import { DotType } from "qr-code-styling";
 
 interface ShapePreviewProps {
-  shape: DotType;
+  shape: string;
 }
 
 export const ShapePreview: React.FC<ShapePreviewProps> = ({ shape }) => {
@@ -45,7 +44,7 @@ const DotRow = styled.div`
   justify-content: center;
 `;
 
-const Dot = styled.div<{ shape: DotType }>`
+const Dot = styled.div<{ shape: string }>`
   width: 12px;
   height: 12px;
   background-color: #000;

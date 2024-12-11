@@ -1,12 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
-import QRCodeStyling, {
-    DotType as QRDotType,
-    CornerSquareType,
-    Options as BaseOptions,
-} from "qr-code-styling";
 import html2canvas from 'html2canvas';
 import { CaretDown, QrCode, TextT, PaintBrush, DeviceMobile } from 'phosphor-react';
+import ReactDOM from 'react-dom';
 
 // Import the new components
 import { QRCodeForm } from './QRCodeForm';
@@ -32,46 +28,12 @@ import ChristmasTreeMask from './masks/ChristmasTreeMask';
 import { getMaskForShape } from '../utils/getMaskForShape';
 import { Frame } from '../types';
 import { getLogoSource } from '../utils/logoUtils';
+import { AdvancedQRCode } from './AdvancedQRCode';
 
 interface QRCodeGeneratorProps {
     userChoice?: 'qr' | 'dynamicBio' | null;
 }
 
-interface PreviewToggleProps {
-    previewType: 'qr' | 'phone';
-    setPreviewType: (type: 'qr' | 'phone') => void;
-}
-
-interface PreviewProps {
-    qrCodeInstance: QRCodeStyling | null;
-    handleDownload: (format: "png" | "svg") => Promise<void>;
-    frame: string;
-    shape: string;
-    frameColor: string;
-    qrType: string;
-    generatedUrl: string | null;
-    setGeneratedUrl: (url: string | null) => void;
-    setGenerateQRCode: (value: boolean) => void;
-    qrData: QRData;
-    watermark: string;
-    watermarkColor: string;
-    watermarkOpacity: number;
-    frameThickness: number;
-}
-
-interface PhonePreviewProps {
-    show: boolean;
-    qrType: keyof QRData;
-    qrData: QRData;
-    backgroundType: string;
-    frame: string;
-    frameColor: string;
-    watermark: string;
-    watermarkColor: string;
-    watermarkOpacity: number;
-    logo: LogoType | null;
-    frameThickness: number;
-}
 
 // Update the LogoType definition to match
 type LogoType = {
@@ -90,7 +52,31 @@ export type HandleInputChangeFunction = (
 ) => void;
 
 // Define custom Options type that extends the base Options
-interface Options extends BaseOptions {
+interface Options {
+    width?: number;
+    height?: number;
+    data?: string;
+    dotsOptions?: {
+        type: string;
+        color: string;
+    };
+    backgroundOptions?: {
+        color: string;
+    };
+    cornersSquareOptions?: {
+        type: string;
+        color: string;
+    };
+    qrOptions?: {
+        errorCorrectionLevel: string;
+    };
+    image?: string;
+    imageOptions?: {
+        hideBackgroundDots: boolean;
+        imageSize: number;
+        margin: number;
+        crossOrigin: string;
+    };
     frameOptions?: {
         style: string;
         width: number;
@@ -193,70 +179,11 @@ interface CustomizationTabsProps {
     setLogoColor: React.Dispatch<React.SetStateAction<string>>;
     frameThickness: number;
     setFrameThickness: React.Dispatch<React.SetStateAction<number>>;
+    markerShape: string;
+    setMarkerShape: React.Dispatch<React.SetStateAction<string>>;
 }
 
-interface PreviewModalProps {
-    previewType: 'qr' | 'phone';
-    setPreviewType: (type: 'qr' | 'phone') => void;
-    onClose: () => void;
-    qrCodeInstance: QRCodeStyling | null;
-    handleDownload: (format: "png" | "svg") => Promise<void>;
-    generateQRCodeData: () => Promise<string>;
-    frame: string;
-    setFrame: (newFrame: string | Frame) => void;
-    shape: string;
-    setShape: React.Dispatch<React.SetStateAction<QRDotType>>;
-    frameColor: string;
-    qrType: string;
-    generatedUrl: string | null;
-    setGeneratedUrl: (url: string | null) => void;
-    setGenerateQRCode: (value: boolean) => void;
-    qrData: QRData;
-    backgroundType: string;
-    gradient: boolean;
-    setGradient: React.Dispatch<React.SetStateAction<boolean>>;
-    gradientColor1: string;
-    setGradientColor1: React.Dispatch<React.SetStateAction<string>>;
-    gradientColor2: string;
-    setGradientColor2: React.Dispatch<React.SetStateAction<string>>;
-    gradientType: string;
-    setGradientType: React.Dispatch<React.SetStateAction<string>>;
-    gradientRotation: number;
-    setGradientRotation: React.Dispatch<React.SetStateAction<number>>;
-    cornerDots: string;
-    setCornerDots: React.Dispatch<React.SetStateAction<string>>;
-    cornerSquares: string;
-    setCornerSquares: React.Dispatch<React.SetStateAction<string>>;
-    currentFramePage: number;
-    setCurrentFramePage: React.Dispatch<React.SetStateAction<number>>;
-    currentShapePage: number;
-    setCurrentShapePage: React.Dispatch<React.SetStateAction<number>>;
-    customLogo: string | null;
-    setCustomLogo: React.Dispatch<React.SetStateAction<string | null>>;
-    title: string;
-    setTitle: React.Dispatch<React.SetStateAction<string>>;
-    description: string;
-    setDescription: React.Dispatch<React.SetStateAction<string>>;
-    buttonText: string;
-    setButtonText: React.Dispatch<React.SetStateAction<string>>;
-    buttonColor: string;
-    setButtonColor: React.Dispatch<React.SetStateAction<string>>;
-    dynamicBioType: string;
-    setBackgroundType: React.Dispatch<React.SetStateAction<string>>;
-    cutterShape: string;
-    setCutterShape: React.Dispatch<React.SetStateAction<string>>;
-    opacity: number;
-    setOpacity: React.Dispatch<React.SetStateAction<number>>;
-    cutterColor: string;
-    cutter: string;
-    watermark: string;
-    watermarkColor: string;
-    watermarkOpacity: number;
-    logoColor: string;
-    setLogoColor: React.Dispatch<React.SetStateAction<string>>;
-    frameThickness: number;
-    setFrameThickness: React.Dispatch<React.SetStateAction<number>>;
-}
+
 
 export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     const [isMounted, setIsMounted] = useState(false);
@@ -308,7 +235,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         type: 'fancy',
         svg: `<g xmlns="http://www.w3.org/2000/svg">...</g>` // Add your SVG content here
     });
-    const [shape, setShape] = useState<QRDotType>("rounded");
+    const [shape, setShape] = useState<string>("rounded");
     const [logo, setLogo] = useState<LogoType>({
         type: 'stacked',
         src: getLogoSource('stacked'),
@@ -325,12 +252,9 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         { id: "fancy", label: "Fancy Frame" },
         { id: "chat", label: "Chat Bubble" },
     ];
-    const [qrCodeInstance, setQrCodeInstance] = useState<QRCodeStyling | null>(
-        null
-    );
-    const qrCodeRef = useRef<HTMLDivElement | null>(null);
+    const qrCodeRef = useRef<any>(null);
 
-    const [markerStyle, setMarkerStyle] = useState<CornerSquareType>("dot");
+    const [markerStyle, setMarkerStyle] = useState<string>("dot");
     const [markerColor, setMarkerColor] = useState("#7C0909");
 
     const [currentShapePage, setCurrentShapePage] = useState(0);
@@ -408,6 +332,9 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
 
     // Add state near other state declarations
     const [frameThickness, setFrameThickness] = useState<number>(4);
+
+    // Add state for generated data
+    const [generatedData, setGeneratedData] = useState<string>('');
 
     useEffect(() => {
         setIsMounted(true);
@@ -647,25 +574,25 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     };
 
     const handleDownload = async () => {
-        const qrCode = new QRCodeStyling({
-            width: 180,
-            height: 180,
-            data: "https://example.com",
-            dotsOptions: {
-                type: shape,
-                color: qrColor,
-            },
-            backgroundOptions: {
-                color: qrBackground,
-            },
-            cornersSquareOptions: {
-                type: markerStyle,
-                color: markerColor,
-            },
+        const qrCodeDiv = document.createElement('div');
+        ReactDOM.render(
+            <AdvancedQRCode
+                data={await generateQRCodeData()}
+                size={180}
+                markerShape={shape}
+                markerStyle={markerStyle}
+                markerColor={markerColor}
+            />,
+            qrCodeDiv
+        );
+        
+        // Convert to image and download
+        html2canvas(qrCodeDiv).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'qrcode.png';
+            link.href = canvas.toDataURL();
+            link.click();
         });
-
-        // Frame styling will be handled by the wrapper component
-        // ... rest of download handler
     };
 
     // Add these helper functions
@@ -719,7 +646,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
             try {
                 const qrData = await generateQRCodeData();
                 
-                if (!isCancelled && qrCodeInstance) {
+                if (!isCancelled && qrCodeRef.current) {
                     // Get the current logo content
                     const logoImage = logo ? {
                         image: getLogoContent(logo),
@@ -734,14 +661,14 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                         height: qrSize,
                         data: qrData || 'Preview',
                         dotsOptions: {
-                            type: shape as QRDotType,
+                            type: shape,
                             color: qrColor,
                         },
                         backgroundOptions: {
                             color: 'transparent',
                         },
                         cornersSquareOptions: {
-                            type: markerStyle as CornerSquareType,
+                            type: markerStyle,
                             color: markerColor,
                         },
                         qrOptions: {
@@ -762,7 +689,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                         } : undefined
                     };
 
-                    await qrCodeInstance.update(options);
+                    await qrCodeRef.current.update(options);
 
                     // Apply cutter shape after QR code update
                     if (cutterShape !== 'none') {
@@ -847,117 +774,6 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         maskImage.src = url;
     };
 
-    const handleMarkerStyleChange = (
-        e: React.ChangeEvent<HTMLSelectElement>
-    ) => {
-        setMarkerStyle(e.target.value as CornerSquareType);
-    };
-
-    const handleMarkerColorChange = (
-        e: React.ChangeEvent<HTMLInputElement>
-    ) => {
-        setMarkerColor(e.target.value);
-    };
-
-    // Function to handle the "Generate QR Code" button click
-    const handleGenerateClick = async () => {
-        try {
-            setGenerateQRCode(true);
-            
-            // Create FormData
-            const formData = new FormData();
-            
-            if (qrData.file.fileData) {
-                formData.append('file', qrData.file.fileData);
-                formData.append('title', qrData.file.title || 'Download File');
-                formData.append('description', qrData.file.description || '');
-                formData.append('buttonText', qrData.file.buttonText || 'Download');
-                formData.append('buttonColor', qrData.file.buttonColor || '#ff6320');
-
-                const response = await fetch(`${getBackendUrl()}/api/upload`, {
-                    method: 'POST',
-                    body: formData,
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Upload failed: ${response.statusText}`);
-                }
-
-                const result = await response.json();
-                if (result.success && result.qrId) {
-                    const url = `${window.location.origin}/qr/${result.qrId}`;
-                    setGeneratedUrl(url);
-                    
-                    // Update QR code with the new URL
-                    if (qrCodeInstance) {
-                        qrCodeInstance.update({
-                            data: url
-                        });
-                    }
-                } else {
-                    throw new Error(result.message || 'Upload failed');
-                }
-            }
-        } catch (error) {
-            console.error('Error during file upload:', error);
-            alert('Error uploading file. Please try again.');
-            setGenerateQRCode(false);
-        }
-    };
-
-    // Update the handleTypeChange function
-    const handleTypeChange = (newType: QRType) => {
-        setQRType(newType);
-        setIsTypeDropdownOpen(false);
-        
-        // Reset QR data based on type
-        const defaultData: Partial<QRData> = {
-            url: newType === 'url' ? 'https://example.com' : '',
-            email: { address: '', subject: '', message: '' },
-            vcard: { name: '', phone: '', company: '', address: '' },
-            wifi: { ssid: '', password: '', security: 'WPA' },
-            text: '',
-            whatsapp: { number: '', message: '' },
-            sms: { number: '', message: '' },
-            twitter: { username: '', tweet: '' },
-            facebook: { url: '' },
-            pdf: { url: '' },
-            mp3: { url: '' },
-            app: { url: '' },
-            image: { url: '' },
-            file: {
-                fileData: null,
-                title: '',
-                description: '',
-                buttonText: 'Download',
-                buttonColor: '#ff6320',
-            },
-            multiplink: { title: '', links: [] },
-            youtube: { url: '' },
-            ar: { arUrl: '' },
-            crypto: { 
-                currency: "BTC",
-                address: "",
-                amount: ""
-            }
-        };
-
-        setQRData(prevData => ({
-            ...prevData,
-            ...defaultData
-        }));
-
-        // Reset preview mode if needed
-        if (!shouldShowPhonePreview(newType)) {
-            setPreviewMode('qr');
-        }
-    };
-
-    // Add this inside your QRCodeGenerator component
-    const shouldShowPhonePreview = (type: string) => {
-        return ['file', 'multiplink', 'youtube'].includes(type);
-    };
-
     // Update the handleQRTypeSelect to not change steps
     const handleQRTypeSelect = (type: QRType) => {
         setQRType(type);
@@ -969,58 +785,27 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         setPreviewType('qr');
     };
 
-    // Add this function to get placeholder data for preview
-    const getPlaceholderData = (type: QRType): Partial<QRData> => {
-        switch (type) {
-            case 'url':
-                return { url: 'https://example.com' };
-            case 'file':
-                return {
-                    file: {
-                        fileData: null,
-                        title: 'Sample File',
-                        description: 'This is a sample file description',
-                        buttonText: 'Download',
-                        buttonColor: '#ff6320',
-                    }
-                };
-            case 'multiplink':
-                return {
-                    contentData: {
-                        title: 'My Links',
-                        links: [
-                            { label: 'Website', url: 'https://example.com' },
-                            { label: 'Blog', url: 'https://blog.example.com' },
-                            { label: 'Contact', url: 'https://example.com/contact' },
-                        ]
-                    }
-                };
-            // Add more cases for other QR types...
-            default:
-                return {};
-        }
-    };
 
     // Initial QR code creation
-    useEffect(() => {
-        const qrCode = new QRCodeStyling({
-            width: 180,
-            height: 180,
-            data: "https://example.com",
-            dotsOptions: {
-                type: shape,
-                color: qrColor,
-            },
-            backgroundOptions: {
-                color: qrBackground,
-            },
-            cornersSquareOptions: {
-                type: markerStyle,
-                color: markerColor,
-            },
-        });
-        setQrCodeInstance(qrCode);
-    }, []);
+    // useEffect(() => {
+    //     const qrCode = new QRCodeStyling({
+    //         width: 180,
+    //         height: 180,
+    //         data: "https://example.com",
+    //         dotsOptions: {
+    //             type: shape,
+    //             color: qrColor,
+    //         },
+    //         backgroundOptions: {
+    //             color: qrBackground,
+    //         },
+    //         cornersSquareOptions: {
+    //             type: markerStyle,
+    //             color: markerColor,
+    //         },
+    //     });
+    //     setQrCodeInstance(qrCode);
+    // }, []);
 
 
 
@@ -1176,6 +961,13 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         setFrame(newFrame);
     };
 
+    // Update data when modal opens
+    useEffect(() => {
+        if (isModalOpen) {
+            generateQRCodeData().then(setGeneratedData);
+        }
+    }, [isModalOpen]);
+
     return (
         <Container>
             <LeftColumn>
@@ -1205,6 +997,8 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                     setFrame={handleFrameChange}
                     frameThickness={frameThickness}
                     setFrameThickness={setFrameThickness}
+                    markerShape={shape}
+                    setMarkerShape={setShape}
                     frameColor={frameColor}
                     setFrameColor={setFrameColor}
                     shape={shape}
@@ -1304,12 +1098,15 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
 
                     {previewType === 'qr' && (
                         <Preview
-                            qrCodeInstance={qrCodeInstance}
+                            qrCodeInstance={(props: any) => (
+                                <AdvancedQRCode {...props} />
+                            )}
+                            data={qrData.url || qrData.text || 'Preview'}
                             handleDownload={handleDownload}
                             generateQRCodeData={generateQRCodeData}
-                            frame={typeof frame === 'object' ? frame.type : frame}
+                            size={qrSize}
+                            frame={frame}
                             shape={shape}
-                            setFrame={handleFrameChange}
                             frameColor={frameColor}
                             qrType={qrType}
                             generatedUrl={generatedUrl}
@@ -1320,12 +1117,16 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             previewType={previewType}
                             cutterColor={cutterColor}
                             opacity={opacity}
-                            cutter={cutter}
                             watermark={watermark}
                             watermarkColor={watermarkColor}
                             watermarkOpacity={watermarkOpacity}
+                            cutter={cutter}
+                            setFrame={setFrame}
                             logo={logo}
                             frameThickness={frameThickness}
+                            markerShape={shape}
+                            markerStyle={markerStyle}
+                            markerColor={markerColor}
                         />
                     )}
                     {previewType === 'phone' && (
@@ -1354,23 +1155,33 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                     </PreviewButton>
                     {isModalOpen && (
                         <PreviewModal
+                            onClose={() => setIsModalOpen(false)}
+                            qrCodeInstance={AdvancedQRCode}
                             previewType={previewType}
                             setPreviewType={setPreviewType}
-                            onClose={() => setIsModalOpen(false)}
-                            qrCodeInstance={qrCodeInstance}
-                            handleDownload={handleDownload}
-                            generateQRCodeData={generateQRCodeData}
-                            frame={frame}
-                            setFrame={handleFrameChange}
-                            shape={shape}
-                            setShape={setShape}
-                            frameColor={frameColor}
                             qrType={qrType}
                             generatedUrl={generatedUrl}
                             setGeneratedUrl={setGeneratedUrl}
                             setGenerateQRCode={setGenerateQRCode}
                             qrData={qrData}
-                            backgroundType={backgroundType}
+                            data={generatedData}
+                            size={qrSize}
+                            frame={frame}
+                            setFrame={setFrame}
+                            frameColor={frameColor}
+                            setFrameColor={setFrameColor}
+                            frameThickness={frameThickness}
+                            setFrameThickness={setFrameThickness}
+                            shape={shape}
+                            setShape={setShape}
+                            qrColor={qrColor}
+                            setQRColor={setQRColor}
+                            qrBackground={qrBackground}
+                            setQRBackground={setQRBackground}
+                            logo={logo}
+                            setLogo={setLogo}
+                            logoSize={logoSize}
+                            setLogoSize={setLogoSize}
                             gradient={gradient}
                             setGradient={setGradient}
                             gradientColor1={gradientColor1}
@@ -1385,12 +1196,35 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             setCornerDots={setCornerDots}
                             cornerSquares={cornerSquares}
                             setCornerSquares={setCornerSquares}
+                            customLogo={customLogo}
+                            setCustomLogo={setCustomLogo}
+                            cutter={cutter}
+                            setCutter={setCutter}
+                            cutterShape={cutterShape}
+                            setCutterShape={setCutterShape}
+                            opacity={opacity}
+                            setOpacity={setOpacity}
+                            cutterColor={cutterColor}
+                            setCutterColor={setCutterColor}
+                            watermark={watermark}
+                            setWatermark={setWatermark}
+                            watermarkColor={watermarkColor}
+                            setWatermarkColor={setWatermarkColor}
+                            watermarkOpacity={watermarkOpacity}
+                            setWatermarkOpacity={setWatermarkOpacity}
+                            logoColor={logoColor}
+                            setLogoColor={setLogoColor}
+                            markerShape={shape}
+                            markerStyle={markerStyle}
+                            markerColor={markerColor}
+                            backgroundType={backgroundType}
+                            setBackgroundType={setBackgroundType}
                             currentFramePage={currentFramePage}
                             setCurrentFramePage={setCurrentFramePage}
                             currentShapePage={currentShapePage}
                             setCurrentShapePage={setCurrentShapePage}
-                            customLogo={customLogo}
-                            setCustomLogo={setCustomLogo}
+                            handleDownload={handleDownload}
+                            generateQRCodeData={generateQRCodeData}
                             title={title}
                             setTitle={setTitle}
                             description={description}
@@ -1400,21 +1234,6 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             buttonColor={buttonColor}
                             setButtonColor={setButtonColor}
                             dynamicBioType={dynamicBioType}
-                            setBackgroundType={setBackgroundType}
-                            cutterShape={cutterShape}
-                            setCutterShape={setCutterShape}
-                            opacity={opacity}
-                            setOpacity={setOpacity}
-                            cutterColor={cutterColor}
-                            cutter={cutter}
-                            watermark={watermark}
-                            watermarkColor={watermarkColor}
-                            watermarkOpacity={watermarkOpacity}
-                            logo={logo}
-                            logoColor={logoColor}
-                            setLogoColor={setLogoColor}
-                            frameThickness={frameThickness}
-                            setFrameThickness={setFrameThickness}
                         />
                     )}
                 </>

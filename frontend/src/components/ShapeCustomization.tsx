@@ -1,6 +1,5 @@
 import React from "react";
 import styled from "styled-components";
-import { DotType } from "qr-code-styling";
 import { ShapePreview } from "./ShapePreview";
 import {
   GridContainer,
@@ -12,8 +11,8 @@ import {
 import { ColorPickerWithPresets } from './common/ColorPickerWithPresets';
 
 interface ShapeCustomizationProps {
-  shape: DotType;
-  setShape: (shape: DotType) => void;
+  shape: string;
+  setShape: (shape: string) => void;
   qrColor: string;
   setQRColor: (color: string) => void;
   qrBackground: string;
@@ -45,10 +44,10 @@ export const ShapeCustomization: React.FC<ShapeCustomizationProps> = ({
             <OptionBox
               key={option.value}
               active={shape === option.value}
-              onClick={() => setShape(option.value as DotType)}
+              onClick={() => setShape(option.value)}
             >
               <PreviewContainer>
-                <ShapePreview shape={option.value as DotType} />
+                <ShapePreview shape={option.value} />
               </PreviewContainer>
               <OptionLabel>{option.label}</OptionLabel>
             </OptionBox>

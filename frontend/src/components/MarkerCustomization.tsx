@@ -11,13 +11,18 @@ import {
 import { ColorPickerWithPresets } from './common/ColorPickerWithPresets';
 
 interface MarkerCustomizationProps {
-  markerStyle: CornerSquareType;
-  setMarkerStyle: (style: CornerSquareType) => void;
+  markerShape: string;
+  setMarkerShape: (shape: string) => void;
   markerColor: string;
   setMarkerColor: (color: string) => void;
 }
 
-const MarkerPreview = ({ styleType }: { styleType: CornerSquareType }) => {
+interface MarkerOption {
+  value: string;
+  label: string;
+}
+
+const MarkerPreview = ({ styleType }: { styleType: string }) => {
   return (
     <MarkerExampleContainer>
       <MarkerOuter styleType={styleType}>
@@ -28,31 +33,32 @@ const MarkerPreview = ({ styleType }: { styleType: CornerSquareType }) => {
 };
 
 export const MarkerCustomization: React.FC<MarkerCustomizationProps> = ({
-  markerStyle,
-  setMarkerStyle,
+  markerShape,
+  setMarkerShape,
   markerColor,
   setMarkerColor,
 }) => {
-  const markerStyles: CornerSquareType[] = [
-    "square",
-    "dot",
-    "extra-rounded",
+  const markerOptions = [
+    { value: 'square', label: 'Square' },
+    { value: 'circle', label: 'Circle' },
+    { value: 'star', label: 'Star' },
+    // Add more custom marker shapes as needed
   ];
 
   return (
     <>
       <GridContainer>
         <OptionGrid>
-          {markerStyles.map((style) => (
+          {markerOptions.map((option) => (
             <OptionBox
-              key={style}
-              active={markerStyle === style}
-              onClick={() => setMarkerStyle(style)}
+              key={option.value}
+              active={markerShape === option.value}
+              onClick={() => setMarkerShape(option.value)}
             >
               <PreviewContainer>
-                <MarkerPreview styleType={style} />
+                <MarkerPreview styleType={option.value} />
               </PreviewContainer>
-              <OptionLabel>{style}</OptionLabel>
+              <OptionLabel>{option.label}</OptionLabel>
             </OptionBox>
           ))}
         </OptionGrid>
@@ -122,7 +128,7 @@ const MarkerExampleContainer = styled.div`
   height: 100%;
 `;
 
-const MarkerOuter = styled.div<{ styleType: CornerSquareType }>`
+const MarkerOuter = styled.div<{ styleType: string }>`
   width: 42px;
   height: 42px;
   background-color: #000;
@@ -142,7 +148,7 @@ const MarkerOuter = styled.div<{ styleType: CornerSquareType }>`
   }}
 `;
 
-const MarkerInner = styled.div<{ styleType: CornerSquareType }>`
+const MarkerInner = styled.div<{ styleType: string }>`
   width: 26px;
   height: 26px;
   background-color: #f8f9fa;
