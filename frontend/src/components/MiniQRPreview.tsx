@@ -7,11 +7,12 @@ interface MiniQRPreviewProps {
   frame: string | Frame;
   shape: DotType;
   frameColor: string;
+  frameThickness: number;
   markerStyle: CornerSquareType;
   markerColor: string;
 }
 
-export const MiniQRPreview: React.FC<MiniQRPreviewProps> = ({ frame, shape, frameColor, markerStyle, markerColor }) => {
+export const MiniQRPreview: React.FC<MiniQRPreviewProps> = ({ frame, shape, frameColor, frameThickness, markerStyle, markerColor }) => {
   const qrCodeRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -45,7 +46,7 @@ export const MiniQRPreview: React.FC<MiniQRPreviewProps> = ({ frame, shape, fram
         qrCodeRef.current.innerHTML = "";
       }
     };
-  }, [frame, shape, frameColor, markerStyle, markerColor]);
+  }, [frame, shape, frameColor, frameThickness, markerStyle, markerColor]);
 
   return (
     <MiniPreviewContainer frame={frame} shape={shape} frameColor={frameColor}>

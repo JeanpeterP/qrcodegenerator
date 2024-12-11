@@ -237,6 +237,7 @@ interface PhonePreviewProps {
       width?: number;
       height?: number;
     } | null;
+    frameThickness?: number;
 }
 
 export const PhonePreview: React.FC<PhonePreviewProps> = ({
@@ -254,7 +255,8 @@ export const PhonePreview: React.FC<PhonePreviewProps> = ({
   watermark,
   watermarkColor,
   watermarkOpacity,
-  logo
+  logo,
+  frameThickness = 4
 }) => {
     return (
         <PhonePreviewColumn show={show}>
@@ -267,6 +269,7 @@ export const PhonePreview: React.FC<PhonePreviewProps> = ({
                     <QRPreviewWrapper
                         cutter={cutter}
                         cutterColor={cutterColor}
+                        frameThickness={frameThickness}
                         opacity={opacity}
                         frame={frame}
                         frameColor={frameColor}

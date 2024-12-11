@@ -10,6 +10,7 @@ interface QRPreviewWrapperProps {
   opacity: number;
   frame: string | Frame;
   frameColor: string;
+  frameThickness: number;
   watermark: string;
   watermarkColor: string;
   watermarkOpacity: number;
@@ -21,24 +22,26 @@ interface QRPreviewWrapperProps {
   } | null;
 }
 
-const FrameContainer = styled.div<{ frame: string | Frame; frameColor: string }>`
+const FrameContainer = styled.div<{ frame: string | Frame; frameColor: string; frameThickness: number }>`
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
 
   ${(props) => {
+    const thickness = `${props.frameThickness}px`;
+    
     switch (typeof props.frame === 'object' ? props.frame.type : props.frame) {
       case 'simple':
-        return `border: 4px solid ${props.frameColor};`;
+        return `border: ${thickness} solid ${props.frameColor};`;
       case 'rounded':
         return `
-          border: 4px solid ${props.frameColor};
+          border: ${thickness} solid ${props.frameColor};
           border-radius: 16px;
         `;
       case 'fancy':
         return `
-          border: 4px solid ${props.frameColor};
+          border: ${thickness} solid ${props.frameColor};
           border-radius: 16px;
           box-shadow: 0 0 10px rgba(0,0,0,0.5);
         `;
@@ -54,7 +57,7 @@ const FrameContainer = styled.div<{ frame: string | Frame; frameColor: string }>
         `;
       case 'chat':
         return `
-          border: 4px solid ${props.frameColor};
+          border: ${thickness} solid ${props.frameColor};
           border-radius: 16px;
           
           &::before {
@@ -143,13 +146,18 @@ export const QRPreviewWrapper: React.FC<QRPreviewWrapperProps> = ({
   opacity,
   frame,
   frameColor,
+  frameThickness,
   watermark,
   watermarkColor,
   watermarkOpacity,
   logo,
 }) => {
   return (
-    <FrameContainer frame={frame} frameColor={frameColor} className="qr-frame">
+    <FrameContainer 
+      frame={frame} 
+      frameColor={frameColor}
+      frameThickness={frameThickness}
+    >
       <ScaleContainer>
         <div style={{ position: 'relative' }}>
           <Container className="qr-preview">

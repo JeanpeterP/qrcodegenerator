@@ -81,6 +81,8 @@ interface CustomizationTabsProps {
   setCutterColor: React.Dispatch<React.SetStateAction<string>>;
   logoColor: string;
   setLogoColor: React.Dispatch<React.SetStateAction<string>>;
+  frameThickness: number;
+  setFrameThickness: (thickness: number) => void;
 }
 
 const SectionTitle = styled.h2`
@@ -181,6 +183,8 @@ export const CustomizationTabs: React.FC<CustomizationTabsProps> = ({
   setCutterColor,
   logoColor,
   setLogoColor,
+  frameThickness,
+  setFrameThickness,
 }) => {
   return (
     <CustomizationContainer>
@@ -199,6 +203,8 @@ export const CustomizationTabs: React.FC<CustomizationTabsProps> = ({
         setFrame={setFrame}
         frameColor={frameColor}
         setFrameColor={setFrameColor}
+        frameThickness={frameThickness}
+        setFrameThickness={setFrameThickness}
         shape={shape}
         currentFramePage={currentFramePage}
         setCurrentFramePage={setCurrentFramePage}

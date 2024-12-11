@@ -79,6 +79,8 @@ interface PreviewModalProps {
   } | null;
   logoColor: string;
   setLogoColor: React.Dispatch<React.SetStateAction<string>>;
+  frameThickness: number;
+  setFrameThickness: (thickness: number) => void;
 }
 
 export const PreviewModal: React.FC<PreviewModalProps> = ({
@@ -141,6 +143,8 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
   logo,
   logoColor,
   setLogoColor,
+  frameThickness,
+  setFrameThickness,
 }) => {
   const qrCodeRef = useRef<HTMLDivElement>(null);
 
@@ -184,6 +188,7 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
                   opacity={opacity}
                   frame={frame}
                   frameColor={frameColor}
+                  frameThickness={frameThickness}
                   watermark={watermark}
                   watermarkColor={watermarkColor}
                   watermarkOpacity={watermarkOpacity}
@@ -216,6 +221,7 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
               watermarkColor={watermarkColor}
               watermarkOpacity={watermarkOpacity}
               logo={logo}
+              frameThickness={frameThickness}
             />
           )}
         </PreviewContainer>

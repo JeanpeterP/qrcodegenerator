@@ -43,6 +43,7 @@ interface PreviewProps {
         width?: number;
         height?: number;
     } | null;
+    frameThickness: number;
 }
 
 export const Preview: React.FC<PreviewProps> = ({
@@ -67,6 +68,7 @@ export const Preview: React.FC<PreviewProps> = ({
     cutter,
     setFrame,
     logo,
+    frameThickness,
 }) => {
     const qrCodeRef = useRef<HTMLDivElement | null>(null);
 
@@ -129,10 +131,10 @@ export const Preview: React.FC<PreviewProps> = ({
             if (frame !== 'none') {
                 const padding = size * 0.1;
                 const frameSize = size - (padding * 2);
-                const cornerSize = size * 0.15;
                 
+                // Adjust the scaling factor to match preview
+                ctx.lineWidth = frameThickness * (size * 0.002); // Reduced from 0.005 to 0.001
                 ctx.strokeStyle = frameColor;
-                ctx.lineWidth = size * 0.02;
                 ctx.beginPath();
 
                 switch (frame) {
@@ -146,6 +148,7 @@ export const Preview: React.FC<PreviewProps> = ({
                         ctx.roundRect(padding, padding, frameSize, frameSize, radius);
                         break;
                     case 'fancy':
+                        const cornerSize = size * 0.1; // Define cornerSize for fancy frame
                         // Top left corner
                         ctx.moveTo(padding, padding + cornerSize);
                         ctx.lineTo(padding, padding);
@@ -302,6 +305,7 @@ export const Preview: React.FC<PreviewProps> = ({
             <PhonePreview
                 show={true}
                 qrType={qrType}
+                frameThickness={frameThickness}
                 qrData={qrData}
                 backgroundType="none"
                 isQRPreview={previewType === 'qr'}

@@ -56,6 +56,7 @@ interface PreviewProps {
     watermark: string;
     watermarkColor: string;
     watermarkOpacity: number;
+    frameThickness: number;
 }
 
 interface PhonePreviewProps {
@@ -69,6 +70,7 @@ interface PhonePreviewProps {
     watermarkColor: string;
     watermarkOpacity: number;
     logo: LogoType | null;
+    frameThickness: number;
 }
 
 // Update the LogoType definition to match
@@ -189,6 +191,8 @@ interface CustomizationTabsProps {
     setWatermarkOpacity: React.Dispatch<React.SetStateAction<number>>;
     logoColor: string;
     setLogoColor: React.Dispatch<React.SetStateAction<string>>;
+    frameThickness: number;
+    setFrameThickness: React.Dispatch<React.SetStateAction<number>>;
 }
 
 interface PreviewModalProps {
@@ -250,6 +254,8 @@ interface PreviewModalProps {
     watermarkOpacity: number;
     logoColor: string;
     setLogoColor: React.Dispatch<React.SetStateAction<string>>;
+    frameThickness: number;
+    setFrameThickness: React.Dispatch<React.SetStateAction<number>>;
 }
 
 export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
@@ -399,6 +405,9 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
 
     // Add these state declarations
     const [logoColor, setLogoColor] = useState<string>('#000000');
+
+    // Add state near other state declarations
+    const [frameThickness, setFrameThickness] = useState<number>(4);
 
     useEffect(() => {
         setIsMounted(true);
@@ -637,28 +646,26 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         }
     };
 
-    const handleDownload = async (format: "png" | "svg") => {
-        setGenerateQRCode(true);
-        try {
-            const qrPreviewElement = document.querySelector('.qr-preview') as HTMLElement;
-            if (qrPreviewElement) {
-                // Use html2canvas to capture the QR code and mask together
-                const canvas = await html2canvas(qrPreviewElement, { backgroundColor: null });
-                const dataUrl = canvas.toDataURL(`image/${format}`);
-                
-                // Create a temporary link to trigger the download
-                const link = document.createElement('a');
-                link.href = dataUrl;
-                link.download = `qr-code.${format}`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }
-        } catch (error) {
-            console.error('Error generating or downloading QR code:', error);
-        } finally {
-            setGenerateQRCode(false);
-        }
+    const handleDownload = async () => {
+        const qrCode = new QRCodeStyling({
+            width: 180,
+            height: 180,
+            data: "https://example.com",
+            dotsOptions: {
+                type: shape,
+                color: qrColor,
+            },
+            backgroundOptions: {
+                color: qrBackground,
+            },
+            cornersSquareOptions: {
+                type: markerStyle,
+                color: markerColor,
+            },
+        });
+
+        // Frame styling will be handled by the wrapper component
+        // ... rest of download handler
     };
 
     // Add these helper functions
@@ -1196,6 +1203,8 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                 <CustomizationTabs
                     frame={frame}
                     setFrame={handleFrameChange}
+                    frameThickness={frameThickness}
+                    setFrameThickness={setFrameThickness}
                     frameColor={frameColor}
                     setFrameColor={setFrameColor}
                     shape={shape}
@@ -1316,6 +1325,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             watermarkColor={watermarkColor}
                             watermarkOpacity={watermarkOpacity}
                             logo={logo}
+                            frameThickness={frameThickness}
                         />
                     )}
                     {previewType === 'phone' && (
@@ -1333,6 +1343,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             watermarkColor={watermarkColor}
                             watermarkOpacity={watermarkOpacity}
                             logo={logo}
+                            frameThickness={frameThickness}
                         />
                     )}
                 </RightColumn>
@@ -1402,6 +1413,8 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             logo={logo}
                             logoColor={logoColor}
                             setLogoColor={setLogoColor}
+                            frameThickness={frameThickness}
+                            setFrameThickness={setFrameThickness}
                         />
                     )}
                 </>
