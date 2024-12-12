@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import { FrameCustomization } from "./FrameCustomization";
 import { ShapeCustomization } from "./ShapeCustomization";
@@ -190,6 +190,22 @@ export const CustomizationTabs: React.FC<CustomizationTabsProps> = ({
   frameThickness,
   setFrameThickness,
 }) => {
+ 
+  const [lastSelectedShape, setLastSelectedShape] = useState(shape);
+
+  // Update shape without affecting marker
+  const handleShapeChange = (newShape: string) => {
+    setShape(newShape);
+    setLastSelectedShape(newShape);
+  };
+
+  // Update marker without affecting shape
+  const handleMarkerChange = (newMarker: string) => {
+    setMarkerShape(newMarker);
+    // Restore the last selected shape
+    setShape(lastSelectedShape);
+  };
+
   return (
     <CustomizationContainer>
       <SectionTitle>
@@ -227,7 +243,7 @@ export const CustomizationTabs: React.FC<CustomizationTabsProps> = ({
       </SubSectionTitle>
       <ShapeCustomization
         shape={shape}
-        setShape={setShape}
+        setShape={handleShapeChange}
         qrColor={qrColor}
         setQRColor={setQRColor}
         qrBackground={qrBackground}
@@ -243,7 +259,7 @@ export const CustomizationTabs: React.FC<CustomizationTabsProps> = ({
       </SubSectionTitle>
       <MarkerCustomization
         markerShape={markerShape}
-        setMarkerShape={setMarkerShape}
+        setMarkerShape={handleMarkerChange}
         markerColor={markerColor}
         setMarkerColor={setMarkerColor}
       />

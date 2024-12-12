@@ -38,12 +38,26 @@ export const MarkerCustomization: React.FC<MarkerCustomizationProps> = ({
   markerColor,
   setMarkerColor,
 }) => {
+  console.log('Current markerShape:', markerShape); // Debug log
+
+  const handleMarkerClick = (value: string) => {
+    console.log('Setting marker shape to:', value);
+    setMarkerShape(value); // Removed 'marker-' prefix
+  };
+
   const markerOptions = [
-    { value: 'square', label: 'Square' },
-    { value: 'circle', label: 'Circle' },
-    { value: 'star', label: 'Star' },
-    // Add more custom marker shapes as needed
+    { value: 'marker-dot', label: 'Dot' },
+    { value: 'marker-square', label: 'Square' },
+    { value: 'marker-rounded', label: 'Rounded' },
+    { value: 'marker-diamond', label: 'Diamond' },
+    { value: 'marker-flower', label: 'Flower' },
+    { value: 'marker-cross', label: 'Cross' },
+    { value: 'marker-target', label: 'Target' },
+    { value: 'marker-hexagon', label: 'Hexagon' },
+    { value: 'marker-star', label: 'Star' },
   ];
+
+  const currentShape = markerShape;
 
   return (
     <>
@@ -135,15 +149,16 @@ const MarkerOuter = styled.div<{ styleType: string }>`
   display: flex;
   justify-content: center;
   align-items: center;
-
-  ${(props) => {
+  position: relative;
+  
+  ${props => {
     switch (props.styleType) {
-      case "dot":
-        return "border-radius: 50%;";
-      case "extra-rounded":
-        return "border-radius: 15px;";
-      default: // square
-        return "border-radius: 0;";
+      case 'marker-dot':
+        return 'border-radius: 50%;';
+      case 'marker-rounded':
+        return 'border-radius: 15px;';
+      default:
+        return 'border-radius: 0;';
     }
   }}
 `;
@@ -152,15 +167,16 @@ const MarkerInner = styled.div<{ styleType: string }>`
   width: 26px;
   height: 26px;
   background-color: #f8f9fa;
-
-  ${(props) => {
+  position: relative;
+  
+  ${props => {
     switch (props.styleType) {
-      case "dot":
-        return "border-radius: 50%;";
-      case "extra-rounded":
-        return "border-radius: 8px;";
-      default: // square
-        return "border-radius: 0;";
+      case 'marker-dot':
+        return 'border-radius: 50%;';
+      case 'marker-rounded':
+        return 'border-radius: 8px;';
+      default:
+        return 'border-radius: 0;';
     }
   }}
 `;

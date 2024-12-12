@@ -181,6 +181,8 @@ interface CustomizationTabsProps {
     setFrameThickness: React.Dispatch<React.SetStateAction<number>>;
     markerShape: string;
     setMarkerShape: React.Dispatch<React.SetStateAction<string>>;
+    markerStyle: string;
+    setMarkerStyle: React.Dispatch<React.SetStateAction<string>>;
 }
 
 
@@ -235,7 +237,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
         type: 'fancy',
         svg: `<g xmlns="http://www.w3.org/2000/svg">...</g>` // Add your SVG content here
     });
-    const [shape, setShape] = useState<string>("rounded");
+    const [shape, setShape] = useState<string>("shape-square");
     const [logo, setLogo] = useState<LogoType>({
         type: 'stacked',
         src: getLogoSource('stacked'),
@@ -335,6 +337,11 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
 
     // Add state for generated data
     const [generatedData, setGeneratedData] = useState<string>('');
+
+    const [markerShape, setMarkerShape] = useState('marker-square');
+
+    // Add near your other state declarations
+    const [isQRPreview, setIsQRPreview] = useState(true);
 
     useEffect(() => {
         setIsMounted(true);
@@ -579,9 +586,10 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
             <AdvancedQRCode
                 data={await generateQRCodeData()}
                 size={180}
-                markerShape={shape}
-                markerStyle={markerStyle}
+                markerShape={markerShape}
                 markerColor={markerColor}
+                shape={shape}
+                qrColor={qrColor}
             />,
             qrCodeDiv
         );
@@ -997,8 +1005,6 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                     setFrame={handleFrameChange}
                     frameThickness={frameThickness}
                     setFrameThickness={setFrameThickness}
-                    markerShape={shape}
-                    setMarkerShape={setShape}
                     frameColor={frameColor}
                     setFrameColor={setFrameColor}
                     shape={shape}
@@ -1007,10 +1013,6 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                     setQRColor={setQRColor}
                     qrBackground={qrBackground}
                     setQRBackground={setQRBackground}
-                    markerStyle={markerStyle}
-                    setMarkerStyle={setMarkerStyle}
-                    markerColor={markerColor}
-                    setMarkerColor={setMarkerColor}
                     logo={logo}
                     setLogo={setLogo}
                     logoSize={logoSize}
@@ -1051,6 +1053,12 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                     setWatermarkOpacity={setWatermarkOpacity}
                     logoColor={logoColor}
                     setLogoColor={setLogoColor}
+                    markerShape={markerShape}
+                    setMarkerShape={setMarkerShape}
+                    markerColor={markerColor}
+                    setMarkerColor={setMarkerColor}
+                    markerStyle={markerStyle}
+                    setMarkerStyle={setMarkerStyle}
                 />
 
                 {['file', 'multiplink', 'pdf'].includes(qrType) && (
@@ -1124,7 +1132,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             setFrame={setFrame}
                             logo={logo}
                             frameThickness={frameThickness}
-                            markerShape={shape}
+                            markerShape={markerShape}
                             markerStyle={markerStyle}
                             markerColor={markerColor}
                         />
@@ -1135,6 +1143,8 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             qrType={qrType}
                             qrData={qrData}
                             backgroundType={backgroundType}
+                            isQRPreview={isQRPreview}
+                            qrCodeRef={qrCodeRef}
                             frame={frame}
                             frameColor={frameColor}
                             cutter={cutter}
@@ -1143,8 +1153,8 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             watermark={watermark}
                             watermarkColor={watermarkColor}
                             watermarkOpacity={watermarkOpacity}
-                            logo={logo}
-                            frameThickness={frameThickness}
+                            markerShape={markerShape}
+                            markerColor={markerColor}
                         />
                     )}
                 </RightColumn>
@@ -1214,8 +1224,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             setWatermarkOpacity={setWatermarkOpacity}
                             logoColor={logoColor}
                             setLogoColor={setLogoColor}
-                            markerShape={shape}
-                            markerStyle={markerStyle}
+                            markerShape={markerShape}
                             markerColor={markerColor}
                             backgroundType={backgroundType}
                             setBackgroundType={setBackgroundType}

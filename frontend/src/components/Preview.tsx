@@ -10,6 +10,7 @@ import { getWatermarkSVG } from '../components/watermarks/getWatermarkSVG';
 import { Frame } from '../types';
 import { LogoType } from './LogoCustomization';
 import { AdvancedQRCode } from './AdvancedQRCode';
+import { QRPreviewWrapper } from './QRPreviewWrapper';
 
 type PreviewType = 'qr' | 'phone';
 
@@ -106,13 +107,29 @@ export const Preview: React.FC<PreviewProps> = ({
                     // Only render if we have data and element exists
                     if (data && qrCodeRef.current) {
                         ReactDOM.render(
-                            <AdvancedQRCode
-                                data={data}
-                                size={256}
+                            <QRPreviewWrapper
+                                cutter={cutter}
+                                cutterColor={cutterColor}
+                                opacity={opacity}
+                                frame={frame}
+                                frameColor={frameColor}
+                                frameThickness={frameThickness}
+                                watermark={watermark}
+                                watermarkColor={watermarkColor}
+                                watermarkOpacity={watermarkOpacity}
                                 markerShape={markerShape}
-                                markerStyle={markerStyle}
                                 markerColor={markerColor}
-                            />,
+                                logo={logo}
+                            >
+                                <AdvancedQRCode
+                                    data={data}
+                                    size={size}
+                                    markerShape={markerShape}
+                                    markerColor={markerColor}
+                                    shape={shape}
+                                    qrColor="#000000"
+                                />
+                            </QRPreviewWrapper>,
                             qrCodeRef.current
                         );
                     }
@@ -123,23 +140,12 @@ export const Preview: React.FC<PreviewProps> = ({
         };
 
         renderQRCode();
-
-        // Cleanup function
-        return () => {
-            if (qrCodeRef.current) {
-                try {
-                    ReactDOM.unmountComponentAtNode(qrCodeRef.current);
-                } catch (error) {
-                    console.error('Error cleaning up QR code:', error);
-                }
-            }
-        };
     }, [
         qrCodeInstance, 
         data, 
-        markerShape, 
-        markerStyle, 
-        markerColor, 
+        markerShape,
+        markerStyle,
+        markerColor,
         size, 
         frame, 
         frameColor, 
@@ -375,13 +381,15 @@ export const Preview: React.FC<PreviewProps> = ({
                 qrCodeRef={qrCodeRef}
                 frame={frame}
                 frameColor={frameColor}
-                cutter={cutterShape}
+                cutter={cutter}
                 cutterColor={cutterColor}
                 opacity={opacity}
                 watermark={watermark}
                 watermarkColor={watermarkColor}
                 watermarkOpacity={watermarkOpacity}
                 logo={logo}
+                markerShape={markerShape}
+                markerColor={markerColor}
             />
             <PreviewDownloadButton onClick={handleDownloadClick}>
                 <DownloadSimple size={20} weight="bold" />

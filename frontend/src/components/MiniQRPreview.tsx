@@ -30,14 +30,15 @@ export const MiniQRPreview: React.FC<MiniQRPreviewProps> = ({ frame, shape, fram
         <AdvancedQRCode
           data="preview"
           size={frame === "chat" ? 32 : 58}
-          markerShape={shape}
-          markerStyle={markerStyle}
+          markerShape={markerStyle}
           markerColor={markerColor}
+          shape={shape}
+          qrColor="#000000"
         />,
         qrCodeRef.current
       );
     }
-  }, [frame, shape, markerStyle, markerColor]);
+  }, [frame, shape, markerColor]);
 
   return (
     <MiniPreviewContainer frame={frame} shape={shape} frameColor={frameColor}>

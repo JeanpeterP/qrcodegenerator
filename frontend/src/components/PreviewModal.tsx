@@ -87,7 +87,6 @@ interface PreviewModalProps {
   size: number;
   markerShape: string;
   markerColor: string;
-  markerStyle: string;
   qrColor: string;
   setQRColor: React.Dispatch<React.SetStateAction<string>>;
   qrBackground: string;
@@ -174,7 +173,6 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
   size,
   markerShape,
   markerColor,
-  markerStyle,
   qrColor,
   setQRColor,
   qrBackground,
@@ -200,8 +198,9 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
             data={data}
             size={size}
             markerShape={markerShape}
-            markerStyle={markerStyle}
             markerColor={markerColor}
+            shape={shape}
+            qrColor={qrColor}
           />,
           qrCodeDiv
         );
@@ -244,6 +243,8 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
                   watermarkColor={watermarkColor}
                   watermarkOpacity={watermarkOpacity}
                   logo={logo}
+                  markerShape={markerShape}
+                  markerColor={markerColor}
                 >
                   <div id="qr-code">
                     {qrCodeInstance && (
@@ -273,6 +274,8 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
               watermarkOpacity={watermarkOpacity}
               logo={logo}
               frameThickness={frameThickness}
+              markerShape={markerShape}
+              markerColor={markerColor}
             />
           )}
         </PreviewContainer>

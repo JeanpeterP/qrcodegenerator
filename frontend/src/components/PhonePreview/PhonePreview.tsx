@@ -238,6 +238,8 @@ interface PhonePreviewProps {
       height?: number;
     } | null;
     frameThickness?: number;
+    markerShape?: string;
+    markerColor?: string;
 }
 
 export const PhonePreview: React.FC<PhonePreviewProps> = ({
@@ -256,7 +258,9 @@ export const PhonePreview: React.FC<PhonePreviewProps> = ({
   watermarkColor,
   watermarkOpacity,
   logo,
-  frameThickness = 4
+  frameThickness = 4,
+  markerShape = 'square',
+  markerColor = '#000000'
 }) => {
     return (
         <PhonePreviewColumn show={show}>
@@ -277,6 +281,8 @@ export const PhonePreview: React.FC<PhonePreviewProps> = ({
                         watermarkColor={watermarkColor}
                         watermarkOpacity={watermarkOpacity}
                         logo={logo || null}
+                        markerShape={markerShape}
+                        markerColor={markerColor}
                     >
                         <div ref={qrCodeRef} />
                     </QRPreviewWrapper>

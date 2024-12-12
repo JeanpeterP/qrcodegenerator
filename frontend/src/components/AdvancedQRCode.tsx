@@ -5,16 +5,18 @@ interface AdvancedQRCodeProps {
   data: string;
   size?: number;
   markerShape: string;
-  markerStyle: string;
   markerColor: string;
+  shape: string;
+  qrColor: string;
 }
 
 export const AdvancedQRCode: React.FC<AdvancedQRCodeProps> = ({
   data,
   size = 256,
   markerShape,
-  markerStyle,
   markerColor,
+  shape,
+  qrColor = '#000000',
 }) => {
   const generateQRCodeSVG = () => {
     const qr = QRCode(0, 'L');
@@ -28,12 +30,139 @@ export const AdvancedQRCode: React.FC<AdvancedQRCodeProps> = ({
     let cornerMarkers: string[] = [];
 
     // Helper to check if a cell is a corner marker
-    const isCorner = (row: number, col: number) => 
-      (row < 7 && col < 7) || // Top-left
-      (row < 7 && col >= moduleCount - 7) || // Top-right
-      (row >= moduleCount - 7 && col < 7); // Bottom-left
+    const isCorner = (row: number, col: number) => {
+      const isTopLeft = row < 7 && col < 7;
+      const isTopRight = row < 7 && col >= moduleCount - 7;
+      const isBottomLeft = row >= moduleCount - 7 && col < 7;
+      return isTopLeft || isTopRight || isBottomLeft;
+    };
 
-    // Create paths for connected shapes
+    const generateMarkerPath = (
+      x: number,
+      y: number,
+      size: number,
+      markerType: string
+    ) => {
+      // Remove 'marker-' prefix
+      const type = markerType.replace('marker-', '').trim().toLowerCase();
+
+      switch (type) {
+        case 'dot':
+          const centerX = x + size / 2;
+          const centerY = y + size / 2;
+          return `M${centerX},${centerY} m-${size / 2},0 a${size / 2},${
+            size / 2
+          } 0 1,0 ${size},0 a${size / 2},${size / 2} 0 1,0 -${size},0`;
+        case 'square':
+          return `M${x},${y} h${size} v${size} h-${size}z`;
+        case 'rounded':
+          const radius = size * 0.25;
+          return `M${x + radius},${y} h${size - 2 * radius} q${radius},0 ${radius},${radius} v${
+            size - 2 * radius
+          } q0,${radius} -${radius},${radius} h-${size - 2 * radius} q-${radius},0 -${radius},-${
+            radius
+          } v-${size - 2 * radius} q0,-${radius} ${radius},-${radius}`;
+        case 'diamond':
+          const mid = size / 2;
+          return `M${x + mid},${y} L${x + size},${y + mid} L${x + mid},${
+            y + size
+          } L${x},${y + mid}z`;
+        case 'hexagon':
+          const side = size / 2;
+          const h = side * Math.sin(Math.PI / 3);
+          const cx = x + size / 2;
+          const cy = y + size / 2;
+          return `
+            M${cx},${cy - side}
+            L${cx + h},${cy - side / 2}
+            L${cx + h},${cy + side / 2}
+            L${cx},${cy + side}
+            L${cx - h},${cy + side / 2}
+            L${cx - h},${cy - side / 2}Z
+          `;
+        case 'star':
+          const outerPoints = 5;
+          const outerRadius2 = size / 2;
+          const innerRadius2 = size / 4;
+          const cx2 = x + size / 2;
+          const cy2 = y + size / 2;
+          let path = `M ${cx2},${cy2 - outerRadius2} `;
+
+          for (let i = 0; i < outerPoints * 2; i++) {
+            const radius = i % 2 === 0 ? outerRadius2 : innerRadius2;
+            const angle = (Math.PI / outerPoints) * i;
+            const pointX = cx2 + radius * Math.sin(angle);
+            const pointY = cy2 - radius * Math.cos(angle);
+            path += `L ${pointX},${pointY} `;
+          }
+
+          return path + 'Z';
+        // ... Include other marker shapes if needed ...
+        default:
+          // Default marker shape (square)
+          return `M${x},${y} h${size} v${size} h-${size}z`;
+      }
+    };
+
+    const generateDotPath = (
+      x: number,
+      y: number,
+      size: number,
+      dotShape: string
+    ) => {
+      // Remove 'shape-' prefix
+      const type = dotShape.replace('shape-', '').trim().toLowerCase();
+
+      switch (type) {
+        case 'circle':
+          const centerX = x + size / 2;
+          const centerY = y + size / 2;
+          return `M${centerX},${centerY} m-${size / 2},0 a${size / 2},${
+            size / 2
+          } 0 1,0 ${size},0 a${size / 2},${size / 2} 0 1,0 -${size},0`;
+        case 'diamond':
+          const mid = size / 2;
+          return `M${x + mid},${y} L${x + size},${y + mid} L${x + mid},${
+            y + size
+          } L${x},${y + mid}z`;
+        case 'hexagon':
+          const side = size / 2;
+          const h = side * Math.sin(Math.PI / 3);
+          const cx = x + size / 2;
+          const cy = y + size / 2;
+          return `
+            M${cx},${cy - side}
+            L${cx + h},${cy - side / 2}
+            L${cx + h},${cy + side / 2}
+            L${cx},${cy + side}
+            L${cx - h},${cy + side / 2}
+            L${cx - h},${cy - side / 2}Z
+          `;
+        case 'star':
+          const outerPoints = 5;
+          const outerRadius2 = size / 2;
+          const innerRadius2 = size / 4;
+          const cx2 = x + size / 2;
+          const cy2 = y + size / 2;
+          let path = `M ${cx2},${cy2 - outerRadius2} `;
+
+          for (let i = 0; i < outerPoints * 2; i++) {
+            const radius = i % 2 === 0 ? outerRadius2 : innerRadius2;
+            const angle = (Math.PI / outerPoints) * i;
+            const pointX = cx2 + radius * Math.sin(angle);
+            const pointY = cy2 - radius * Math.cos(angle);
+            path += `L ${pointX},${pointY} `;
+          }
+
+          return path + 'Z';
+        // ... Include other dot shapes if needed ...
+        default:
+          // Default dot shape (square)
+          return `M${x},${y} h${size} v${size} h-${size}z`;
+      }
+    };
+
+    // Iterate through each module (cell) in the QR code
     for (let row = 0; row < moduleCount; row++) {
       for (let col = 0; col < moduleCount; col++) {
         if (!qr.isDark(row, col)) continue;
@@ -42,47 +171,24 @@ export const AdvancedQRCode: React.FC<AdvancedQRCodeProps> = ({
         const y = row * cellSize;
 
         if (isCorner(row, col)) {
-          if (markerShape === 'circle') {
-            const centerX = x + cellSize / 2;
-            const centerY = y + cellSize / 2;
-            cornerMarkers.push(`M${centerX},${centerY} m-${cellSize/2},0 a${cellSize/2},${cellSize/2} 0 1,0 ${cellSize},0 a${cellSize/2},${cellSize/2} 0 1,0 -${cellSize},0`);
-          } else {
-            cornerMarkers.push(`M${x},${y} h${cellSize} v${cellSize} h-${cellSize}z`);
-          }
+          // Use marker shape for corner markers
+          cornerMarkers.push(
+            generateMarkerPath(x, y, cellSize, markerShape)
+          );
         } else {
-          switch (markerStyle) {
-            case 'dots':
-              const centerX = x + cellSize / 2;
-              const centerY = y + cellSize / 2;
-              paths.push(`M${centerX},${centerY} m-${cellSize/2},0 a${cellSize/2},${cellSize/2} 0 1,0 ${cellSize},0 a${cellSize/2},${cellSize/2} 0 1,0 -${cellSize},0`);
-              break;
-            case 'rounded':
-              const radius = cellSize * 0.3;
-              paths.push(`M${x + radius},${y} h${cellSize - 2*radius} q${radius},0 ${radius},${radius} v${cellSize - 2*radius} q0,${radius} -${radius},${radius} h-${cellSize - 2*radius} q-${radius},0 -${radius},-${radius} v-${cellSize - 2*radius} q0,-${radius} ${radius},-${radius}`);
-              break;
-            default:
-              paths.push(`M${x},${y} h${cellSize} v${cellSize} h-${cellSize}z`);
-          }
+          // Use dot shape for regular modules
+          paths.push(generateDotPath(x, y, cellSize, shape));
         }
       }
     }
 
-    return `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" preserveAspectRatio="xMidYMid meet">
-      <path d="${paths.join(' ')}" fill="#000000" />
+    return `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
+      <path d="${paths.join(' ')}" fill="${qrColor}" />
       <path d="${cornerMarkers.join(' ')}" fill="${markerColor}" />
-    </svg>`.trim();
+    </svg>`;
   };
 
   const svgMarkup = generateQRCodeSVG();
 
-  return (
-    <div style={{ 
-      display: 'flex', 
-      alignItems: 'center', 
-      justifyContent: 'center',
-      lineHeight: 0  // Remove line-height spacing
-    }} 
-    dangerouslySetInnerHTML={{ __html: svgMarkup }} 
-    />
-  );
+  return <div dangerouslySetInnerHTML={{ __html: svgMarkup }} />;
 }; 
