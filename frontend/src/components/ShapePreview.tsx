@@ -8,21 +8,7 @@ interface ShapePreviewProps {
 export const ShapePreview: React.FC<ShapePreviewProps> = ({ shape }) => {
   return (
     <ShapeExampleContainer>
-      <DotRow>
-        <Dot shape={shape} />
-        <Dot shape={shape} />
-        <Dot shape={shape} />
-      </DotRow>
-      <DotRow>
-        <Dot shape={shape} />
-        <Dot shape={shape} />
-        <Dot shape={shape} />
-      </DotRow>
-      <DotRow>
-        <Dot shape={shape} />
-        <Dot shape={shape} />
-        <Dot shape={shape} />
-      </DotRow>
+      <Dot shape={shape} />
     </ShapeExampleContainer>
   );
 };
@@ -38,36 +24,31 @@ const ShapeExampleContainer = styled.div`
   height: 100%;
 `;
 
-const DotRow = styled.div`
-  display: flex;
-  gap: 2px;
-  justify-content: center;
-`;
-
 const Dot = styled.div<{ shape: string }>`
-  width: 12px;
-  height: 12px;
+  width: 42px;
+  height: 42px;
   background-color: #000;
 
   ${props => {
     switch (props.shape) {
-      case 'dots':
+      case 'shape-circle':
         return 'border-radius: 50%;';
-      case 'rounded':
-        return 'border-radius: 2px;';
-      case 'classy':
-        return `
-          transform: rotate(45deg);
-          border-radius: 1px;
-        `;
-      case 'classy-rounded':
+      case 'shape-square':
+        return 'border-radius: 0;';
+      case 'shape-diamond':
         return `
           transform: rotate(45deg);
           border-radius: 2px;
         `;
-      case 'extra-rounded':
-        return 'border-radius: 4px;';
-      default: // square
+      case 'shape-hexagon':
+        return `
+          clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+        `;
+      case 'shape-star':
+        return `
+          clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+        `;
+      default:
         return 'border-radius: 0;';
     }
   }}
