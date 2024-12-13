@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   GridContainer,
   OptionGrid,
@@ -7,6 +7,8 @@ import {
   OptionLabel,
 } from "../styles/OptionStyles";
 import { ShapePreview } from "./ShapePreview";
+import { ColorPickerWithPresets } from './common/ColorPickerWithPresets';
+import { AdvancedSettings } from './common/AdvancedSettings';
 
 interface ShapeCustomizationProps {
   shape: string;
@@ -25,6 +27,8 @@ export const ShapeCustomization: React.FC<ShapeCustomizationProps> = ({
   qrBackground,
   setQRBackground,
 }) => {
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
   const shapeOptions = [
     { value: 'shape-square', label: 'Square' },
     { value: 'shape-circle', label: 'Circle' },
@@ -34,21 +38,39 @@ export const ShapeCustomization: React.FC<ShapeCustomizationProps> = ({
   ];
 
   return (
-    <GridContainer>
-      <OptionGrid>
-        {shapeOptions.map((option) => (
-          <OptionBox
-            key={option.value}
-            active={shape === option.value}
-            onClick={() => setShape(option.value)}
-          >
-            <PreviewContainer>
-              <ShapePreview shape={option.value} />
-            </PreviewContainer>
-            <OptionLabel>{option.label}</OptionLabel>
-          </OptionBox>
-        ))}
-      </OptionGrid>
-    </GridContainer>
+    <>
+      <GridContainer>
+        <OptionGrid>
+          {shapeOptions.map((option) => (
+            <OptionBox
+              key={option.value}
+              active={shape === option.value}
+              onClick={() => setShape(option.value)}
+            >
+              <PreviewContainer>
+                <ShapePreview shape={option.value} />
+              </PreviewContainer>
+              <OptionLabel>{option.label}</OptionLabel>
+            </OptionBox>
+          ))}
+        </OptionGrid>
+      </GridContainer>
+      <AdvancedSettings
+        showAdvanced={showAdvanced}
+        setShowAdvanced={setShowAdvanced}
+        title="Shape Advanced Settings"
+      >
+        <ColorPickerWithPresets
+          label="QR Color"
+          color={qrColor}
+          onChange={setQRColor}
+        />
+        <ColorPickerWithPresets
+          label="Background Color"
+          color={qrBackground}
+          onChange={setQRBackground}
+        />
+      </AdvancedSettings>
+    </>
   );
 };

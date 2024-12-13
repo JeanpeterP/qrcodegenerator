@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import { CornerSquareType } from "qr-code-styling";
 import {
@@ -10,6 +10,7 @@ import {
 } from "../styles/OptionStyles";
 import { ColorPickerWithPresets } from './common/ColorPickerWithPresets';
 import { MarkerPreview } from './MarkerPreview';
+import { AdvancedSettings } from './common/AdvancedSettings';
 
 interface MarkerCustomizationProps {
   markerShape: string;
@@ -29,6 +30,8 @@ export const MarkerCustomization: React.FC<MarkerCustomizationProps> = ({
   markerColor,
   setMarkerColor,
 }) => {
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
   console.log('Current markerShape:', markerShape);
 
   const handleMarkerClick = (value: string) => {
@@ -69,11 +72,17 @@ export const MarkerCustomization: React.FC<MarkerCustomizationProps> = ({
           ))}
         </OptionGrid>
       </GridContainer>
-      <ColorPickerWithPresets
-        label="Marker Color"
-        color={markerColor}
-        onChange={setMarkerColor}
-      />
+      <AdvancedSettings
+        showAdvanced={showAdvanced}
+        setShowAdvanced={setShowAdvanced}
+        title="Marker Advanced Settings"
+      >
+        <ColorPickerWithPresets
+          label="Marker Color"
+          color={markerColor}
+          onChange={setMarkerColor}
+        />
+      </AdvancedSettings>
     </>
   );
 };

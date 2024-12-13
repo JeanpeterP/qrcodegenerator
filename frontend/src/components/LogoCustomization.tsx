@@ -1,9 +1,10 @@
-import React from "react";
-import { CustomizationContainer, CustomizationTitle, CustomizationContent } from "./CustomizationContainer";
+import React, { useState } from "react";
 import { LogoPreview } from "./LogoPreview";
 import { getLogoSource } from "../utils/logoUtils";
 import { OptionGrid, OptionBox, PreviewContainer, OptionLabel } from "../styles/OptionStyles";
 import { ColorPickerWithPresets } from './common/ColorPickerWithPresets';
+import { AdvancedSettings } from './common/AdvancedSettings';
+import { Slider } from './common/Slider';
 
 export type LogoType = "custom" | "stacked" | "open-box" | "closed-box";
 
@@ -26,6 +27,8 @@ interface LogoCustomizationProps {
   setCustomLogo: (logo: string | null) => void;
   logoSize: number;
   setLogoSize: React.Dispatch<React.SetStateAction<number>>;
+  logoColor: string;
+  setLogoColor: React.Dispatch<React.SetStateAction<string>>;
   gradient: boolean;
   setGradient: React.Dispatch<React.SetStateAction<boolean>>;
   gradientColor1: string;
@@ -40,8 +43,6 @@ interface LogoCustomizationProps {
   setCornerDots: React.Dispatch<React.SetStateAction<string>>;
   cornerSquares: string;
   setCornerSquares: React.Dispatch<React.SetStateAction<string>>;
-  logoColor: string;
-  setLogoColor: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export const LogoCustomization: React.FC<LogoCustomizationProps> = ({
@@ -53,7 +54,23 @@ export const LogoCustomization: React.FC<LogoCustomizationProps> = ({
   setLogoSize,
   logoColor,
   setLogoColor,
+  gradient,
+  setGradient,
+  gradientColor1,
+  setGradientColor1,
+  gradientColor2,
+  setGradientColor2,
+  gradientType,
+  setGradientType,
+  gradientRotation,
+  setGradientRotation,
+  cornerDots,
+  setCornerDots,
+  cornerSquares,
+  setCornerSquares,
 }) => {
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
   const logoOptions: { type: LogoType; label: string }[] = [
     { type: "custom", label: "Custom Upload" },
     { type: "stacked", label: "Stacked Text" },
@@ -83,7 +100,6 @@ export const LogoCustomization: React.FC<LogoCustomizationProps> = ({
       reader.onload = (e) => {
         const img = new Image();
         img.onload = () => {
-          // Calculate dimensions while maintaining aspect ratio
           const maxSize = 50; // Maximum size for the logo
           const ratio = img.width / img.height;
           let width = maxSize;
@@ -110,38 +126,49 @@ export const LogoCustomization: React.FC<LogoCustomizationProps> = ({
   };
 
   return (
-    <CustomizationContainer>
-      <CustomizationContent>
-        <input
-          type="file"
-          ref={fileInputRef}
-          style={{ display: 'none' }}
-          accept="image/*"
-          onChange={handleLogoUpload}
-        />
-        <OptionGrid>
-          {logoOptions.map((option) => (
-            <OptionBox
-              key={option.type}
-              active={logo?.type === option.type}
-              onClick={() => handleLogoSelect(option.type)}
-            >
-              <PreviewContainer>
-                <LogoPreview 
-                  type={option.type} 
-                  src={option.type === 'custom' ? customLogo : getLogoSource(option.type)}
-                />
-              </PreviewContainer>
-              <OptionLabel>{option.label}</OptionLabel>
-            </OptionBox>
-          ))}
-        </OptionGrid>
+    <>
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: 'none' }}
+        accept="image/*"
+        onChange={handleLogoUpload}
+      />
+      <OptionGrid>
+        {logoOptions.map((option) => (
+          <OptionBox
+            key={option.type}
+            active={logo?.type === option.type}
+            onClick={() => handleLogoSelect(option.type)}
+          >
+            <PreviewContainer>
+              <LogoPreview 
+                type={option.type} 
+                src={option.type === 'custom' ? customLogo : getLogoSource(option.type)}
+              />
+            </PreviewContainer>
+            <OptionLabel>{option.label}</OptionLabel>
+          </OptionBox>
+        ))}
+      </OptionGrid>
+      <AdvancedSettings
+        showAdvanced={showAdvanced}
+        setShowAdvanced={setShowAdvanced}
+        title="Logo Advanced Settings"
+      >
         <ColorPickerWithPresets
           label="Logo Color"
           color={logoColor}
           onChange={setLogoColor}
         />
-      </CustomizationContent>
-    </CustomizationContainer>
+        <Slider
+          label="Logo Size"
+          min={10}
+          max={100}
+          value={logoSize}
+          onChange={setLogoSize}
+        />
+      </AdvancedSettings>
+    </>
   );
 };

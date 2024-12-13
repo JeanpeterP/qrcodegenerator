@@ -1,5 +1,4 @@
-import React from 'react';
-import { CustomizationContainer, CustomizationContent } from './CustomizationContainer';
+import React, { useState } from 'react';
 import { OpacitySlider } from './OpacitySlider';
 import { ColorPickerWithPresets } from './common/ColorPickerWithPresets';
 import { WatermarkPreview } from './WatermarkPreview';
@@ -10,6 +9,7 @@ import {
   PreviewContainer,
   OptionLabel,
 } from "../styles/OptionStyles";
+import { AdvancedSettings } from './common/AdvancedSettings';
 
 interface WatermarkCustomizationProps {
   watermark: string;
@@ -38,6 +38,8 @@ export const WatermarkCustomization: React.FC<WatermarkCustomizationProps> = ({
   watermarkOpacity,
   setWatermarkOpacity,
 }) => {
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
   const handleWatermarkSelect = (value: string) => {
     setWatermark(value);
     if (value !== 'none' && watermarkOpacity === 0) {
@@ -67,9 +69,12 @@ export const WatermarkCustomization: React.FC<WatermarkCustomizationProps> = ({
           ))}
         </OptionGrid>
       </GridContainer>
-      
       {watermark !== 'none' && (
-        <>
+        <AdvancedSettings
+          showAdvanced={showAdvanced}
+          setShowAdvanced={setShowAdvanced}
+          title="Watermark Advanced Settings"
+        >
           <ColorPickerWithPresets
             label="Watermark Color"
             color={watermarkColor}
@@ -80,7 +85,7 @@ export const WatermarkCustomization: React.FC<WatermarkCustomizationProps> = ({
             value={watermarkOpacity}
             onChange={setWatermarkOpacity}
           />
-        </>
+        </AdvancedSettings>
       )}
     </>
   );
