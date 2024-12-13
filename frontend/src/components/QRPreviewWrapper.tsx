@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { getWatermarkSVG } from './watermarks/getWatermarkSVG';
 import { Frame } from '../types';
+import { LogoType } from './LogoCustomization';
 
 interface QRPreviewWrapperProps {
   children: React.ReactNode;
@@ -15,7 +16,7 @@ interface QRPreviewWrapperProps {
   watermarkColor: string;
   watermarkOpacity: number;
   logo: {
-    type: "stacked" | "open-box" | "closed-box" | "custom";
+    type: LogoType;
     src: string | null;
     width?: number;
     height?: number;

@@ -58,6 +58,7 @@ interface PreviewProps {
     setIsInitialized?: (value: boolean) => void;
     generateQRCode?: boolean;
     data: string;
+    hideBackground: boolean;
 }
 
 export const Preview: React.FC<PreviewProps> = ({
@@ -88,6 +89,7 @@ export const Preview: React.FC<PreviewProps> = ({
     markerColor,
     size,
     data,
+    hideBackground,
 }) => {
     const qrCodeRef = useRef<HTMLDivElement>(null);
     
@@ -128,6 +130,8 @@ export const Preview: React.FC<PreviewProps> = ({
                                     markerColor={markerColor}
                                     shape={shape}
                                     qrColor="#000000"
+                                    logo={logo}
+                                    hideBackground={hideBackground}
                                 />
                             </QRPreviewWrapper>,
                             qrCodeRef.current
@@ -151,199 +155,66 @@ export const Preview: React.FC<PreviewProps> = ({
         frameColor, 
         frameThickness,
         logo,
-        previewType
+        previewType,
+        hideBackground,
     ]);
 
     const handleDownloadClick = async () => {
-        if (!qrCodeInstance) return;
+        console.log("Download started");
+        if (!qrCodeRef.current) {
+            console.log("QR code ref is null");
+            return;
+        }
         
         try {
-            // Add validation for file type QR codes
-            if (qrType === "file") {
-                // Check if qrData has the required file information
-                const fileData = (qrData as any).fileData;
-                if (!fileData) {
-                    alert("Please select a file first before downloading the QR code.");
-                    return;
-                }
+            const qrContainer = qrCodeRef.current.closest('.qr-preview') as HTMLElement;
+            if (!qrContainer) {
+                throw new Error('QR preview container not found');
             }
 
-            if ((qrType === "file" || qrType === "multiplink") && !generatedUrl) {
-                setGenerateQRCode(true);
-                const url = await generateQRCodeData();
-                if (!url) {
-                    throw new Error('Failed to generate QR code data');
-                }
-                setGeneratedUrl(url.toString());
-                if (qrCodeRef.current) {
-                    ReactDOM.render(
-                        qrCodeInstance({ data: url.toString() }),
-                        qrCodeRef.current
-                    );
-                }
-                await new Promise(resolve => setTimeout(resolve, 100));
-            }
+            // Store original styles
+            const originalStyle = qrContainer.style.cssText;
+            const originalQrStyle = qrCodeRef.current.style.cssText;
 
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            if (!ctx) {
-                throw new Error('Could not get canvas context');
-            }
-
-            const size = 2400;
-            canvas.width = size;
-            canvas.height = size;
-
-            ctx.clearRect(0, 0, size, size);
-
-            // Draw frame if needed
-            if (frame !== 'none') {
-                const padding = size * 0.1;
-                const frameSize = size - (padding * 2);
-                
-                // Adjust the scaling factor to match preview
-                ctx.lineWidth = frameThickness * (size * 0.002); // Reduced from 0.005 to 0.001
-                ctx.strokeStyle = frameColor;
-                ctx.beginPath();
-
-                switch (frame) {
-                    case 'none':
-                        break;
-                    case 'simple':
-                        ctx.rect(padding, padding, frameSize, frameSize);
-                        break;
-                    case 'rounded':
-                        const radius = size * 0.05;
-                        ctx.roundRect(padding, padding, frameSize, frameSize, radius);
-                        break;
-                    case 'fancy':
-                        const cornerSize = size * 0.1; // Define cornerSize for fancy frame
-                        // Top left corner
-                        ctx.moveTo(padding, padding + cornerSize);
-                        ctx.lineTo(padding, padding);
-                        ctx.lineTo(padding + cornerSize, padding);
-                        // Top right corner
-                        ctx.moveTo(size - padding - cornerSize, padding);
-                        ctx.lineTo(size - padding, padding);
-                        ctx.lineTo(size - padding, padding + cornerSize);
-                        // Bottom right corner
-                        ctx.moveTo(size - padding, size - padding - cornerSize);
-                        ctx.lineTo(size - padding, size - padding);
-                        ctx.lineTo(size - padding - cornerSize, size - padding);
-                        // Bottom left corner
-                        ctx.moveTo(padding + cornerSize, size - padding);
-                        ctx.lineTo(padding, size - padding);
-                        ctx.lineTo(padding, size - padding - cornerSize);
-                        break;
-                    case 'chat':
-                        // Chat bubble
-                        const bubbleRadius = size * 0.1;
-                        const tailSize = size * 0.15;
-                        
-                        // Draw main bubble body
-                        ctx.roundRect(
-                            padding, 
-                            padding, 
-                            frameSize, 
-                            frameSize - tailSize, 
-                            bubbleRadius
-                        );
-                        
-                        // Draw tail
-                        ctx.moveTo(padding + frameSize * 0.3, size - padding - tailSize);
-                        ctx.lineTo(padding + frameSize * 0.2, size - padding);
-                        ctx.lineTo(padding + frameSize * 0.4, size - padding - tailSize);
-                        break;
-                    case 'colorful':
-                        // Create gradient with 45-degree angle
-                        const gradient = ctx.createLinearGradient(
-                            padding, 
-                            padding, 
-                            size - padding, 
-                            size - padding
-                        );
-                        // Using the same colors as MiniQRPreview
-                        gradient.addColorStop(0, '#ff6b6b');
-                        gradient.addColorStop(0.25, '#4ecdc4');
-                        gradient.addColorStop(0.5, '#45b7d1');
-                        gradient.addColorStop(0.75, '#96ceb4');
-                        gradient.addColorStop(1, '#ffeead');
-                        
-                        ctx.strokeStyle = gradient;
-                        ctx.lineWidth = size * 0.02; // Match the 2px border from mini preview
-                        
-                        // Draw a simple rectangular frame with rounded corners (8px equivalent)
-                        const borderRadius = size * 0.008; // 8px equivalent for 1024px canvas
-                        ctx.roundRect(
-                            padding,
-                            padding,
-                            frameSize,
-                            frameSize,
-                            borderRadius
-                        );
-                        
-                        // Remove all the flourishes since they're not in the mini preview
-                        break;
-                }
-                
-                ctx.stroke();
-                ctx.closePath();
-            }
-
-            // Draw QR code
-            const qrSize = size * 0.85;
-            const qrX = (size - qrSize) / 2;
-            const qrY = (size - qrSize) / 2;
+            // Force container and QR code to full size
+            qrContainer.style.cssText = `
+                width: 1024px !important;
+                height: 1024px !important;
+                transform: none !important;
+                position: fixed !important;
+                top: -9999px !important;
+                left: -9999px !important;
+            `;
             
-            const qrCanvas = qrCodeRef.current?.querySelector('canvas');
-            if (!qrCanvas) {
-                throw new Error('QR code canvas not found');
-            }
-            ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
+            qrCodeRef.current.style.cssText = `
+                width: 100% !important;
+                height: 100% !important;
+                transform: none !important;
+            `;
 
-            // Draw watermark if needed
-            if (watermark !== 'none') {
-                const watermarkImg = new Image();
-                watermarkImg.src = `data:image/svg+xml;base64,${btoa(getWatermarkSVG(watermark, watermarkColor))}`;
-                
-                await new Promise((resolve, reject) => {
-                    watermarkImg.onload = resolve;
-                    watermarkImg.onerror = reject;
-                });
+            const containerCanvas = await html2canvas(qrContainer, {
+                scale: 1,
+                backgroundColor: null,
+                width: 1024,
+                height: 1024,
+                logging: true,
+                useCORS: true,
+                allowTaint: true,
+            });
 
-                // Match the preview sizing by making watermark cover the full frame area
-                ctx.globalAlpha = watermarkOpacity;
-                const padding = size * 0.1; // Same padding as frame
-                const watermarkSize = size - (padding * 2); // Fill the entire frame area
-                const watermarkX = padding;
-                const watermarkY = padding;
-                
-                ctx.save();
-                
-                // Create a clipping path for the frame area
-                ctx.beginPath();
-                ctx.rect(padding, padding, watermarkSize, watermarkSize);
-                ctx.clip();
-                
-                // Draw watermark to fill the entire frame area
-                ctx.drawImage(watermarkImg, watermarkX, watermarkY, watermarkSize, watermarkSize);
-                
-                ctx.restore();
-                ctx.globalAlpha = 1.0;
-            }
+            // Restore original styles
+            qrContainer.style.cssText = originalStyle;
+            qrCodeRef.current.style.cssText = originalQrStyle;
 
-            const dataURL = canvas.toDataURL('image/png');
             const link = document.createElement('a');
             link.download = `qr-code-${Date.now()}.png`;
-            link.href = dataURL;
+            link.href = containerCanvas.toDataURL('image/png');
             link.click();
 
         } catch (error) {
             console.error("Error generating/downloading QR code:", error);
             const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
             alert(`Error generating QR code: ${errorMessage}`);
-        } finally {
-            setGenerateQRCode(false);
         }
     };
 

@@ -232,7 +232,7 @@ interface PhonePreviewProps {
     watermarkColor: string;
     watermarkOpacity: number;
     logo?: {
-      type: "stacked" | "open-box" | "closed-box" | "custom";
+      type: LogoType;
       src: string | null;
       width?: number;
       height?: number;

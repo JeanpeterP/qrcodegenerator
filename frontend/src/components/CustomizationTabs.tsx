@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { FrameCustomization } from "./FrameCustomization";
 import { ShapeCustomization } from "./ShapeCustomization";
 import { MarkerCustomization } from "./MarkerCustomization";
-import { LogoCustomization } from "./LogoCustomization";
+import { LogoCustomization, LogoType } from "./LogoCustomization";
 import { WatermarkCustomization } from "./WatermarkCustomization";
 import { CornerSquareType } from "qr-code-styling";
 import { Frame } from "../types";
@@ -30,14 +30,14 @@ interface CustomizationTabsProps {
   setMarkerShape: (shape: string) => void;
   // Logo props
   logo: {
-    type: "stacked" | "open-box" | "closed-box" | "custom";
+    type: LogoType;
     src: string | null;
     width?: number;
     height?: number;
   } | null;
   setLogo: React.Dispatch<
     React.SetStateAction<{
-      type: "stacked" | "open-box" | "closed-box" | "custom";
+      type: LogoType;
       src: string | null;
       width?: number;
       height?: number;
@@ -85,6 +85,8 @@ interface CustomizationTabsProps {
   setLogoColor: React.Dispatch<React.SetStateAction<string>>;
   frameThickness: number;
   setFrameThickness: (thickness: number) => void;
+  hideBackground: boolean;
+  setHideBackground: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const SectionTitle = styled.h2`
@@ -189,6 +191,8 @@ export const CustomizationTabs: React.FC<CustomizationTabsProps> = ({
   setLogoColor,
   frameThickness,
   setFrameThickness,
+  hideBackground,
+  setHideBackground,
 }) => {
  
   const [lastSelectedShape, setLastSelectedShape] = useState(shape);
@@ -294,6 +298,8 @@ export const CustomizationTabs: React.FC<CustomizationTabsProps> = ({
         setCustomLogo={setCustomLogo}
         logoColor={logoColor}
         setLogoColor={setLogoColor}
+        hideBackground={hideBackground}
+        setHideBackground={setHideBackground}
       />
 
       <Divider />

@@ -201,6 +201,7 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
             markerColor={markerColor}
             shape={shape}
             qrColor={qrColor}
+            hideBackground={false}
           />,
           qrCodeDiv
         );

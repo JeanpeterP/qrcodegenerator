@@ -29,19 +29,11 @@ import { getMaskForShape } from '../utils/getMaskForShape';
 import { Frame } from '../types';
 import { getLogoSource } from '../utils/logoUtils';
 import { AdvancedQRCode } from './AdvancedQRCode';
+import { LogoType } from './LogoCustomization';
 
 interface QRCodeGeneratorProps {
     userChoice?: 'qr' | 'dynamicBio' | null;
 }
-
-
-// Update the LogoType definition to match
-type LogoType = {
-    type: 'stacked' | 'open-box' | 'closed-box' | 'custom';
-    src: string | null;
-    width?: number;
-    height?: number;
-} | null;
 
 // Update the HandleInputChangeFunction type
 export type HandleInputChangeFunction = (
@@ -183,6 +175,8 @@ interface CustomizationTabsProps {
     setMarkerShape: React.Dispatch<React.SetStateAction<string>>;
     markerStyle: string;
     setMarkerStyle: React.Dispatch<React.SetStateAction<string>>;
+    hideBackground: boolean;
+    setHideBackground: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 
@@ -232,15 +226,21 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     });
     const [qrColor, setQRColor] = useState("#7C0909");
     const [qrBackground, setQRBackground] = useState("#ffffff");
-    const [qrSize, setQRSize] = useState(200);
+    // Set the QR size to change qr preview size
+    const [qrSize, setQRSize] = useState(275);
     const [frame, setFrame] = useState<string | Frame>({ 
         type: 'fancy',
         svg: `<g xmlns="http://www.w3.org/2000/svg">...</g>` // Add your SVG content here
     });
     const [shape, setShape] = useState<string>("shape-square");
-    const [logo, setLogo] = useState<LogoType>({
-        type: 'stacked',
-        src: getLogoSource('stacked'),
+    const [logo, setLogo] = useState<{
+        type: LogoType;
+        src: string | null;
+        width?: number;
+        height?: number;
+    } | null>({
+        type: 'modern-split',  // Use one of the new logo types as default
+        src: getLogoSource('modern-split'),
         width: 2400,
         height: 2400,
     });
@@ -342,6 +342,8 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
 
     // Add near your other state declarations
     const [isQRPreview, setIsQRPreview] = useState(true);
+
+    const [hideBackground, setHideBackground] = useState(false);
 
     useEffect(() => {
         setIsMounted(true);
@@ -581,68 +583,86 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     };
 
     const handleDownload = async () => {
-        const qrCodeDiv = document.createElement('div');
-        ReactDOM.render(
-            <AdvancedQRCode
-                data={await generateQRCodeData()}
-                size={180}
-                markerShape={markerShape}
-                markerColor={markerColor}
-                shape={shape}
-                qrColor={qrColor}
-            />,
-            qrCodeDiv
-        );
-        
-        // Convert to image and download
-        html2canvas(qrCodeDiv).then(canvas => {
+        try {
+            // Create a container div
+            const qrCodeDiv = document.createElement('div');
+            qrCodeDiv.style.width = '1024px';  // Larger size for better quality
+            qrCodeDiv.style.height = '1024px';
+            document.body.appendChild(qrCodeDiv);  // Temporarily append to body
+
+            // Render QR code
+            ReactDOM.render(
+                <AdvancedQRCode
+                    data={await generateQRCodeData()}
+                    size={1024}  // Larger size for better quality
+                    markerShape={markerShape}
+                    markerColor={markerColor}
+                    shape={shape}
+                    qrColor={qrColor}
+                    hideBackground={hideBackground}
+                    logo={logo}
+                />,
+                qrCodeDiv
+            );
+
+            // Wait for the QR code to render
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            // Convert to canvas and download
+            const canvas = await html2canvas(qrCodeDiv, {
+                width: 1024,
+                height: 1024,
+                scale: 1
+            });
+
+            // Create download link
             const link = document.createElement('a');
             link.download = 'qrcode.png';
-            link.href = canvas.toDataURL();
+            link.href = canvas.toDataURL('image/png');
             link.click();
-        });
+
+            // Cleanup
+            document.body.removeChild(qrCodeDiv);
+        } catch (error) {
+            console.error('Download failed:', error);
+        }
     };
 
     // Add these helper functions
     const getLogoContent = (logoType: LogoType) => {
-        if (!logoType) return undefined;
-        
-        switch (logoType.type) {
-            case 'stacked':
+        switch (logoType) {
+            case 'modern-split':
                 return 'data:image/svg+xml,' + encodeURIComponent(`
                     <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
                         <text x="50%" y="45%" font-size="24" text-anchor="middle" font-weight="bold">SCAN</text>
                         <text x="50%" y="70%" font-size="24" text-anchor="middle" font-weight="bold">ME</text>
                     </svg>
                 `);
-            case 'open-box':
-                return 'data:image/svg+xml,' + encodeURIComponent(`
-                    <svg width="120" height="100" xmlns="http://www.w3.org/2000/svg">
-                        <g transform="translate(10,20)">
-                            <path d="
-                                M 0 0 H 40 M 60 0 H 100
-                                M 0 0 V 20 M 0 30 V 50
-                                M 100 0 V 20 M 100 30 V 50
-                                M 0 50 H 40 M 60 50 H 100
-                            " 
-                            fill="none" 
-                            stroke="black" 
-                            stroke-width="4"/>
-                            <text x="50" y="32" font-size="18" text-anchor="middle" font-weight="bold" letter-spacing="2">SCAN ME</text>
-                        </g>
-                    </svg>
-                `);
-            case 'closed-box':
+            case 'circular':
                 return 'data:image/svg+xml,' + encodeURIComponent(`
                     <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
-                        <g transform="translate(5,20)">
-                            <rect x="0" y="0" width="90" height="50" fill="none" stroke="black" stroke-width="4"/>
-                            <text x="45" y="32" font-size="18" text-anchor="middle" font-weight="bold">SCAN ME</text>
-                        </g>
+                        <circle cx="50" cy="50" r="40" stroke="#4CAF50" stroke-width="4" fill="#FFFFFF" />
+                        <text x="50" y="50" font-size="24" text-anchor="middle" font-weight="bold">SCAN ME</text>
                     </svg>
                 `);
+            case 'minimal-frame':
+                return 'data:image/svg+xml,' + encodeURIComponent(`
+                    <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="10" y="10" width="80" height="80" fill="#FFFFFF" />
+                        <text x="50" y="50" font-size="24" text-anchor="middle" font-weight="bold">SCAN ME</text>
+                    </svg>
+                `);
+            case 'tech-style':
+                return 'data:image/svg+xml,' + encodeURIComponent(`
+                    <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="10" y="10" width="80" height="80" fill="#FFFFFF" />
+                        <text x="50" y="50" font-size="24" text-anchor="middle" font-weight="bold">SCAN ME</text>
+                    </svg>
+                `);
+            case 'custom':
+                return customLogo || '';
             default:
-                return customLogo || undefined;
+                return '';
         }
     };
 
@@ -657,7 +677,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                 if (!isCancelled && qrCodeRef.current) {
                     // Get the current logo content
                     const logoImage = logo ? {
-                        image: getLogoContent(logo),
+                        image: getLogoContent(logo.type),  // Pass just the type
                         width: logo.width || 0.4,
                         height: logo.height || 0.4,
                         margin: 0
@@ -1059,6 +1079,8 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                     setMarkerColor={setMarkerColor}
                     markerStyle={markerStyle}
                     setMarkerStyle={setMarkerStyle}
+                    hideBackground={hideBackground}
+                    setHideBackground={setHideBackground}
                 />
 
                 {['file', 'multiplink', 'pdf'].includes(qrType) && (
@@ -1135,6 +1157,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                             markerShape={markerShape}
                             markerStyle={markerStyle}
                             markerColor={markerColor}
+                            hideBackground={hideBackground}
                         />
                     )}
                     {previewType === 'phone' && (

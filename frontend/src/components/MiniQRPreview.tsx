@@ -34,6 +34,7 @@ export const MiniQRPreview: React.FC<MiniQRPreviewProps> = ({ frame, shape, fram
           markerColor={markerColor}
           shape={shape}
           qrColor="#000000"
+          hideBackground={false}
         />,
         qrCodeRef.current
       );

@@ -5,19 +5,20 @@ import { OptionGrid, OptionBox, PreviewContainer, OptionLabel } from "../styles/
 import { ColorPickerWithPresets } from './common/ColorPickerWithPresets';
 import { AdvancedSettings } from './common/AdvancedSettings';
 import { Slider } from './common/Slider';
+import { Toggle } from './common/Toggle';
 
-export type LogoType = "custom" | "stacked" | "open-box" | "closed-box";
+export type LogoType = "custom" | "modern-split" | "circular" | "minimal-frame" | "tech-style";
 
 interface LogoCustomizationProps {
   logo: {
-    type: "stacked" | "open-box" | "closed-box" | "custom";
+    type: LogoType;
     src: string | null;
     width?: number;
     height?: number;
   } | null;
   setLogo: React.Dispatch<
     React.SetStateAction<{
-      type: "stacked" | "open-box" | "closed-box" | "custom";
+      type: LogoType;
       src: string | null;
       width?: number;
       height?: number;
@@ -43,6 +44,8 @@ interface LogoCustomizationProps {
   setCornerDots: React.Dispatch<React.SetStateAction<string>>;
   cornerSquares: string;
   setCornerSquares: React.Dispatch<React.SetStateAction<string>>;
+  hideBackground: boolean;
+  setHideBackground: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export const LogoCustomization: React.FC<LogoCustomizationProps> = ({
@@ -68,14 +71,17 @@ export const LogoCustomization: React.FC<LogoCustomizationProps> = ({
   setCornerDots,
   cornerSquares,
   setCornerSquares,
+  hideBackground,
+  setHideBackground,
 }) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const logoOptions: { type: LogoType; label: string }[] = [
     { type: "custom", label: "Custom Upload" },
-    { type: "stacked", label: "Stacked Text" },
-    { type: "open-box", label: "Open Box" },
-    { type: "closed-box", label: "Closed Box" },
+    { type: "modern-split", label: "Modern Split" },
+    { type: "circular", label: "Circular" },
+    { type: "minimal-frame", label: "Minimal Frame" },
+    { type: "tech-style", label: "Tech Style" },
   ];
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -167,6 +173,11 @@ export const LogoCustomization: React.FC<LogoCustomizationProps> = ({
           max={100}
           value={logoSize}
           onChange={setLogoSize}
+        />
+        <Toggle
+          label="Hide Background"
+          checked={hideBackground}
+          onChange={setHideBackground}
         />
       </AdvancedSettings>
     </>

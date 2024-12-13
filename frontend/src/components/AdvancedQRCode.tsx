@@ -1,5 +1,6 @@
 import React from 'react';
 import QRCode from 'qrcode-generator';
+import { LogoType } from './LogoCustomization';
 
 interface AdvancedQRCodeProps {
   data: string;
@@ -8,6 +9,13 @@ interface AdvancedQRCodeProps {
   markerColor: string;
   shape: string;
   qrColor: string;
+  logo?: {
+    type: LogoType;
+    src: string | null;
+    width?: number;
+    height?: number;
+  } | null;
+  hideBackground: boolean;
 }
 
 export const AdvancedQRCode: React.FC<AdvancedQRCodeProps> = ({
@@ -17,6 +25,8 @@ export const AdvancedQRCode: React.FC<AdvancedQRCodeProps> = ({
   markerColor,
   shape,
   qrColor = '#000000',
+  logo,
+  hideBackground,
 }) => {
   const generateQRCodeSVG = () => {
     const qr = QRCode(0, 'L');
@@ -162,13 +172,31 @@ export const AdvancedQRCode: React.FC<AdvancedQRCodeProps> = ({
       }
     };
 
+    // Calculate logo placement
+    const logoSize = size * 0.4; // 40% of the QR code size
+    const logoX = (size - logoSize) / 2;
+    const logoY = (size - logoSize) / 2;
+
     // Iterate through each module (cell) in the QR code
     for (let row = 0; row < moduleCount; row++) {
       for (let col = 0; col < moduleCount; col++) {
-        if (!qr.isDark(row, col)) continue;
-
+        // Calculate the x and y position of the module
         const x = col * cellSize;
         const y = row * cellSize;
+
+        // If hideBackground is true and the module is within the logo area, skip it
+        if (
+          hideBackground &&
+          logo &&
+          x + cellSize > logoX - cellSize/2 && 
+          x < logoX + logoSize + cellSize/2 &&  
+          y + cellSize > logoY - cellSize/2 &&  
+          y < logoY + logoSize + cellSize/2     
+        ) {
+          continue;
+        }
+
+        if (!qr.isDark(row, col)) continue;
 
         if (isCorner(row, col)) {
           // Use marker shape for corner markers
@@ -185,6 +213,16 @@ export const AdvancedQRCode: React.FC<AdvancedQRCodeProps> = ({
     return `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
       <path d="${paths.join(' ')}" fill="${qrColor}" />
       <path d="${cornerMarkers.join(' ')}" fill="${markerColor}" />
+      ${logo && logo.src ? `
+        <image
+          href="${logo.src}"
+          x="${logoX}"
+          y="${logoY}"
+          width="${logoSize}"
+          height="${logoSize}"
+          preserveAspectRatio="xMidYMid meet"
+        />
+      ` : ''}
     </svg>`;
   };
 
