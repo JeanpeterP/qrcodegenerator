@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import styled from 'styled-components';
 import QRCodeStyling from "qr-code-styling";
@@ -11,6 +11,15 @@ import { Frame } from '../types';
 import { LogoType } from './LogoCustomization';
 import { AdvancedQRCode } from './AdvancedQRCode';
 import { QRPreviewWrapper } from './QRPreviewWrapper';
+import domToImage from 'dom-to-image';
+
+declare module 'dom-to-image' {
+  interface DomToImage {
+    toPng(node: HTMLElement, options?: any): Promise<string>;
+  }
+  const domToImage: DomToImage;
+
+}
 
 type PreviewType = 'qr' | 'phone';
 
@@ -61,6 +70,20 @@ interface PreviewProps {
     hideBackground: boolean;
 }
 
+// Utility function to convert an image URL to a base64 data URL
+const toDataURL = (url: string): Promise<string> =>
+  fetch(url)
+    .then((response) => response.blob())
+    .then(
+      (blob) =>
+        new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        })
+    );
+
 export const Preview: React.FC<PreviewProps> = ({
     qrCodeInstance,
     handleDownload,
@@ -92,7 +115,26 @@ export const Preview: React.FC<PreviewProps> = ({
     hideBackground,
 }) => {
     const qrCodeRef = useRef<HTMLDivElement>(null);
+    const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
+    const [watermarkDataUrl, setWatermarkDataUrl] = useState<string | null>(null);
     
+    useEffect(() => {
+        const prepareImages = async () => {
+            // Convert logo image to data URL
+            if (logo?.src && !logo.src.startsWith('data:')) {
+                const dataUrl = await toDataURL(logo.src);
+                setLogoDataUrl(dataUrl);
+            }
+
+            // Convert watermark image to data URL
+            if (watermark && !watermark.startsWith('data:')) {
+                const dataUrl = await toDataURL(watermark);
+                setWatermarkDataUrl(dataUrl);
+            }
+        };
+        prepareImages();
+    }, [logo?.src, watermark]);
+
     useEffect(() => {
         const renderQRCode = async () => {
             if (qrCodeRef.current) {
@@ -129,7 +171,7 @@ export const Preview: React.FC<PreviewProps> = ({
                                     markerShape={markerShape}
                                     markerColor={markerColor}
                                     shape={shape}
-                                    qrColor="#000000"
+                                    qrColor={markerColor}
                                     logo={logo}
                                     hideBackground={hideBackground}
                                 />
@@ -160,61 +202,125 @@ export const Preview: React.FC<PreviewProps> = ({
     ]);
 
     const handleDownloadClick = async () => {
-        console.log("Download started");
-        if (!qrCodeRef.current) {
-            console.log("QR code ref is null");
-            return;
-        }
-        
         try {
-            const qrContainer = qrCodeRef.current.closest('.qr-preview') as HTMLElement;
+            console.log("Download started");
+            
+            const qrContainer = qrCodeRef.current;
             if (!qrContainer) {
-                throw new Error('QR preview container not found');
+                throw new Error("QR container not found");
             }
 
-            // Store original styles
-            const originalStyle = qrContainer.style.cssText;
-            const originalQrStyle = qrCodeRef.current.style.cssText;
+            // Create a new canvas
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+                throw new Error("Could not get canvas context");
+            }
 
-            // Force container and QR code to full size
-            qrContainer.style.cssText = `
-                width: 1024px !important;
-                height: 1024px !important;
-                transform: none !important;
-                position: fixed !important;
-                top: -9999px !important;
-                left: -9999px !important;
-            `;
-            
-            qrCodeRef.current.style.cssText = `
-                width: 100% !important;
-                height: 100% !important;
-                transform: none !important;
-            `;
+            console.log("Drawing frame:", { frame, frameColor, frameThickness });
 
-            const containerCanvas = await html2canvas(qrContainer, {
-                scale: 1,
-                backgroundColor: null,
-                width: 1024,
-                height: 1024,
-                logging: true,
-                useCORS: true,
-                allowTaint: true,
+            // Set canvas size
+            canvas.width = 275;
+            canvas.height = 275;
+
+            // Draw frame if it exists
+            if (frame !== 'none') {
+                try {
+                    let frameSvg = '';
+                    if (typeof frame === 'string') {
+                        frameSvg = `
+                            <svg xmlns="http://www.w3.org/2000/svg" width="275" height="275">
+                                <rect x="0" y="0" width="275" height="275" 
+                                    fill="none" 
+                                    stroke="${frameColor}" 
+                                    stroke-width="${frameThickness}"
+                                    rx="${frame === 'rounded' ? '20' : '0'}"
+                                />
+                            </svg>
+                        `;
+                    } else if (frame.type === 'colorful' && frame.svg) {
+                        frameSvg = frame.svg;
+                    }
+
+                    if (frameSvg) {
+                        const frameBlob = new Blob([frameSvg], { type: 'image/svg+xml;charset=utf-8' });
+                        const frameUrl = URL.createObjectURL(frameBlob);
+                        
+                        await new Promise((resolve, reject) => {
+                            const frameImg = new Image();
+                            frameImg.onload = () => {
+                                ctx.drawImage(frameImg, 0, 0, 275, 275);
+                                URL.revokeObjectURL(frameUrl);
+                                resolve(null);
+                            };
+                            frameImg.onerror = reject;
+                            frameImg.src = frameUrl;
+                        });
+                    }
+                } catch (frameError) {
+                    console.error("Frame drawing error:", frameError);
+                }
+            }
+
+            // Get QR code SVG
+            const qrElement = qrContainer.querySelector('svg');
+            if (!qrElement) {
+                throw new Error("QR SVG element not found");
+            }
+
+            console.log("Drawing QR code");
+            const svgData = new XMLSerializer().serializeToString(qrElement);
+            const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+            const svgUrl = URL.createObjectURL(svgBlob);
+
+            await new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => {
+                    ctx.drawImage(img, 15, 15, 245, 245);
+                    URL.revokeObjectURL(svgUrl);
+                    resolve(null);
+                };
+                img.onerror = reject;
+                img.src = svgUrl;
             });
 
-            // Restore original styles
-            qrContainer.style.cssText = originalStyle;
-            qrCodeRef.current.style.cssText = originalQrStyle;
+            // Draw watermark
+            if (watermark !== 'none') {
+                console.log("Drawing watermark");
+                const watermarkSvg = getWatermarkSVG(watermark, watermarkColor);
+                const watermarkBlob = new Blob([watermarkSvg], { type: 'image/svg+xml;charset=utf-8' });
+                const watermarkUrl = URL.createObjectURL(watermarkBlob);
 
+                await new Promise((resolve, reject) => {
+                    const watermarkImg = new Image();
+                    watermarkImg.onload = () => {
+                        ctx.globalAlpha = Number(watermarkOpacity);
+                        ctx.drawImage(watermarkImg, 15, 15, 245, 245);
+                        ctx.globalAlpha = 1.0;
+                        URL.revokeObjectURL(watermarkUrl);
+                        resolve(null);
+                    };
+                    watermarkImg.onerror = reject;
+                    watermarkImg.src = watermarkUrl;
+                });
+            }
+
+            console.log("Creating download");
+            const dataUrl = canvas.toDataURL('image/png');
             const link = document.createElement('a');
-            link.download = `qr-code-${Date.now()}.png`;
-            link.href = containerCanvas.toDataURL('image/png');
+            link.download = 'qr-code.png';
+            link.href = dataUrl;
+            document.body.appendChild(link);
             link.click();
+            document.body.removeChild(link);
 
         } catch (error) {
             console.error("Error generating/downloading QR code:", error);
-            const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
-            alert(`Error generating QR code: ${errorMessage}`);
+            console.log("Error details:", {
+                message: (error as Error).message,
+                stack: (error as Error).stack,
+                elements: qrCodeRef.current?.innerHTML
+            });
         }
     };
 
@@ -320,3 +426,4 @@ const PreviewDownloadButton = styled.button`
         display: none; // Hide download button on mobile
     }
 `;
+
