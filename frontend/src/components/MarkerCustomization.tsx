@@ -9,6 +9,7 @@ import {
   OptionLabel,
 } from "../styles/OptionStyles";
 import { ColorPickerWithPresets } from './common/ColorPickerWithPresets';
+import { MarkerPreview } from './MarkerPreview';
 
 interface MarkerCustomizationProps {
   markerShape: string;
@@ -22,27 +23,17 @@ interface MarkerOption {
   label: string;
 }
 
-const MarkerPreview = ({ styleType }: { styleType: string }) => {
-  return (
-    <MarkerExampleContainer>
-      <MarkerOuter styleType={styleType}>
-        <MarkerInner styleType={styleType} />
-      </MarkerOuter>
-    </MarkerExampleContainer>
-  );
-};
-
 export const MarkerCustomization: React.FC<MarkerCustomizationProps> = ({
   markerShape,
   setMarkerShape,
   markerColor,
   setMarkerColor,
 }) => {
-  console.log('Current markerShape:', markerShape); // Debug log
+  console.log('Current markerShape:', markerShape);
 
   const handleMarkerClick = (value: string) => {
     console.log('Setting marker shape to:', value);
-    setMarkerShape(value); // Removed 'marker-' prefix
+    setMarkerShape(value);
   };
 
   const markerOptions = [
@@ -57,8 +48,6 @@ export const MarkerCustomization: React.FC<MarkerCustomizationProps> = ({
     { value: 'marker-star', label: 'Star' },
   ];
 
-  const currentShape = markerShape;
-
   return (
     <>
       <GridContainer>
@@ -70,7 +59,10 @@ export const MarkerCustomization: React.FC<MarkerCustomizationProps> = ({
               onClick={() => setMarkerShape(option.value)}
             >
               <PreviewContainer>
-                <MarkerPreview styleType={option.value} />
+                <MarkerPreview 
+                  styleType={option.value} 
+                  markerColor={markerColor}
+                />
               </PreviewContainer>
               <OptionLabel>{option.label}</OptionLabel>
             </OptionBox>
