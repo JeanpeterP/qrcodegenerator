@@ -343,7 +343,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     // Add near your other state declarations
     const [isQRPreview, setIsQRPreview] = useState(true);
 
-    const [hideBackground, setHideBackground] = useState(false);
+    const [hideBackground, setHideBackground] = useState(true);
 
     useEffect(() => {
         setIsMounted(true);

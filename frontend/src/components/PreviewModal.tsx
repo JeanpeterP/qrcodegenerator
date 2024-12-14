@@ -393,22 +393,23 @@ const PreviewContainer = styled.div`
   padding: 16px 0;
   width: 100%;
   overflow: hidden;
+  
   #qr-code {
-    width: 300px;
-    height: 300px;
+    width: auto;
+    height: auto;
     display: flex;
     justify-content: center;
     align-items: center;
     
     & > div {
-      width: 100%;
-      height: 100%;
+      width: auto;
+      height: auto;
     }
   }
   
   .qr-preview {
-    width: 100%;
-    max-width: 300px;
+    width: auto;
+    max-width: none;
     margin: 0 auto;
   }
 `;

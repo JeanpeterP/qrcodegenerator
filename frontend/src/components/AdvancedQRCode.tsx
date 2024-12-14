@@ -29,7 +29,7 @@ export const AdvancedQRCode: React.FC<AdvancedQRCodeProps> = ({
   hideBackground,
 }) => {
   const generateQRCodeSVG = () => {
-    const qr = QRCode(0, 'L');
+    const qr = QRCode(0, 'H');
     qr.addData(data);
     qr.make();
 
@@ -172,10 +172,31 @@ export const AdvancedQRCode: React.FC<AdvancedQRCodeProps> = ({
       }
     };
 
-    // Calculate logo placement
-    const logoSize = size * 0.4; // 40% of the QR code size
-    const logoX = (size - logoSize) / 2;
-    const logoY = (size - logoSize) / 2;
+    // Calculate logo placement with dynamic sizing
+    const logoWidth = size * 0.4; // 40% of QR code size
+    const logoHeight = size * 0.4; // 40% of QR code size
+    const logoX = (size - logoWidth) / 2;
+    const logoY = (size - logoHeight) / 2;
+
+    // Reduce the hidden background area by using a percentage of the logo size based on logo type
+    const getReductionFactor = (logoType: LogoType | undefined) => {
+      switch (logoType) {
+        case 'modern-split':
+          return 0.7;
+        case 'circular':
+          return 0.8;
+        case 'minimal-frame':
+          return 0.9;
+        default:
+          return 0.8; // default reduction factor for other logo types
+      }
+    };
+
+    const reductionFactor = getReductionFactor(logo?.type);
+    const hiddenWidth = logoWidth * reductionFactor;
+    const hiddenHeight = logoHeight * reductionFactor;
+    const hiddenX = logoX + (logoWidth - hiddenWidth) / 2;
+    const hiddenY = logoY + (logoHeight - hiddenHeight) / 2;
 
     // Iterate through each module (cell) in the QR code
     for (let row = 0; row < moduleCount; row++) {
@@ -188,10 +209,10 @@ export const AdvancedQRCode: React.FC<AdvancedQRCodeProps> = ({
         if (
           hideBackground &&
           logo &&
-          x + cellSize > logoX - cellSize/2 && 
-          x < logoX + logoSize + cellSize/2 &&  
-          y + cellSize > logoY - cellSize/2 &&  
-          y < logoY + logoSize + cellSize/2     
+          x + cellSize > hiddenX &&
+          x < hiddenX + hiddenWidth &&
+          y + cellSize > hiddenY &&
+          y < hiddenY + hiddenHeight
         ) {
           continue;
         }
@@ -218,8 +239,8 @@ export const AdvancedQRCode: React.FC<AdvancedQRCodeProps> = ({
           href="${logo.src}"
           x="${logoX}"
           y="${logoY}"
-          width="${logoSize}"
-          height="${logoSize}"
+          width="${logoWidth}"
+          height="${logoHeight}"
           preserveAspectRatio="xMidYMid meet"
         />
       ` : ''}

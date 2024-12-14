@@ -7,7 +7,7 @@ import { AdvancedSettings } from './common/AdvancedSettings';
 import { Slider } from './common/Slider';
 import { Toggle } from './common/Toggle';
 
-export type LogoType = "custom" | "modern-split" | "circular" | "minimal-frame" | "tech-style";
+export type LogoType = 'modern-split' | 'circular' | 'minimal-frame' | 'tech-style' | 'instagram' | 'facebook' | 'custom';
 
 interface LogoCustomizationProps {
   logo: {
@@ -82,6 +82,8 @@ export const LogoCustomization: React.FC<LogoCustomizationProps> = ({
     { type: "circular", label: "Circular" },
     { type: "minimal-frame", label: "Minimal Frame" },
     { type: "tech-style", label: "Tech Style" },
+    { type: "instagram", label: "Instagram" },
+    { type: "facebook", label: "Facebook" },
   ];
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);

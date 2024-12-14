@@ -219,9 +219,9 @@ export const Preview: React.FC<PreviewProps> = ({
 
             console.log("Drawing frame:", { frame, frameColor, frameThickness });
 
-            // Set canvas size
-            canvas.width = 275;
-            canvas.height = 275;
+            // Set canvas size to 4x original size
+            canvas.width = 1100;
+            canvas.height = 1100;
 
             // Draw frame if it exists
             if (frame !== 'none') {
@@ -229,12 +229,12 @@ export const Preview: React.FC<PreviewProps> = ({
                     let frameSvg = '';
                     if (typeof frame === 'string') {
                         frameSvg = `
-                            <svg xmlns="http://www.w3.org/2000/svg" width="275" height="275">
-                                <rect x="0" y="0" width="275" height="275" 
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1100" height="1100">
+                                <rect x="0" y="0" width="1100" height="1100" 
                                     fill="none" 
                                     stroke="${frameColor}" 
-                                    stroke-width="${frameThickness}"
-                                    rx="${frame === 'rounded' ? '20' : '0'}"
+                                    stroke-width="${frameThickness * 4}"
+                                    rx="${frame === 'rounded' ? '80' : '0'}"
                                 />
                             </svg>
                         `;
@@ -249,7 +249,7 @@ export const Preview: React.FC<PreviewProps> = ({
                         await new Promise((resolve, reject) => {
                             const frameImg = new Image();
                             frameImg.onload = () => {
-                                ctx.drawImage(frameImg, 0, 0, 275, 275);
+                                ctx.drawImage(frameImg, 0, 0, 1100, 1100);
                                 URL.revokeObjectURL(frameUrl);
                                 resolve(null);
                             };
@@ -276,7 +276,7 @@ export const Preview: React.FC<PreviewProps> = ({
             await new Promise((resolve, reject) => {
                 const img = new Image();
                 img.onload = () => {
-                    ctx.drawImage(img, 15, 15, 245, 245);
+                    ctx.drawImage(img, 60, 60, 980, 980);
                     URL.revokeObjectURL(svgUrl);
                     resolve(null);
                 };
@@ -295,7 +295,7 @@ export const Preview: React.FC<PreviewProps> = ({
                     const watermarkImg = new Image();
                     watermarkImg.onload = () => {
                         ctx.globalAlpha = Number(watermarkOpacity);
-                        ctx.drawImage(watermarkImg, 15, 15, 245, 245);
+                        ctx.drawImage(watermarkImg, 60, 60, 980, 980);
                         ctx.globalAlpha = 1.0;
                         URL.revokeObjectURL(watermarkUrl);
                         resolve(null);
