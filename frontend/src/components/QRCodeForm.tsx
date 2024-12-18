@@ -217,6 +217,7 @@ export const QRCodeForm: React.FC<QRCodeFormProps> = ({
 }) => {
   const [useUpperCase, setUseUpperCase] = useState(false);
 
+
   return (
     <FormContainer>
             <SectionTitle>
@@ -237,13 +238,61 @@ export const QRCodeForm: React.FC<QRCodeFormProps> = ({
         switch (qrType) {
           case "url":
             return (
-              <Input
-                type="text"
-                name="url"
-                value={qrData.url}
-                onChange={handleInputChange}
-                placeholder={placeholder}
+              <Form>
+              <Label>
+                Action URL:
+                <Input
+                  type="text"
+                  name="actionUrl"
+                  value={qrData.url?.actionUrl || ''}
+                  onChange={(e) => handleInputChange(e, 'url')}
+                  placeholder="Enter the URL to navigate to"
+                  required
+                />
+              </Label>
+              <Label>
+                Title:
+                <Input
+                  type="text"
+                  name="title"
+                  value={qrData.url?.title || ''}
+                  onChange={(e) => handleInputChange(e, 'url')}
+                  placeholder="Enter title"
+                />
+              </Label>
+              <Label>
+                Description:
+                <TextArea
+                  name="description"
+                  value={qrData.url?.description || ''}
+                  onChange={(e) => handleInputChange(e, 'url')}
+                  placeholder="Enter description"
+                />
+              </Label>
+              <URLBannerUploadField 
+                qrData={qrData} 
+                handleInputChange={handleInputChange} 
               />
+              <Label>
+                Button Text:
+                <Input
+                  type="text"
+                  name="buttonText"
+                  value={qrData.url?.buttonText || ''}
+                  onChange={(e) => handleInputChange(e, 'url')}
+                  placeholder="Enter button text"
+                />
+              </Label>
+              <Label>
+                Button Color:
+                <Input
+                  type="color"
+                  name="buttonColor"
+                  value={qrData.url?.buttonColor || '#ff6320'}
+                  onChange={(e) => handleInputChange(e, 'url')}
+                />
+              </Label>
+            </Form>
             );
           case "email":
             return (
@@ -917,3 +966,44 @@ const TypeLabel = styled.span`
   color: #333;
   font-weight: 500;
 `;
+
+const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+`;
+
+function URLBannerUploadField({
+  qrData,
+  handleInputChange,
+}: {
+  qrData: QRData;
+  handleInputChange: HandleInputChangeFunction;
+}) {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      // Store the actual File object (not just a path)
+      handleInputChange(
+        {
+          target: {
+            name: 'bannerImageData',
+            value: e.target.files[0],
+          },
+        } as unknown as React.ChangeEvent<HTMLInputElement>,
+        'url'
+      );
+    }
+  };
+
+  return (
+    <div>
+      <label>Banner Image:</label>
+      <input
+        type="file"
+        onChange={handleFileChange}
+        accept="image/*"
+      />
+    </div>
+  );
+}

@@ -185,7 +185,14 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
     const [isMounted, setIsMounted] = useState(false);
     const [qrType, setQRType] = useState<QRType>('url');
     const [qrData, setQRData] = useState<QRData>({
-        url: "https://example.com",
+        url: {
+            actionUrl: "",
+            title: "",
+            description: "",
+            buttonText: "View More",
+            buttonColor: "#ff6320",
+            bannerImageData: null,
+        },
         email: { address: "", subject: "", message: "" },
         vcard: { name: "", phone: "", company: "", address: "" },
         video: { url: "" },
@@ -368,7 +375,12 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
 
     const generateQRCodeData = async () => {
         switch (qrType) {
+            case "url":
+                // Return local data for preview, only make API call when downloading
+                return qrData.url?.actionUrl || '';
+                
             case "file":
+                // Keep existing file upload logic
                 try {
                     console.log('Handling file upload...', qrData.file);
                     
@@ -427,8 +439,7 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                     console.error('Error creating file QR code:', error);
                     throw error;
                 }
-            case "url":
-                return qrData.url;
+            
             case "email":
                 return `mailto:${qrData.email.address}?subject=${encodeURIComponent(
                     qrData.email.subject
@@ -513,6 +524,34 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
                 }
             default:
                 return "";
+        }
+    };
+
+    // Add new function for actual URL upload
+    const generateUrlQRCode = async () => {
+        try {
+            const response = await fetch(`${getBackendUrl()}/api/upload/url`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title: qrData.url?.title,
+                    description: qrData.url?.description,
+                    buttonText: qrData.url?.buttonText,
+                    buttonColor: qrData.url?.buttonColor,
+                    actionUrl: qrData.url?.actionUrl
+                }),
+            });
+
+            const data = await response.json();
+            if (data.success && data.qrId) {
+                return `${getBackendUrl()}/qr/${data.qrId}`;
+            }
+            throw new Error('Failed to create URL QR code');
+        } catch (error) {
+            console.error('Error creating URL QR code:', error);
+            throw error;
         }
     };
 
@@ -1128,11 +1167,18 @@ export default function QRCodeGenerator(props: QRCodeGeneratorProps) {
 
                     {previewType === 'qr' && (
                         <Preview
+                            pageUrl={qrType === 'url' ? qrData.url?.actionUrl || '' : `${getBackendUrl()}/qr/${generatedUrl}`}
                             qrCodeInstance={(props: any) => (
                                 <AdvancedQRCode {...props} />
                             )}
-                            data={qrData.url || qrData.text || 'Preview'}
-                            handleDownload={handleDownload}
+                            handleDownload={async () => {
+                                if (qrType === 'url') {
+                                    const pageUrl = await generateUrlQRCode();
+                                    setGeneratedUrl(pageUrl.split('/').pop() || null);
+                                }
+                                await handleDownload();
+                            }}
+                            data={qrData.url?.actionUrl || qrData.text || 'Preview'}
                             generateQRCodeData={generateQRCodeData}
                             size={qrSize}
                             frame={frame}

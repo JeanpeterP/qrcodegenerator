@@ -6,10 +6,13 @@ const qrCodeSchema = new mongoose.Schema({
   description: String,
   contentType: { 
     type: String, 
-    enum: ['download', 'multiplink', 'youtube'] 
+    enum: ['download', 'multiplink', 'youtube', 'url'] 
   },
+  logoUrl: String,
   buttonColor: String,
   buttonText: String,
+  actionUrl: String,
+  bannerImageUrl: String,
   fileUrl: String,
   originalFileName: String,
   contentData: {

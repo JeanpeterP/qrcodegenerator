@@ -4,6 +4,7 @@ import QRCodeGenerator from './components/QRCodeGenerator';
 import QRCodeGeneratorEmbed from './components/QRCodeGeneratorEmbed';
 import MultiLinkQRPage from './pages/MultiLinkQRPage';
 import DownloadQRPage from './pages/DownloadQRPage';
+import QRPage from './pages/QRPage';
 
 function App() {
     // Check if we're in embed mode
@@ -17,8 +18,7 @@ function App() {
         <Router>
             <Routes>
                 <Route path="/" element={<QRCodeGenerator />} />
-                <Route path="/multi-link/:id" element={<MultiLinkQRPage />} />
-                <Route path="/download/:id" element={<DownloadQRPage />} />
+                <Route path="/qr/:id" element={<QRPage />} />
             </Routes>
         </Router>
     );

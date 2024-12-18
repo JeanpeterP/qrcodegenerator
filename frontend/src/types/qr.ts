@@ -1,6 +1,5 @@
 export interface QRData {
     data?: string;
-    url: string;
     email: { address: string; subject: string; message: string };
     vcard: { name: string; phone: string; company: string; address: string };
     video: { url: string };
@@ -53,8 +52,14 @@ export interface QRData {
         deviceId: string;
         configData: string;
     };
+    url: {
+        actionUrl: string;
+        title?: string;
+        description?: string;
+        buttonText?: string;
+        buttonColor?: string;
+        bannerImageData?: File | null;
+    };
 } 
 
-export type QRType = 'url' | 'email' | 'vcard' | 'wifi' | 'text' | 'whatsapp' | 'sms' | 
-    'twitter' | 'facebook' | 'pdf' | 'mp3' | 'app' | 'image' | 'multiplink' | 
-    'youtube' | 'file' | 'ar' | 'crypto' | 'dynamicVcard' | 'iotConfig' | 'video';
+export type QRType = 'url' | 'email' | 'vcard' | 'wifi' | 'text' | 'whatsapp' | 'sms' | 'twitter' | 'facebook' | 'pdf' | 'mp3' | 'app' | 'image' | 'multiplink' | 'youtube' | 'file' | 'ar' | 'crypto' | 'dynamicVcard' | 'contentData' | 'video';

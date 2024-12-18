@@ -8,6 +8,7 @@ const cors = require('cors');
 
 const uploadRouter = require('./routes/upload');
 const qrRouter = require('./routes/qr');
+const uploadBannerRouter = require('./routes/uploadBanner');
 
 const app = express();
 
@@ -23,8 +24,7 @@ app.use((req, res, next) => {
 
 // CORS configuration
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  origin: 'http://localhost:3001',
   credentials: true
 }));
 
@@ -51,8 +51,9 @@ app.set('view engine', 'ejs');
 
 // Routes - Important: Order matters!
 // API routes should come BEFORE the static file serving
-app.use('/api/qr', qrRouter);  // This should handle all /api/qr/* routes
 app.use('/api', uploadRouter);
+app.use('/api', uploadBannerRouter);
+app.use('/api/qr', qrRouter);
 
 // Static file serving
 if (process.env.NODE_ENV === 'production') {

@@ -11,15 +11,8 @@ import { Frame } from '../types';
 import { LogoType } from './LogoCustomization';
 import { AdvancedQRCode } from './AdvancedQRCode';
 import { QRPreviewWrapper } from './QRPreviewWrapper';
-import domToImage from 'dom-to-image';
+import { getBackendUrl } from '../utils/constants';
 
-declare module 'dom-to-image' {
-  interface DomToImage {
-    toPng(node: HTMLElement, options?: any): Promise<string>;
-  }
-  const domToImage: DomToImage;
-
-}
 
 type PreviewType = 'qr' | 'phone';
 
@@ -68,6 +61,7 @@ interface PreviewProps {
     generateQRCode?: boolean;
     data: string;
     hideBackground: boolean;
+    pageUrl: string;
 }
 
 // Utility function to convert an image URL to a base64 data URL
@@ -113,6 +107,7 @@ export const Preview: React.FC<PreviewProps> = ({
     size,
     data,
     hideBackground,
+    pageUrl,
 }) => {
     const qrCodeRef = useRef<HTMLDivElement>(null);
     const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
@@ -166,7 +161,7 @@ export const Preview: React.FC<PreviewProps> = ({
                                 logo={logo}
                             >
                                 <AdvancedQRCode
-                                    data={data}
+                                    data={pageUrl}
                                     size={size}
                                     markerShape={markerShape}
                                     markerColor={markerColor}
@@ -205,115 +200,168 @@ export const Preview: React.FC<PreviewProps> = ({
         try {
             console.log("Download started");
             
-            const qrContainer = qrCodeRef.current;
-            if (!qrContainer) {
-                throw new Error("QR container not found");
+            // Create form data to handle file upload
+            const formData = new FormData();
+            formData.append('title', qrData.url?.title || '');
+            formData.append('description', qrData.url?.description || '');
+            formData.append('buttonText', qrData.url?.buttonText || '');
+            formData.append('buttonColor', qrData.url?.buttonColor || '');
+            formData.append('actionUrl', qrData.url?.actionUrl || '');
+            
+            // Add banner image if it exists
+            if (qrData.url?.bannerImageData) {
+                formData.append('file', qrData.url.bannerImageData);
             }
 
-            // Create a new canvas
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            if (!ctx) {
-                throw new Error("Could not get canvas context");
-            }
-
-            console.log("Drawing frame:", { frame, frameColor, frameThickness });
-
-            // Set canvas size to 4x original size
-            canvas.width = 1100;
-            canvas.height = 1100;
-
-            // Draw frame if it exists
-            if (frame !== 'none') {
-                try {
-                    let frameSvg = '';
-                    if (typeof frame === 'string') {
-                        frameSvg = `
-                            <svg xmlns="http://www.w3.org/2000/svg" width="1100" height="1100">
-                                <rect x="0" y="0" width="1100" height="1100" 
-                                    fill="none" 
-                                    stroke="${frameColor}" 
-                                    stroke-width="${frameThickness * 4}"
-                                    rx="${frame === 'rounded' ? '80' : '0'}"
-                                />
-                            </svg>
-                        `;
-                    } else if (frame.type === 'colorful' && frame.svg) {
-                        frameSvg = frame.svg;
-                    }
-
-                    if (frameSvg) {
-                        const frameBlob = new Blob([frameSvg], { type: 'image/svg+xml;charset=utf-8' });
-                        const frameUrl = URL.createObjectURL(frameBlob);
-                        
-                        await new Promise((resolve, reject) => {
-                            const frameImg = new Image();
-                            frameImg.onload = () => {
-                                ctx.drawImage(frameImg, 0, 0, 1100, 1100);
-                                URL.revokeObjectURL(frameUrl);
-                                resolve(null);
-                            };
-                            frameImg.onerror = reject;
-                            frameImg.src = frameUrl;
-                        });
-                    }
-                } catch (frameError) {
-                    console.error("Frame drawing error:", frameError);
-                }
-            }
-
-            // Get QR code SVG
-            const qrElement = qrContainer.querySelector('svg');
-            if (!qrElement) {
-                throw new Error("QR SVG element not found");
-            }
-
-            console.log("Drawing QR code");
-            const svgData = new XMLSerializer().serializeToString(qrElement);
-            const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-            const svgUrl = URL.createObjectURL(svgBlob);
-
-            await new Promise((resolve, reject) => {
-                const img = new Image();
-                img.onload = () => {
-                    ctx.drawImage(img, 60, 60, 980, 980);
-                    URL.revokeObjectURL(svgUrl);
-                    resolve(null);
-                };
-                img.onerror = reject;
-                img.src = svgUrl;
+            const response = await fetch(`${getBackendUrl()}/api/upload/url`, {
+                method: 'POST',
+                body: formData, // Send as FormData instead of JSON
             });
 
-            // Draw watermark
-            if (watermark !== 'none') {
-                console.log("Drawing watermark");
-                const watermarkSvg = getWatermarkSVG(watermark, watermarkColor);
-                const watermarkBlob = new Blob([watermarkSvg], { type: 'image/svg+xml;charset=utf-8' });
-                const watermarkUrl = URL.createObjectURL(watermarkBlob);
+            const result = await response.json();
+            if (result.success && result.qrId) {
+                const finalUrl = `${getBackendUrl()}/qr/${result.qrId}`;
+
+                // Create QR code with the landing page URL
+                const qrContainer = qrCodeRef.current;
+                if (!qrContainer) {
+                    throw new Error("QR container not found");
+                }
+
+                // Update QR code with the correct URL before downloading
+                ReactDOM.render(
+                    <QRPreviewWrapper
+                        cutter={cutter}
+                        cutterColor={cutterColor}
+                        opacity={opacity}
+                        frame={frame}
+                        frameColor={frameColor}
+                        frameThickness={frameThickness}
+                        watermark={watermark}
+                        watermarkColor={watermarkColor}
+                        watermarkOpacity={watermarkOpacity}
+                        markerShape={markerShape}
+                        markerColor={markerColor}
+                        logo={logo}
+                    >
+                        <AdvancedQRCode
+                            data={finalUrl}  // Use the landing page URL
+                            size={size}
+                            markerShape={markerShape}
+                            markerColor={markerColor}
+                            shape={shape}
+                            qrColor={markerColor}
+                            logo={logo}
+                            hideBackground={hideBackground}
+                        />
+                    </QRPreviewWrapper>,
+                    qrContainer
+                );
+
+                // Create a new canvas
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                if (!ctx) {
+                    throw new Error("Could not get canvas context");
+                }
+
+                console.log("Drawing frame:", { frame, frameColor, frameThickness });
+
+                // Set canvas size to 4x original size
+                canvas.width = 1100;
+                canvas.height = 1100;
+
+                // Draw frame if it exists
+                if (frame !== 'none') {
+                    try {
+                        let frameSvg = '';
+                        if (typeof frame === 'string') {
+                            frameSvg = `
+                                <svg xmlns="http://www.w3.org/2000/svg" width="1100" height="1100">
+                                    <rect x="0" y="0" width="1100" height="1100" 
+                                        fill="none" 
+                                        stroke="${frameColor}" 
+                                        stroke-width="${frameThickness * 4}"
+                                        rx="${frame === 'rounded' ? '80' : '0'}"
+                                    />
+                                </svg>
+                            `;
+                        } else if (frame.type === 'colorful' && frame.svg) {
+                            frameSvg = frame.svg;
+                        }
+
+                        if (frameSvg) {
+                            const frameBlob = new Blob([frameSvg], { type: 'image/svg+xml;charset=utf-8' });
+                            const frameUrl = URL.createObjectURL(frameBlob);
+                            
+                            await new Promise((resolve, reject) => {
+                                const frameImg = new Image();
+                                frameImg.onload = () => {
+                                    ctx.drawImage(frameImg, 0, 0, 1100, 1100);
+                                    URL.revokeObjectURL(frameUrl);
+                                    resolve(null);
+                                };
+                                frameImg.onerror = reject;
+                                frameImg.src = frameUrl;
+                            });
+                        }
+                    } catch (frameError) {
+                        console.error("Frame drawing error:", frameError);
+                    }
+                }
+
+                // Get QR code SVG
+                const qrElement = qrContainer.querySelector('svg');
+                if (!qrElement) {
+                    throw new Error("QR SVG element not found");
+                }
+
+                console.log("Drawing QR code");
+                const svgData = new XMLSerializer().serializeToString(qrElement);
+                const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+                const svgUrl = URL.createObjectURL(svgBlob);
 
                 await new Promise((resolve, reject) => {
-                    const watermarkImg = new Image();
-                    watermarkImg.onload = () => {
-                        ctx.globalAlpha = Number(watermarkOpacity);
-                        ctx.drawImage(watermarkImg, 60, 60, 980, 980);
-                        ctx.globalAlpha = 1.0;
-                        URL.revokeObjectURL(watermarkUrl);
+                    const img = new Image();
+                    img.onload = () => {
+                        ctx.drawImage(img, 60, 60, 980, 980);
+                        URL.revokeObjectURL(svgUrl);
                         resolve(null);
                     };
-                    watermarkImg.onerror = reject;
-                    watermarkImg.src = watermarkUrl;
+                    img.onerror = reject;
+                    img.src = svgUrl;
                 });
+
+                // Draw watermark
+                if (watermark !== 'none') {
+                    console.log("Drawing watermark");
+                    const watermarkSvg = getWatermarkSVG(watermark, watermarkColor);
+                    const watermarkBlob = new Blob([watermarkSvg], { type: 'image/svg+xml;charset=utf-8' });
+                    const watermarkUrl = URL.createObjectURL(watermarkBlob);
+
+                    await new Promise((resolve, reject) => {
+                        const watermarkImg = new Image();
+                        watermarkImg.onload = () => {
+                            ctx.globalAlpha = Number(watermarkOpacity);
+                            ctx.drawImage(watermarkImg, 60, 60, 980, 980);
+                            ctx.globalAlpha = 1.0;
+                            URL.revokeObjectURL(watermarkUrl);
+                            resolve(null);
+                        };
+                        watermarkImg.onerror = reject;
+                        watermarkImg.src = watermarkUrl;
+                    });
+                }
+
+                console.log("Creating download");
+                const dataUrl = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.download = 'qr-code.png';
+                link.href = dataUrl;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
             }
-
-            console.log("Creating download");
-            const dataUrl = canvas.toDataURL('image/png');
-            const link = document.createElement('a');
-            link.download = 'qr-code.png';
-            link.href = dataUrl;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
         } catch (error) {
             console.error("Error generating/downloading QR code:", error);
             console.log("Error details:", {
